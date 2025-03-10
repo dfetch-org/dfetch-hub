@@ -1,0 +1,18 @@
+repos:
+- repo: local
+  hooks:
+  -   id: isort
+      name: import sorting
+      entry: isort
+      language: python
+  -   id: black
+      name: black formatter
+      entry: black
+      language: system
+      types: [file, python]
+  -   id: pylint
+      name: lint python files
+      entry: pylint
+      language: system
+      files: ^src/
+      types: [file, python]

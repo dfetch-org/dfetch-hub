@@ -1,0 +1,10 @@
+# This is a generated file by dfetch. Don't edit this, but edit the manifest.
+# For more info see https://dfetch.rtfd.io/en/latest/getting_started.html
+dfetch:
+  branch: main
+  hash: 9bb1320bd8367d6a33ecc4150e319108
+  last_fetch: 10/03/2025, 16:16:46
+  patch: ''
+  remote_url: https://github.com/dfetch-org/dfetch
+  revision: c037c000e200704f3db1ac6af1aceeb79cb1954c
+  tag: ''

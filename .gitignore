@@ -1,0 +1,13 @@
+__pycache__
+.coverage
+.mypy_cache
+.pytest_cache
+.vscode
+build
+coverage.xml
+dfetch_hub.egg-info
+dist
+doc/_build
+doc/landing-page/_build
+example/Tests/
+venv*

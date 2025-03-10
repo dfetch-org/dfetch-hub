@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dfetch_hub"
+version = "0.0.1"
+authors = [
+  { name="p sacharias", email="p.sacharias@gmail.com" },
+]
+description = "Dfetch Hub"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "dfetch==0.9.1",
+    "PyYAML==6.0.2"
+]
+
+[project.optional-dependencies] # https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#writing-pyproject-toml
+development = [
+    "isort==6.0.0",
+    "mypy==1.14.1",
+    "pre-commit==4.1.0",
+    "pylint==3.3.4",
+    "pytest==8.3.4",
+    "pytest-cov==6.0.0",
+    "vcrpy==7.0.0",
+]
+gui = [
+    "thefuzz==0.22.1",
+    "nicegui==2.11.1"
+]
+[project.urls]
+Homepage = "https://github.com/dfetch-org/dfetch-hub"
+Issues = "https://github.com/dfetch-org/dfetch-hub/issues"
+
+[project.scripts]
+DfetchHub-cli = "dfetch_hub.project.cli:main_cli"
+
+[tool.pylint.format]
+max-line-length = "88"

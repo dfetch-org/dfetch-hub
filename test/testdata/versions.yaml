@@ -1,0 +1,5 @@
+projects:
+- name: CppUTest
+  repo-path: cpputest.git
+  url: https://github.com/cpputest/
+  vcs: git
