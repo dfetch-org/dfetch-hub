@@ -11,3 +11,4 @@ manifest:
     repo-path: dfetch-org/dfetch
     src: .devcontainer
     branch: main
+    patch: dfetch-devcontainer.patch

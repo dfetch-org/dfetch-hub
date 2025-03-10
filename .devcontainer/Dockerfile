@@ -7,10 +7,10 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     subversion=1.14.1-3+deb11u1 && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /workspaces/dfetch
+WORKDIR /workspaces/dfetch-hub
 
 # Add a non-root user (dev)
-RUN useradd -m dev && chown -R dev:dev /workspaces/dfetch
+RUN useradd -m dev && chown -R dev:dev /workspaces/dfetch-hub
 
 USER dev
 
