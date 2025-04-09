@@ -7,6 +7,7 @@ name = "dfetch_hub"
 version = "0.0.1"
 authors = [
   { name="p sacharias", email="p.sacharias@gmail.com" },
+  { name="ben spoor", email="b.spoor@edna.eu" },
 ]
 description = "Dfetch Hub"
 readme = "README.md"
