@@ -15,11 +15,13 @@ RUN useradd -m dev && chown -R dev:dev /workspaces/dfetch-hub
 USER dev
 
 ENV PATH="/home/dev/.local/bin:${PATH}"
+ENV PYTHONPATH="/home/dev/.local/lib/python3.12"
+ENV PYTHONUSERBASE="/home/dev/.local"
 
 COPY --chown=dev:dev . .
 
-RUN pip install --no-cache-dir --root-user-action=ignore --upgrade pip==24.3.1 \
-    && pip install --no-cache-dir --root-user-action=ignore -e .[development,docs,test,casts] \
+RUN pip install --no-cache-dir --root-user-action=ignore --upgrade pip==25.0.1 \
+    && pip install --no-cache-dir --root-user-action=ignore -e .[gui] \
     && pre-commit install --install-hooks
 
 # Set bash as the default shell

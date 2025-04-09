@@ -1,7 +1,7 @@
-diff --git c/Dockerfile w/Dockerfile
-index 47c3efb..d537212 100644
---- c/Dockerfile
-+++ w/Dockerfile
+diff --git a/Dockerfile b/Dockerfile
+index b3e8653..4d68823 100644
+--- a/Dockerfile
++++ b/Dockerfile
 @@ -7,10 +7,10 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
      subversion=1.14.1-3+deb11u1 && \
      rm -rf /var/lib/apt/lists/*
@@ -15,10 +15,19 @@ index 47c3efb..d537212 100644
  
  USER dev
  
-diff --git c/devcontainer.json w/devcontainer.json
+@@ -21,7 +21,7 @@ ENV PYTHONUSERBASE="/home/dev/.local"
+ COPY --chown=dev:dev . .
+ 
+ RUN pip install --no-cache-dir --root-user-action=ignore --upgrade pip==25.0.1 \
+-    && pip install --no-cache-dir --root-user-action=ignore -e .[development,docs,test,casts] \
++    && pip install --no-cache-dir --root-user-action=ignore -e .[gui] \
+     && pre-commit install --install-hooks
+ 
+ # Set bash as the default shell
+diff --git a/devcontainer.json b/devcontainer.json
 index 3cc8f4d..263377c 100644
---- c/devcontainer.json
-+++ w/devcontainer.json
+--- a/devcontainer.json
++++ b/devcontainer.json
 @@ -33,6 +33,6 @@
        }
      }
