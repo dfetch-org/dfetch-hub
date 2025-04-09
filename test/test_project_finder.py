@@ -30,6 +30,7 @@ def test_find_pyfixed_gitlab():
     assert len(projects) == 1
     assert "pyfixed" in projects
 
+
 def test_find_cpputest_github_exclusion_filer():
     url = "https://github.com/cpputest/cpputest.git"
     exclusions = ["platforms.*", ".*examples.*", "scripts"]

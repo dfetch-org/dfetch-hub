@@ -1,13 +1,17 @@
 """export module"""
+
 from abc import ABC
+
 from dfetch.manifest.manifest import Manifest, ManifestDict
 from dfetch.manifest.project import ProjectEntry, ProjectEntryDict
 from dfetch.manifest.remote import Remote, RemoteDict
+
 
 class Export(ABC):
 
     def export(self):
         pass
+
 
 class DfetchExport(Export):
 
@@ -25,9 +29,21 @@ class DfetchExport(Export):
         return self._entries
 
     def export(self, path=None):
-        remotes = [] # TODO: bundle projects with shared path in remotes
-        projects = [ProjectEntryDict(name=entry.name, revision=entry.revision, src=entry.src, url=entry.url, repo_path=entry.repo_path, vcs=entry.vcs) for entry in self._entries]
-        as_dict = ManifestDict(version = Manifest.CURRENT_VERSION, remotes=remotes,  projects=projects)
+        remotes = []  # TODO: bundle projects with shared path in remotes
+        projects = [
+            ProjectEntryDict(
+                name=entry.name,
+                revision=entry.revision,
+                src=entry.src,
+                url=entry.url,
+                repo_path=entry.repo_path,
+                vcs=entry.vcs,
+            )
+            for entry in self._entries
+        ]
+        as_dict = ManifestDict(
+            version=Manifest.CURRENT_VERSION, remotes=remotes, projects=projects
+        )
         if not path:
             path = "dfetch.yaml"
         Manifest(as_dict).dump(path)

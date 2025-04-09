@@ -1,39 +1,53 @@
 """test dfetch export functionality"""
+
 import os
+from dataclasses import dataclass
+
 import pytest
 
 from dfetch_hub.project.export import DfetchExport
-from dataclasses import dataclass
+
 
 @dataclass
 class EntryMock:
-    name:str
-    revision:str
-    src:str
-    url:str
-    repo_path:str
-    vcs:str="git"
+    name: str
+    revision: str
+    src: str
+    url: str
+    repo_path: str
+    vcs: str = "git"
+
 
 @pytest.fixture
 def entry():
-    return EntryMock("test", "0123456789abcdef", "/src", "http://test.test", "test_path")
+    return EntryMock(
+        "test", "0123456789abcdef", "/src", "http://test.test", "test_path"
+    )
+
 
 @pytest.fixture
 def entries():
-    entry = EntryMock("test", "0123456789abcdef", "/src", "http://test.test", "test_path")
-    entry2 = EntryMock("test2", "0123456789abcdef2", "/src2", "http://test.test2", "test_path2")
+    entry = EntryMock(
+        "test", "0123456789abcdef", "/src", "http://test.test", "test_path"
+    )
+    entry2 = EntryMock(
+        "test2", "0123456789abcdef2", "/src2", "http://test.test2", "test_path2"
+    )
     return [entry, entry2]
 
+
 def test_add_entry(entry):
-    export  = DfetchExport()
+    export = DfetchExport()
     export.add_entry(entry)
     assert len(export.entries) == 1
     assert entry in export.entries
+
 
 def test_from_entry(entry):
     export = DfetchExport([entry])
     assert len(export.entries) == 1
     assert entry in export.entries
+
 
 def test_multiple_entries(entries):
     export = DfetchExport()
@@ -42,6 +56,7 @@ def test_multiple_entries(entries):
     assert len(export.entries) == len(entries)
     for entry in entries:
         assert entry in export.entries
+
 
 def test_yaml_file(entries):
     export = DfetchExport()

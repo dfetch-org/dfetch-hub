@@ -1,4 +1,5 @@
 """sample of a possible nicegui based gui"""
+
 from nicegui import events, ui
 from thefuzz import fuzz
 

@@ -1,7 +1,10 @@
 """test cli module"""
+
 import pytest
 from test_common import ParserMock
+
 from dfetch_hub.project.cli import main
+
 
 @pytest.fixture
 def parser_no_args():
