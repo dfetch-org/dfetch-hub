@@ -6,7 +6,7 @@ import re
 import sys
 from abc import abstractmethod
 from contextlib import chdir
-from typing import Optional, Sequence
+from typing import List, Optional, Sequence, Set, Tuple, Union
 
 from dfetch.util.cmdline import SubprocessCommandError, run_on_cmdline
 
@@ -18,23 +18,23 @@ WORKDIR = "tmp"
 class ProjectFinder:
     """class to find projects in repositories"""
 
-    def __init__(self, url: str, exclusions: Optional[Sequence[str]] = None):
+    def __init__(self, url: str, exclusions: Optional[List[str]] = None):
         self._url = url
         self._logger = logging.getLogger()
-        self._projects: list[str] = []
-        self._exclusions = exclusions
+        self._projects: list[RemoteProject] = []
+        self._exclusions: List[str] = exclusions or []
 
     @property
-    def url(self):
+    def url(self) -> str:
         """repo url"""
         return self._url
 
     @abstractmethod
-    def list_projects(self):
+    def list_projects(self) -> list[RemoteProject]:
         """list all projects in a repo"""
         raise AssertionError("abstractmethod")
 
-    def filter_exclusions(self, paths: Sequence[str]):
+    def filter_exclusions(self, paths: Union[List[str], Set[str]]) -> List[str]:
         """filter exclusions from list of projects"""
         filtered_paths = []
         for path in paths:
@@ -53,15 +53,15 @@ class ProjectFinder:
                 if path_allowed and path not in filtered_paths:
                     filtered_paths += [path]
             else:
-                filtered_paths = paths
+                filtered_paths = list(paths)
         return filtered_paths
 
     @property
-    def exclusions(self):
+    def exclusions(self) -> Optional[List[str]]:
         """get exclusion for project finder"""
         return self._exclusions
 
-    def add_exclusion(self, exclusion):
+    def add_exclusion(self, exclusion: Optional[str]) -> None:
         """add an exclusion regex"""
         if exclusion:
             if not self._exclusions:
@@ -69,7 +69,7 @@ class ProjectFinder:
             self._exclusions += [exclusion]
             print(f"exclusions are {self.exclusions}")
 
-    def filter_projects(self):
+    def filter_projects(self) -> None:
         """filter projects on exclusions"""
         for project in self._projects:
             path = f"{project.url, project.repo_path, project.src}"
@@ -92,7 +92,7 @@ class ProjectFinder:
 class GitProjectFinder(ProjectFinder):
     """git implementation of project finder"""
 
-    def list_projects(self):
+    def list_projects(self) -> List[RemoteProject]:
         """list all git projects in a git repo"""
         if not self._projects:
             if os.path.exists(WORKDIR) and os.path.isdir(WORKDIR):
@@ -144,8 +144,11 @@ class GitProjectFinder(ProjectFinder):
         return self._projects
 
     def _projects_from_paths(
-        self, paths: Sequence[str], branches=Sequence[str], tags=Sequence[str]
-    ):
+        self,
+        paths: Sequence[str],
+        branches: Sequence[Tuple[str, str]],
+        tags: Sequence[Tuple[str, str]],
+    ) -> List[RemoteProject]:
         projects = []
         for path in paths:
             if "/" in path:
@@ -164,7 +167,7 @@ class GitProjectFinder(ProjectFinder):
         return projects
 
 
-def _base_url(url):
+def _base_url(url: str) -> Tuple[str, str]:
     if "://" in url:
         url = url.split("://", maxsplit=1)[1]
     if "/" in url:

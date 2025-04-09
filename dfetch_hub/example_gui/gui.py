@@ -1,13 +1,16 @@
 """sample of a possible nicegui based gui"""
 
+from typing import Optional, Sequence
+
 from nicegui import events, ui
 from thefuzz import fuzz
 
-from dfetch_hub.project.project_finder import GitProjectFinder
+from dfetch_hub.project.project_finder import GitProjectFinder, ProjectFinder
 from dfetch_hub.project.project_sources import RemoteSource, SourceList
+from dfetch_hub.project.remote_datasource import RemoteProject, RemoteRef
 
 
-def main():
+def main() -> None:
     """main gui runner"""
     ui.context.sl = SourceList()
     ui.context.pf = []
@@ -19,7 +22,7 @@ def main():
     ui.run(title="dfetch project viewer", reconnect_timeout=30)
 
 
-def header():
+def header() -> None:
     """main gui header"""
     with ui.header().classes("bg-black text-white p-4"):
         with ui.row().classes(
@@ -37,7 +40,7 @@ def header():
 
 
 @ui.page("/sources")
-def sources_page():
+def sources_page() -> None:
     """page to enter sources to search"""
     header()
     with ui.column().classes("w-1/3 mx-auto mt-10"):
@@ -46,7 +49,7 @@ def sources_page():
         sources_input()
 
 
-def add_projects_to_page():
+def add_projects_to_page() -> None:
     """add list of project finder results to page"""
     if not ui.context.pf:
         ui.context.pf = []
@@ -66,7 +69,9 @@ def add_projects_to_page():
             ui.notification(f"{e}")
 
 
-def add_project_finder_to_page(pf, projects=None):
+def add_project_finder_to_page(
+    pf: ProjectFinder, projects: Optional[Sequence[RemoteProject]] = None
+) -> None:
     """add single project finder result to page"""
     if not projects:
         projects = pf.list_projects()
@@ -79,7 +84,7 @@ def add_project_finder_to_page(pf, projects=None):
             add_project_to_page(project)
 
 
-def add_project_to_page(project):
+def add_project_to_page(project: RemoteProject) -> None:
     """add single project to page"""
     with ui.card().classes(
         "bg-black text-white p-6 rounded shadow-lg \
@@ -91,7 +96,7 @@ def add_project_to_page(project):
 
 
 @ui.page("/projects/")
-def projects_page():
+def projects_page() -> None:
     """projects for source"""
     header()
     search_input = ui.input(placeholder="Search packages").classes("flex-grow")
@@ -105,7 +110,7 @@ def projects_page():
             ui.navigate.to("/sources")
 
 
-def update_autocomplete(value):
+def update_autocomplete(value: str) -> None:
     """autocomplete for project search"""
     ui.context.project_col.clear()
     with ui.context.project_col:
@@ -141,7 +146,7 @@ def update_autocomplete(value):
 
 
 @ui.page("/project_data/{name}")
-def projects_data_page(name: str):
+def projects_data_page(name: str) -> None:
     """data for project"""
     header()
     with ui.column().classes("w-5/6 items-center mx-auto mt-10"):
@@ -163,7 +168,7 @@ def projects_data_page(name: str):
 
 
 @ui.page("/filters")
-def filters_page():
+def filters_page() -> None:
     """page showing exclusions per source"""
     header()
     ui.notify("no sources present, redirecting to sources")
@@ -192,7 +197,7 @@ def filters_page():
         ui.navigate.to("/sources")
 
 
-def add_exclusion(pf, regex):
+def add_exclusion(pf: ProjectFinder, regex: str) -> None:
     """add exclusion for the project finder for a source"""
     ui.notify(f"adding exclusion {regex} to projects on url {pf.url}")
     project = [
@@ -203,13 +208,13 @@ def add_exclusion(pf, regex):
     pf.filter_projects()
 
 
-def presist_sources():
+def presist_sources() -> None:
     """persist entered sources to file"""
     sl = ui.context.sl
     ui.download(sl.as_yaml().encode("utf-8"), filename="sources.yaml")
 
 
-def url_input():
+def url_input() -> None:
     """url input page"""
     url_search_field = ui.input(placeholder="enter url to list packages").classes(
         "w-full p-2 text-lg border border-gray-300 rounded"
@@ -219,20 +224,20 @@ def url_input():
     ).classes("bg-black text-white px-4 py-2 rounded hover:bg-gray-800 mt-4")
 
 
-def sources_input():
+def sources_input() -> None:
     """input sources file"""
     ui.upload(
         on_upload=lambda e: handle_upload(e)  # pylint:disable = unnecessary-lambda
     ).props("accept=.yaml").classes("max-w-full")
 
 
-def handle_upload(file: events.UploadEventArguments):
+def handle_upload(file: events.UploadEventArguments) -> None:
     """handle upload of sources file"""
     ui.context.sl = SourceList.from_yaml(file.content.read())
     ui.notify(f"uploaded {file.name}")
 
 
-def get_projects(url):
+def get_projects(url: str) -> None:
     """handling of project search"""
     if url and len(url) > 5:  # what is min valid url len?
         name = url.split("/")[-1]
@@ -240,7 +245,7 @@ def get_projects(url):
     ui.navigate.to("/projects/")
 
 
-def project_representation(project):
+def project_representation(project: RemoteProject) -> None:
     """project representation"""
     ui.label(project.name).classes("text-h5 text-black mb-5")
 
@@ -276,14 +281,14 @@ def project_representation(project):
             pass  # No content here (empty)
 
 
-def revision_representation(rev):
+def revision_representation(rev: RemoteRef) -> None:
     """revision representation"""
     ui.label(f"revision {rev.name} - {rev.revision}").classes(
         "text-body2 text-black mb-2"
     )
 
 
-def show_sources():
+def show_sources() -> None:
     """show sources in source view"""
     if hasattr(ui.context, "pf"):
         for pf in ui.context.pf:

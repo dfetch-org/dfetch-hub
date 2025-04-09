@@ -1,6 +1,6 @@
 """project parser module"""
 
-from typing import List
+from typing import Any, Dict, List
 
 import yaml
 
@@ -14,29 +14,29 @@ class ProjectParser:
     - parsed into sources which can be stored and monitored
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._projects: List[RemoteProject] = []
 
-    def add_project(self, new_project: RemoteProject):
+    def add_project(self, new_project: RemoteProject) -> None:
         """add a project"""
         if new_project not in self._projects:
             self._projects += [new_project]
 
-    def get_projects(self):
+    def get_projects(self) -> List[RemoteProject]:
         """get all projects"""
         return self._projects
 
-    def get_projects_as_yaml(self):
+    def get_projects_as_yaml(self) -> str:
         """get yaml representation of projects"""
         yaml_str = ""
-        yaml_obj = {"projects": []}
+        yaml_obj: Dict[str, Any] = {"projects": []}
         for project in self._projects:
             yaml_obj["projects"] += [project.as_yaml()]
         yaml_str = yaml.dump(yaml_obj)
         return yaml_str
 
     @classmethod
-    def from_yaml(cls, yaml_file):
+    def from_yaml(cls, yaml_file: str) -> "ProjectParser":
         """create parser from yaml file"""
         with open(yaml_file, "r", encoding="utf-8") as yamlf:
             instance = cls()

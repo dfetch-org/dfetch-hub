@@ -30,6 +30,7 @@ development = [
     "pytest==8.3.4",
     "pytest-cov==6.0.0",
     "vcrpy==7.0.0",
+    "types-PyYaml==6.0.12"
 ]
 gui = [
     "thefuzz==0.22.1",
@@ -44,3 +45,12 @@ DfetchHub-cli = "dfetch_hub.project.cli:main_cli"
 
 [tool.pylint.format]
 max-line-length = "88"
+
+[tool.mypy]
+files = "dfetch_hub"
+ignore_missing_imports = true
+strict = true
+
+[[tool.mypy.overrides]]
+module = "dfetch_hub.example_gui.gui"
+disable_error_code = ["attr-defined"]
