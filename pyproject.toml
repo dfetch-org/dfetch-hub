@@ -22,6 +22,7 @@ dependencies = [
 
 [project.optional-dependencies] # https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#writing-pyproject-toml
 development = [
+    "black==25.1.0",
     "isort==6.0.0",
     "mypy==1.14.1",
     "pre-commit==4.1.0",
