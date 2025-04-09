@@ -1,1 +1,1 @@
-# file required to run gui from project path
+# This __init__ is required by nicegui to run the example gui from project path

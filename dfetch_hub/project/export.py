@@ -1,4 +1,4 @@
-"""export module"""
+"""Module that handles the export of the list of projects."""
 
 from abc import ABC
 from dataclasses import dataclass
