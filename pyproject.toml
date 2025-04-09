@@ -16,7 +16,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "dfetch==0.9.1",
+    "dfetch==0.10.0",
     "PyYAML==6.0.2"
 ]
 
