@@ -51,7 +51,7 @@ class ProjectFinder:
                     if not path_allowed:
                         break
                 if path_allowed and path not in filtered_paths:
-                    filtered_paths += [path]
+                    filtered_paths.append(path)
             else:
                 filtered_paths = list(paths)
         return filtered_paths
@@ -66,7 +66,7 @@ class ProjectFinder:
         if exclusion:
             if not self._exclusions:
                 self._exclusions = []
-            self._exclusions += [exclusion]
+            self._exclusions.append(exclusion)
             print(f"exclusions are {self.exclusions}")
 
     def filter_projects(self) -> None:
@@ -163,7 +163,7 @@ class GitProjectFinder(ProjectFinder):
             project = RemoteProject(name, base_url, repo_path, src, vcs)
             project.versions.vcs = vcs
             project.add_versions(branches, tags)
-            projects += [project]
+            projects.append(project)
         return projects
 
 

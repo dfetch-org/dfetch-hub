@@ -34,7 +34,7 @@ class DfetchExport(Export):
             self._entries = []
 
     def add_entry(self, entry: Entry) -> None:
-        self._entries += [entry]
+        self._entries.append(entry)
 
     @property
     def entries(self) -> List[Entry]:

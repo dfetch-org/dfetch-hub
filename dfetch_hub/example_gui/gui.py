@@ -139,7 +139,7 @@ def update_autocomplete(value: str) -> None:
                         fuzz.ratio(value, project.src),
                     )
                     if ratio > 30 or url > 20 or repo_path > 20 or src > 20:
-                        sorted_list += [(ratio, project)]
+                        sorted_list.append((ratio, project))
                     sorted_list.sort(key=lambda i: i[0], reverse=True)
                 for ratio, project in sorted_list:
                     add_project_to_page(project)

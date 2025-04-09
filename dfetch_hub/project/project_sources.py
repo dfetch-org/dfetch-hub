@@ -18,10 +18,7 @@ class RemoteSource(Remote):  # type: ignore
 
     def add_exclusion(self, exclusion_regex: str) -> None:
         """add exclusion to project source"""
-        if not self.exclusions:
-            self.exclusions = [exclusion_regex]
-        else:
-            self.exclusions += [exclusion_regex]
+        self.exclusions.append(exclusion_regex)
 
     def as_yaml(self) -> Dict[str, Any]:
         """get yaml representation"""
@@ -55,7 +52,7 @@ class SourceList:
 
     def add_remote(self, source: RemoteSource) -> None:
         """add source"""
-        self._sources += [source]
+        self._sources.append(source)
 
     def get_remotes(self) -> List[RemoteSource]:
         """get list of sources"""

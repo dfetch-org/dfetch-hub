@@ -36,13 +36,13 @@ class RemoteProjectVersions:
         """add tags"""
         for hash_val, tag_name in tags:
             if tag_name not in [tag.name for tag in self.tags]:
-                self.tags += [RemoteRef(tag_name, hash_val)]
+                self.tags.append(RemoteRef(tag_name, hash_val))
 
     def add_branches(self, branches: Sequence[Tuple[str, str]]) -> None:
         """add branches"""
         for hash_val, branch_name in branches:
             if branch_name not in [branch.name for branch in self.branches]:
-                self.branches += [RemoteRef(branch_name, hash_val)]
+                self.branches.append(RemoteRef(branch_name, hash_val))
 
     @property
     def default(self) -> str:

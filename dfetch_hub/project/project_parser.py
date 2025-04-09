@@ -20,7 +20,7 @@ class ProjectParser:
     def add_project(self, new_project: RemoteProject) -> None:
         """add a project"""
         if new_project not in self._projects:
-            self._projects += [new_project]
+            self._projects.append(new_project)
 
     def get_projects(self) -> List[RemoteProject]:
         """get all projects"""
@@ -28,10 +28,9 @@ class ProjectParser:
 
     def get_projects_as_yaml(self) -> str:
         """get yaml representation of projects"""
-        yaml_str = ""
-        yaml_obj: Dict[str, Any] = {"projects": []}
-        for project in self._projects:
-            yaml_obj["projects"] += [project.as_yaml()]
+        yaml_obj: Dict[str, List[Dict[str, Any]]] = {
+            "projects": [project.as_yaml() for project in self._projects]
+        }
         yaml_str = yaml.dump(yaml_obj)
         return yaml_str
 
