@@ -63,7 +63,7 @@ class SourceList:
         versiondata = {"version": self.CURRENT_VERSION}
         remotes_data = {"remotes": [source.as_yaml() for source in self._sources]}
         yamldata = {"source-list": [versiondata, remotes_data]}
-        return yaml.dump(yamldata)
+        return str(yaml.dump(yamldata))
 
     @classmethod
     def from_yaml(cls, yaml_data: Union[str, bytes]) -> "SourceList":

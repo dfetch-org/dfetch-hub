@@ -44,7 +44,7 @@ Issues = "https://github.com/dfetch-org/dfetch-hub/issues"
 DfetchHub-cli = "dfetch_hub.project.cli:main_cli"
 
 [tool.pylint.format]
-max-line-length = "88"
+max-line-length = "120"
 
 [tool.mypy]
 files = "dfetch_hub"

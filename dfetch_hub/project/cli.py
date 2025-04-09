@@ -1,4 +1,4 @@
-""" """
+"""Commandline interface of dfetch hub."""
 
 import argparse
 
@@ -33,6 +33,7 @@ def main(parser: argparse.ArgumentParser) -> None:
 
 
 def main_cli() -> None:
+    """Main command line interface."""
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("-u", "--url", required=False, nargs="+")
     arg_parser.add_argument("-ds", "--dfetch-source", required=False)

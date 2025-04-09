@@ -11,6 +11,8 @@ from dfetch.manifest.remote import Remote, RemoteDict
 
 @dataclass
 class Entry:
+    """Entry to export."""
+
     name: str
     revision: str
     src: str
@@ -20,12 +22,17 @@ class Entry:
 
 
 class Export(ABC):
+    """Abstract Export interface."""
+
+    def add_entry(self, entry: Entry) -> None:
+        """Add entry to export."""
 
     def export(self) -> None:
-        pass
+        """Export the projects."""
 
 
 class DfetchExport(Export):
+    """Dfetch specific exporter."""
 
     def __init__(self, entries: Optional[List[Entry]] = None):
         if entries:
@@ -34,16 +41,20 @@ class DfetchExport(Export):
             self._entries = []
 
     def add_entry(self, entry: Entry) -> None:
+        """Add entry to export."""
         self._entries.append(entry)
 
     @property
     def entries(self) -> List[Entry]:
+        """All entries in export."""
         return self._entries
 
     def export(self, path: str = "") -> None:
+        """Export the DFetch manifest to path."""
         remotes: Sequence[Union[RemoteDict, Remote]] = (
             []
-        )  # TODO: bundle projects with shared path in remotes
+        )  # Use _create_remotes from import function to bundle projects with shared path in remotes
+
         projects = [
             ProjectEntryDict(
                 name=entry.name,

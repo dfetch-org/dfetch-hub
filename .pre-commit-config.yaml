@@ -14,5 +14,5 @@ repos:
       name: lint python files
       entry: pylint
       language: system
-      files: ^src/
+      files: ^dfetch_hub/
       types: [file, python]

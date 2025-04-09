@@ -31,8 +31,7 @@ class ProjectParser:
         yaml_obj: Dict[str, List[Dict[str, Any]]] = {
             "projects": [project.as_yaml() for project in self._projects]
         }
-        yaml_str = yaml.dump(yaml_obj)
-        return yaml_str
+        return str(yaml.dump(yaml_obj))
 
     @classmethod
     def from_yaml(cls, yaml_file: str) -> "ProjectParser":
