@@ -21,7 +21,7 @@ ENV PYTHONUSERBASE="/home/dev/.local"
 COPY --chown=dev:dev . .
 
 RUN pip install --no-cache-dir --root-user-action=ignore --upgrade pip==25.0.1 \
-    && pip install --no-cache-dir --root-user-action=ignore -e .[gui] \
+    && pip install --no-cache-dir --root-user-action=ignore -e .[development,gui] \
     && pre-commit install --install-hooks
 
 # Set bash as the default shell

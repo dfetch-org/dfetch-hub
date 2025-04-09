@@ -2,8 +2,8 @@
 # For more info see https://dfetch.rtfd.io/en/latest/getting_started.html
 dfetch:
   branch: main
-  hash: f72611479707b1b327416d294585fb5a
-  last_fetch: 09/04/2025, 18:59:35
+  hash: f2a3ac0bd99186f66dbca1f5c37b09f8
+  last_fetch: 09/04/2025, 19:11:43
   patch: dfetch-devcontainer.patch
   remote_url: https://github.com/dfetch-org/dfetch
   revision: 89e8c77621e62b6ef657c4358b350a959c82af16
