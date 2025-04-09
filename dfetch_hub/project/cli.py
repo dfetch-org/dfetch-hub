@@ -32,7 +32,7 @@ def main(parser: argparse.ArgumentParser):
             datasource.write(parser.get_projects_as_yaml())
 
 
-if __name__ == "__main__":
+def main_cli():
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("-u", "--url", required=False, nargs="+")
     arg_parser.add_argument("-ds", "--dfetch-source", required=False)
@@ -43,3 +43,7 @@ if __name__ == "__main__":
         "-ps", "--persist-sources", required=False, action="store_true"
     )
     main(arg_parser)
+
+
+if __name__ == "__main__":
+    main_cli()
