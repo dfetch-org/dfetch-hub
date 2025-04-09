@@ -40,7 +40,7 @@ class ProjectParser:
         """create parser from yaml file"""
         with open(yaml_file, "r", encoding="utf-8") as yamlf:
             instance = cls()
-            yaml_data = yaml.load(yamlf.read(), Loader=yaml.Loader)
+            yaml_data = yaml.safe_load(yamlf.read())
             for project in yaml_data["projects"]:
                 parsed_project = RemoteProject.from_yaml(project)
                 instance.add_project(parsed_project)

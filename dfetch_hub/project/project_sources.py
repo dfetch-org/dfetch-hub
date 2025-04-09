@@ -76,7 +76,7 @@ class SourceList:
 
         instance = cls()
 
-        parsed_yaml: Optional[Dict[str, Any]] = yaml.load(yaml_data, Loader=yaml.Loader)
+        parsed_yaml: Optional[Dict[str, Any]] = yaml.safe_load(yaml_data)
         if not parsed_yaml:
             raise RuntimeError("file should have data")
         assert parsed_yaml["source-list"], "file should have list of sources"
