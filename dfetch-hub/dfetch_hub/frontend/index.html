@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>dfetch_hub</title>
+  <!-- TailwindCSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Flowbite for components -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.7.0/flowbite.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.7.0/flowbite.min.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <header class="bg-white shadow p-4">
+    <h1 class="text-2xl font-bold text-center">dfetch_hub</h1>
+  </header>
+
+  <main class="p-4 max-w-5xl mx-auto">
+    <div class="mb-4 flex justify-center">
+      <input id="searchInput" type="text" placeholder="Search packages..." class="w-full max-w-md p-2 border rounded shadow-sm focus:ring-2 focus:ring-blue-500">
+    </div>
+
+    <div id="packageList" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <!-- Packages will appear here -->
+    </div>
+  </main>
+
+  <script>
+    const packageListEl = document.getElementById('packageList');
+    const searchInput = document.getElementById('searchInput');
+
+    async function fetchPackages(query = '') {
+      try {
+        const url = `/packages${query ? '?search=' + encodeURIComponent(query) : ''}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        renderPackages(data);
+      } catch (err) {
+        console.error('Failed to fetch packages', err);
+        packageListEl.innerHTML = '<p class="text-center text-red-500">Failed to load packages</p>';
+      }
+    }
+
+    function renderPackages(packages) {
+      if (!packages.length) {
+        packageListEl.innerHTML = '<p class="text-center text-gray-500">No packages found</p>';
+        return;
+      }
+      packageListEl.innerHTML = packages.map(pkg => `
+        <div class="bg-white p-4 rounded-lg shadow hover:shadow-lg transition">
+          <h2 class="text-lg font-semibold text-blue-600"><a href="${pkg.repository}" target="_blank">${pkg.name}</a></h2>
+          <p class="mt-1 text-gray-700">${pkg.description || ''}</p>
+          <p class="mt-2 text-sm text-gray-500">${pkg.tags || ''}</p>
+          <p class="mt-1 text-xs text-gray-400">Last updated: ${pkg.last_updated ? new Date(pkg.last_updated).toLocaleDateString() : 'N/A'}</p>
+        </div>
+      `).join('');
+    }
+
+    fetchPackages();
+    searchInput.addEventListener('input', (e) => fetchPackages(e.target.value));
+  </script>
+</body>
+</html>

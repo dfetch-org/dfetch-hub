@@ -1,0 +1,19 @@
+[project]
+name = "dfetch_hub"
+version = "0.1.0"
+description = "A Pythonic metadata-only package registry that harvests GitHub/GitLab repos."
+authors = [{name="Your Name", email="you@example.com"}]
+license = {text="MIT"}
+
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "sqlmodel",
+    "requests",
+    "apscheduler",
+    "pydantic"
+]
+
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
