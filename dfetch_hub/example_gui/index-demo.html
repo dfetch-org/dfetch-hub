@@ -245,6 +245,10 @@
     .vbadge{font-size:.68rem;font-weight:700;text-transform:uppercase;padding:.06rem .35rem;border-radius:3px}
     .vbadge-tag{background:#fef9e7;color:#8d6600;border:1px solid #f5c842}
     .vbadge-branch{background:#e8f4f8;color:#1a5276;border:1px solid #aed6f1}
+    .vtable tbody tr{cursor:pointer}
+    .vtable tbody tr.ver-selected td{background:rgba(232,139,36,.12)!important}
+    .ver-sel-info{font-size:.78rem;color:var(--muted);text-align:center;margin-top:.45rem;padding:.28rem .55rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--rm)}
+    .ver-sel-info .vsn{font-family:var(--mono);font-weight:600;color:var(--text)}
 
     /* Snippet */
     .snip-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
@@ -433,6 +437,7 @@
     </div>
     <aside>
       <button class="btn-add add" id="btnAdd" onclick="toggleMf()">＋ Add to manifest</button>
+      <div id="selVerInfo" class="ver-sel-info" style="display:none">Version: <span class="vsn" id="selVerName"></span> <span id="selVerKind" style="font-size:.67rem;text-transform:uppercase;color:var(--subtle)"></span></div>
       <div style="height:.9rem"></div>
       <div class="aside-card"><div class="aside-t">Links</div><div id="aLinks"></div></div>
       <div class="aside-card"><div class="aside-t">Details</div><div id="aDets"></div></div>
@@ -471,6 +476,9 @@ let curRes = [];
 let curPkg = null;
 let AF = { label:'', source:'', license:'' };
 let MFS = new Set();
+let MFS_VERSIONS = {};  // id → {name, kind}
+let curVersion = null;  // version selected in current detail view
+let allRefsCache = [];  // refs for the current detail's version table
 let acIdx = -1;
 
 async function loadCatalog() {
@@ -626,16 +634,21 @@ function renderDetail(c){
   // README
   const rb=document.getElementById('readmeBody');
   rb.innerHTML=c.readme&&c.readme.trim()?parseMD(c.readme):'<div class="readme-empty">No README available.</div>';
-  // Versions
+  // Versions — init curVersion to first tag or default branch
   const allRefs=[...(c.tags||[]).map(t=>({...t,kind:'tag'})),...(c.branches||[]).map(b=>({...b,kind:'branch'}))];
-  document.getElementById('vtbody').innerHTML=allRefs.length?allRefs.slice(0,50).map((r,i)=>`<tr>
+  allRefsCache=allRefs.slice(0,50);
+  const firstTag=(c.tags||[]).length?{name:c.tags[0].name,kind:'tag'}:null;
+  curVersion=firstTag||{name:c.default_branch||'main',kind:'branch'};
+  document.getElementById('vtbody').innerHTML=allRefsCache.length?allRefsCache.map((r,i)=>{
+    const sel=curVersion&&curVersion.name===r.name&&curVersion.kind===r.kind;
+    return `<tr class="${sel?'ver-selected':''}" onclick="selectVersion(${i})">
     <td class="vtag-name">${esc(r.name)}${i===0&&r.kind==='tag'?'<span class="vtag-latest">latest</span>':''}</td>
     <td><span class="vbadge vbadge-${r.kind}">${r.kind}</span></td>
     <td class="vsha">${r.commit_sha?r.commit_sha.slice(0,10):'—'}</td>
     <td style="font-size:.79rem;color:var(--subtle)">${r.date?r.date.slice(0,10):'—'}</td>
-  </tr>`).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--subtle)">No version info</td></tr>';
+  </tr>`;}).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--subtle)">No version info</td></tr>';
   // Snippet
-  document.getElementById('dSnip').innerHTML=buildSnipHtml(c);
+  document.getElementById('dSnip').innerHTML=buildSnipHtml(c,curVersion);
   // Aside
   const aLinks=document.getElementById('aLinks');
   aLinks.innerHTML='';
@@ -652,7 +665,22 @@ function renderDetail(c){
     const p=cs.index_path?`<span style="font-size:.76rem;color:var(--subtle)"> ${esc(cs.index_path)}</span>`:'';
     return `<div class="aside-src-row">${lbl}<span>${esc(cs.source_name)}${p}</span></div>`;
   }).join(''):'<span style="font-size:.82rem;color:var(--subtle)">No registry info</span>';
-  updAddBtn();switchTab('readme');
+  updAddBtn();updSelVerInfo();switchTab('readme');
+}
+function selectVersion(i){
+  const r=allRefsCache[i];if(!r)return;
+  curVersion={name:r.name,kind:r.kind};
+  document.querySelectorAll('#vtbody tr').forEach((tr,idx)=>tr.classList.toggle('ver-selected',idx===i));
+  const c=curPkg?RAW[curPkg]:null;
+  if(c)document.getElementById('dSnip').innerHTML=buildSnipHtml(c,curVersion);
+  updSelVerInfo();
+}
+function updSelVerInfo(){
+  const el=document.getElementById('selVerInfo');if(!el)return;
+  if(!curVersion){el.style.display='none';return}
+  document.getElementById('selVerName').textContent=curVersion.name;
+  document.getElementById('selVerKind').textContent=curVersion.kind;
+  el.style.display='';
 }
 function switchTab(name){
   document.querySelectorAll('.tabbtn').forEach((b,i)=>{const ns=['readme','versions','manifest'];b.classList.toggle('active',ns[i]===name)});
@@ -662,8 +690,8 @@ function switchTab(name){
 
 function toggleMf(){
   if(!curPkg)return;
-  if(MFS.has(curPkg)){MFS.delete(curPkg);showToast('Removed from manifest')}
-  else{MFS.add(curPkg);showToast('Added to manifest ✓')}
+  if(MFS.has(curPkg)){MFS.delete(curPkg);delete MFS_VERSIONS[curPkg];showToast('Removed from manifest')}
+  else{MFS.add(curPkg);if(curVersion)MFS_VERSIONS[curPkg]=curVersion;showToast('Added to manifest ✓')}
   updAddBtn();updMfCnt();
 }
 function updAddBtn(){
@@ -680,28 +708,30 @@ function renderModal(){
   const empty=document.getElementById('mfEmpty'),list=document.getElementById('mselList'),code=document.getElementById('mfCode'),info=document.getElementById('mfInfo');
   if(!items.length){empty.style.display='';list.innerHTML='';code.style.display='none';info.textContent='';return}
   empty.style.display='none';
-  list.innerHTML=items.map(c=>`<div class="msel-row"><span class="msel-name">${esc(c.name)}</span><span style="font-size:.77rem;color:var(--subtle)">${esc(ltag(c)||c.default_branch||'main')}</span><span class="msel-rm" onclick="rmMf('${esc(c.id)}')">✕</span></div>`).join('');
+  list.innerHTML=items.map(c=>{const v=MFS_VERSIONS[c.id];const vn=v?v.name:(ltag(c)||c.default_branch||'main');return`<div class="msel-row"><span class="msel-name">${esc(c.name)}</span><span style="font-size:.77rem;color:var(--subtle)">${esc(vn)}</span><span class="msel-rm" onclick="rmMf('${esc(c.id)}')">✕</span></div>`}).join('');
   code.textContent=buildFullMf(items);code.style.display='';
   info.textContent=`${items.length} project${items.length!==1?'s':''} selected`;
 }
 function rmMf(id){MFS.delete(id);updMfCnt();renderModal();if(id===curPkg)updAddBtn()}
 function buildFullMf(items){let y="manifest:\n  version: '0.0'\n\nprojects:\n";items.forEach(c=>{y+=buildEntry(c)});return y}
-function buildEntry(c){
-  const ver=ltag(c);const br=c.default_branch||'main';const sn=(c.name||'comp').replace(/\s+/g,'-').toLowerCase();
+function buildEntry(c,version){
+  const v=version||MFS_VERSIONS[c.id];const br=c.default_branch||'main';const sn=(c.name||'comp').replace(/\s+/g,'-').toLowerCase();
   let e=`  - name: ext/${sn}\n    url: ${c.url}\n`;
   if(c.subfolder_path)e+=`    src: ${c.subfolder_path}\n`;
-  if(ver)e+=`    tag: ${ver}\n`;else e+=`    branch: ${br}\n`;
+  if(v){if(v.kind==='branch')e+=`    branch: ${v.name}\n`;else e+=`    tag: ${v.name}\n`;}
+  else{const t=ltag(c);if(t)e+=`    tag: ${t}\n`;else e+=`    branch: ${br}\n`;}
   e+=`    dst: ext/${sn}\n`;return e;
 }
-function buildSnipHtml(c){
-  const ver=ltag(c);const br=c.default_branch||'main';const sn=(c.name||'comp').replace(/\s+/g,'-').toLowerCase();
-  const k=s=>`<span class="sk">${s}</span>`,v=s=>`<span class="sv">${s}</span>`,u=s=>`<span class="su">${s}</span>`;
-  let h=`${k('- name')}: ${v('ext/'+sn)}\n  ${k('url')}: ${u(esc(c.url))}\n`;
-  if(c.subfolder_path)h+=`  ${k('src')}: ${v(esc(c.subfolder_path))}\n`;
-  if(ver)h+=`  ${k('tag')}: ${v(esc(ver))}\n`;else h+=`  ${k('branch')}: ${v(esc(br))}\n`;
-  h+=`  ${k('dst')}: ${v('ext/'+sn)}\n`;return h;
+function buildSnipHtml(c,version){
+  const v=version||curVersion;const br=c.default_branch||'main';const sn=(c.name||'comp').replace(/\s+/g,'-').toLowerCase();
+  const k=s=>`<span class="sk">${s}</span>`,sv=s=>`<span class="sv">${s}</span>`,u=s=>`<span class="su">${s}</span>`;
+  let h=`${k('- name')}: ${sv('ext/'+sn)}\n  ${k('url')}: ${u(esc(c.url))}\n`;
+  if(c.subfolder_path)h+=`  ${k('src')}: ${sv(esc(c.subfolder_path))}\n`;
+  if(v){if(v.kind==='branch')h+=`  ${k('branch')}: ${sv(esc(v.name))}\n`;else h+=`  ${k('tag')}: ${sv(esc(v.name))}\n`;}
+  else{const t=ltag(c);if(t)h+=`  ${k('tag')}: ${sv(esc(t))}\n`;else h+=`  ${k('branch')}: ${sv(esc(br))}\n`;}
+  h+=`  ${k('dst')}: ${sv('ext/'+sn)}\n`;return h;
 }
-function copySnip(){const c=curPkg?RAW[curPkg]:null;if(!c)return;cpTxt(buildEntry(c));showToast('Snippet copied!')}
+function copySnip(){const c=curPkg?RAW[curPkg]:null;if(!c)return;cpTxt(buildEntry(c,curVersion));showToast('Snippet copied!')}
 function copyMf(){cpTxt(buildFullMf([...MFS].map(id=>RAW[id]).filter(Boolean)));showToast('Manifest copied!')}
 function dlMf(){
   const items=[...MFS].map(id=>RAW[id]).filter(Boolean);if(!items.length)return;
