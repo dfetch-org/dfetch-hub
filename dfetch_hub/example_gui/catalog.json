@@ -1,0 +1,1051 @@
+{
+    "github/armmbed/mbedtls": {
+        "id": "github/armmbed/mbedtls",
+        "name": "mbedtls",
+        "description": "Mbed TLS is a C library that implements cryptographic primitives, X.509 certificate manipulation and the SSL/TLS and DTLS protocols",
+        "url": "https://github.com/ARMmbed/mbedtls",
+        "canonical_url": "https://github.com/armmbed/mbedtls",
+        "source_type": "github",
+        "org": "ARMmbed",
+        "repo": "mbedtls",
+        "subfolder_path": "ports/mbedtls",
+        "catalog_sources": [
+            {
+                "source_name": "vcpkg-source",
+                "label": "vcpkg",
+                "index_path": "ports/mbedtls",
+                "registry_version": "v3.5.2"
+            },
+            {
+                "source_name": "conan-source",
+                "label": "conan",
+                "index_path": "recipes/mbedtls",
+                "registry_version": "v3.5.2"
+            }
+        ],
+        "manifests": [],
+        "readme": "# mbedtls\n\nMbed TLS is a C library that implements cryptographic primitives, X.509 certificate manipulation and the SSL/TLS and DTLS protocols\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/mbedtls\n    url: https://github.com/ARMmbed/mbedtls\n    tag: v3.5.2\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/mbedtls/`.\n",
+        "tags": [
+            {
+                "name": "v3.5.2",
+                "is_tag": true,
+                "commit_sha": "a45d27fb459da6",
+                "date": null
+            },
+            {
+                "name": "v3.4.1",
+                "is_tag": true,
+                "commit_sha": "a782e44b459da6",
+                "date": null
+            },
+            {
+                "name": "v3.3.0",
+                "is_tag": true,
+                "commit_sha": "ac4e8f3b459da6",
+                "date": null
+            },
+            {
+                "name": "v2.28.6",
+                "is_tag": true,
+                "commit_sha": "a5c2d39b459da6",
+                "date": null
+            }
+        ],
+        "branches": [
+            {
+                "name": "main",
+                "is_tag": false,
+                "commit_sha": null,
+                "date": null
+            }
+        ],
+        "default_branch": "main",
+        "license": "Apache-2.0",
+        "license_text": null,
+        "topics": [
+            "tls",
+            "crypto",
+            "ssl",
+            "c",
+            "embedded"
+        ],
+        "stars": 4200,
+        "last_updated": "2026-02-28T13:23:36.966541",
+        "fetched_at": "2026-02-28T13:23:36.966660",
+        "source_labels": [
+            "vcpkg",
+            "conan"
+        ]
+    },
+    "github/madler/zlib": {
+        "id": "github/madler/zlib",
+        "name": "zlib",
+        "description": "A massively spiffy yet delicately unobtrusive compression library",
+        "url": "https://github.com/madler/zlib",
+        "canonical_url": "https://github.com/madler/zlib",
+        "source_type": "github",
+        "org": "madler",
+        "repo": "zlib",
+        "subfolder_path": "ports/zlib",
+        "catalog_sources": [
+            {
+                "source_name": "vcpkg-source",
+                "label": "vcpkg",
+                "index_path": "ports/zlib",
+                "registry_version": "v1.3.1"
+            },
+            {
+                "source_name": "conan-source",
+                "label": "conan",
+                "index_path": "recipes/zlib",
+                "registry_version": "v1.3.1"
+            },
+            {
+                "source_name": "clib-source",
+                "label": "clib",
+                "index_path": null,
+                "registry_version": "v1.3.1"
+            }
+        ],
+        "manifests": [],
+        "readme": "# zlib\n\nA massively spiffy yet delicately unobtrusive compression library\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/zlib\n    url: https://github.com/madler/zlib\n    tag: v1.3.1\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/zlib/`.\n",
+        "tags": [
+            {
+                "name": "v1.3.1",
+                "is_tag": true,
+                "commit_sha": "a03c92bb2e1d45",
+                "date": null
+            },
+            {
+                "name": "v1.3",
+                "is_tag": true,
+                "commit_sha": "a041d7bb2e1d45",
+                "date": null
+            },
+            {
+                "name": "v1.2.13",
+                "is_tag": true,
+                "commit_sha": "afee0acb2e1d45",
+                "date": null
+            }
+        ],
+        "branches": [
+            {
+                "name": "main",
+                "is_tag": false,
+                "commit_sha": null,
+                "date": null
+            }
+        ],
+        "default_branch": "main",
+        "license": "Zlib",
+        "license_text": null,
+        "topics": [
+            "compression",
+            "c",
+            "deflate"
+        ],
+        "stars": 5800,
+        "last_updated": "2026-02-28T13:23:36.966682",
+        "fetched_at": "2026-02-28T13:23:36.966686",
+        "source_labels": [
+            "vcpkg",
+            "conan",
+            "clib"
+        ]
+    },
+    "github/openssl/openssl": {
+        "id": "github/openssl/openssl",
+        "name": "openssl",
+        "description": "TLS/SSL and crypto library",
+        "url": "https://github.com/openssl/openssl",
+        "canonical_url": "https://github.com/openssl/openssl",
+        "source_type": "github",
+        "org": "openssl",
+        "repo": "openssl",
+        "subfolder_path": "ports/openssl",
+        "catalog_sources": [
+            {
+                "source_name": "vcpkg-source",
+                "label": "vcpkg",
+                "index_path": "ports/openssl",
+                "registry_version": "openssl-3.3.0"
+            }
+        ],
+        "manifests": [],
+        "readme": "# openssl\n\nTLS/SSL and crypto library\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/openssl\n    url: https://github.com/openssl/openssl\n    tag: openssl-3.3.0\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/openssl/`.\n",
+        "tags": [
+            {
+                "name": "openssl-3.3.0",
+                "is_tag": true,
+                "commit_sha": "a3a7836b8be4cd",
+                "date": null
+            },
+            {
+                "name": "openssl-3.2.1",
+                "is_tag": true,
+                "commit_sha": "a6e5b89b8be4cd",
+                "date": null
+            },
+            {
+                "name": "openssl-1.1.1w",
+                "is_tag": true,
+                "commit_sha": "ad36e10b8be4cd",
+                "date": null
+            }
+        ],
+        "branches": [
+            {
+                "name": "main",
+                "is_tag": false,
+                "commit_sha": null,
+                "date": null
+            }
+        ],
+        "default_branch": "main",
+        "license": "Apache-2.0",
+        "license_text": null,
+        "topics": [
+            "tls",
+            "ssl",
+            "crypto",
+            "security"
+        ],
+        "stars": 25000,
+        "last_updated": "2026-02-28T13:23:36.966700",
+        "fetched_at": "2026-02-28T13:23:36.966702",
+        "source_labels": [
+            "vcpkg"
+        ]
+    },
+    "github/gflags/gflags": {
+        "id": "github/gflags/gflags",
+        "name": "gflags",
+        "description": "The gflags package contains a C++ library that implements commandline flags processing",
+        "url": "https://github.com/gflags/gflags",
+        "canonical_url": "https://github.com/gflags/gflags",
+        "source_type": "github",
+        "org": "gflags",
+        "repo": "gflags",
+        "subfolder_path": "ports/gflags",
+        "catalog_sources": [
+            {
+                "source_name": "vcpkg-source",
+                "label": "vcpkg",
+                "index_path": "ports/gflags",
+                "registry_version": "v2.2.2"
+            },
+            {
+                "source_name": "conan-source",
+                "label": "conan",
+                "index_path": "recipes/gflags",
+                "registry_version": "v2.2.2"
+            }
+        ],
+        "manifests": [],
+        "readme": "# gflags\n\nThe gflags package contains a C++ library that implements commandline flags processing\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/gflags\n    url: https://github.com/gflags/gflags\n    tag: v2.2.2\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/gflags/`.\n",
+        "tags": [
+            {
+                "name": "v2.2.2",
+                "is_tag": true,
+                "commit_sha": "ab39fdfbe4636c",
+                "date": null
+            },
+            {
+                "name": "v2.2.1",
+                "is_tag": true,
+                "commit_sha": "a5b0abcbe4636c",
+                "date": null
+            }
+        ],
+        "branches": [
+            {
+                "name": "main",
+                "is_tag": false,
+                "commit_sha": null,
+                "date": null
+            }
+        ],
+        "default_branch": "main",
+        "license": "BSD-3-Clause",
+        "license_text": null,
+        "topics": [
+            "flags",
+            "cli",
+            "c++"
+        ],
+        "stars": 3100,
+        "last_updated": "2025-11-20T13:23:36.966710",
+        "fetched_at": "2026-02-28T13:23:36.966714",
+        "source_labels": [
+            "vcpkg",
+            "conan"
+        ]
+    },
+    "github/google/googletest": {
+        "id": "github/google/googletest",
+        "name": "googletest",
+        "description": "GoogleTest - Google Testing and Mocking Framework",
+        "url": "https://github.com/google/googletest",
+        "canonical_url": "https://github.com/google/googletest",
+        "source_type": "github",
+        "org": "google",
+        "repo": "googletest",
+        "subfolder_path": "ports/googletest",
+        "catalog_sources": [
+            {
+                "source_name": "vcpkg-source",
+                "label": "vcpkg",
+                "index_path": "ports/googletest",
+                "registry_version": "v1.14.0"
+            },
+            {
+                "source_name": "conan-source",
+                "label": "conan",
+                "index_path": "recipes/googletest",
+                "registry_version": "v1.14.0"
+            }
+        ],
+        "manifests": [],
+        "readme": "# googletest\n\nGoogleTest - Google Testing and Mocking Framework\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/googletest\n    url: https://github.com/google/googletest\n    tag: v1.14.0\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/googletest/`.\n",
+        "tags": [
+            {
+                "name": "v1.14.0",
+                "is_tag": true,
+                "commit_sha": "a5b6eccb94a5b5",
+                "date": null
+            },
+            {
+                "name": "v1.13.0",
+                "is_tag": true,
+                "commit_sha": "aa36eb3b94a5b5",
+                "date": null
+            },
+            {
+                "name": "v1.12.1",
+                "is_tag": true,
+                "commit_sha": "a161174b94a5b5",
+                "date": null
+            }
+        ],
+        "branches": [
+            {
+                "name": "main",
+                "is_tag": false,
+                "commit_sha": null,
+                "date": null
+            }
+        ],
+        "default_branch": "main",
+        "license": "BSD-3-Clause",
+        "license_text": null,
+        "topics": [
+            "testing",
+            "c++",
+            "mocking"
+        ],
+        "stars": 33000,
+        "last_updated": "2026-02-28T13:23:36.966722",
+        "fetched_at": "2026-02-28T13:23:36.966725",
+        "source_labels": [
+            "vcpkg",
+            "conan"
+        ]
+    },
+    "github/nlohmann/json": {
+        "id": "github/nlohmann/json",
+        "name": "nlohmann-json",
+        "description": "JSON for Modern C++",
+        "url": "https://github.com/nlohmann/json",
+        "canonical_url": "https://github.com/nlohmann/json",
+        "source_type": "github",
+        "org": "nlohmann",
+        "repo": "json",
+        "subfolder_path": "ports/nlohmann-json",
+        "catalog_sources": [
+            {
+                "source_name": "vcpkg-source",
+                "label": "vcpkg",
+                "index_path": "ports/nlohmann-json",
+                "registry_version": "v3.11.3"
+            },
+            {
+                "source_name": "conan-source",
+                "label": "conan",
+                "index_path": "recipes/nlohmann-json",
+                "registry_version": "v3.11.3"
+            }
+        ],
+        "manifests": [],
+        "readme": "# nlohmann-json\n\nJSON for Modern C++\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/nlohmann-json\n    url: https://github.com/nlohmann/json\n    tag: v3.11.3\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/nlohmann-json/`.\n",
+        "tags": [
+            {
+                "name": "v3.11.3",
+                "is_tag": true,
+                "commit_sha": "a894f13bb7169f",
+                "date": null
+            },
+            {
+                "name": "v3.11.2",
+                "is_tag": true,
+                "commit_sha": "ad50cb1bb7169f",
+                "date": null
+            },
+            {
+                "name": "v3.10.5",
+                "is_tag": true,
+                "commit_sha": "af08cf8bb7169f",
+                "date": null
+            }
+        ],
+        "branches": [
+            {
+                "name": "main",
+                "is_tag": false,
+                "commit_sha": null,
+                "date": null
+            }
+        ],
+        "default_branch": "main",
+        "license": "MIT",
+        "license_text": null,
+        "topics": [
+            "json",
+            "c++",
+            "header-only"
+        ],
+        "stars": 40000,
+        "last_updated": "2026-02-28T13:23:36.966736",
+        "fetched_at": "2026-02-28T13:23:36.966744",
+        "source_labels": [
+            "vcpkg",
+            "conan"
+        ]
+    },
+    "github/boostorg/boost": {
+        "id": "github/boostorg/boost",
+        "name": "boost",
+        "description": "Super-project for modularized Boost",
+        "url": "https://github.com/boostorg/boost",
+        "canonical_url": "https://github.com/boostorg/boost",
+        "source_type": "github",
+        "org": "boostorg",
+        "repo": "boost",
+        "subfolder_path": "ports/boost",
+        "catalog_sources": [
+            {
+                "source_name": "vcpkg-source",
+                "label": "vcpkg",
+                "index_path": "ports/boost",
+                "registry_version": "boost-1.84.0"
+            }
+        ],
+        "manifests": [],
+        "readme": "# boost\n\nSuper-project for modularized Boost\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/boost\n    url: https://github.com/boostorg/boost\n    tag: boost-1.84.0\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/boost/`.\n",
+        "tags": [
+            {
+                "name": "boost-1.84.0",
+                "is_tag": true,
+                "commit_sha": "a0a638cb283290",
+                "date": null
+            },
+            {
+                "name": "boost-1.83.0",
+                "is_tag": true,
+                "commit_sha": "ad0eefeb283290",
+                "date": null
+            }
+        ],
+        "branches": [
+            {
+                "name": "main",
+                "is_tag": false,
+                "commit_sha": null,
+                "date": null
+            }
+        ],
+        "default_branch": "main",
+        "license": "BSL-1.0",
+        "license_text": null,
+        "topics": [
+            "c++",
+            "utilities"
+        ],
+        "stars": 7200,
+        "last_updated": "2026-02-28T13:23:36.966754",
+        "fetched_at": "2026-02-28T13:23:36.966756",
+        "source_labels": [
+            "vcpkg"
+        ]
+    },
+    "github/catchorg/catch2": {
+        "id": "github/catchorg/catch2",
+        "name": "catch2",
+        "description": "A modern, C++-native, test framework for unit-tests, TDD and BDD",
+        "url": "https://github.com/catchorg/Catch2",
+        "canonical_url": "https://github.com/catchorg/catch2",
+        "source_type": "github",
+        "org": "catchorg",
+        "repo": "Catch2",
+        "subfolder_path": "ports/catch2",
+        "catalog_sources": [
+            {
+                "source_name": "vcpkg-source",
+                "label": "vcpkg",
+                "index_path": "ports/catch2",
+                "registry_version": "v3.5.2"
+            },
+            {
+                "source_name": "conan-source",
+                "label": "conan",
+                "index_path": "recipes/catch2",
+                "registry_version": "v3.5.2"
+            }
+        ],
+        "manifests": [],
+        "readme": "# catch2\n\nA modern, C++-native, test framework for unit-tests, TDD and BDD\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/catch2\n    url: https://github.com/catchorg/Catch2\n    tag: v3.5.2\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/catch2/`.\n",
+        "tags": [
+            {
+                "name": "v3.5.2",
+                "is_tag": true,
+                "commit_sha": "a45d27fb9e0e7d",
+                "date": null
+            },
+            {
+                "name": "v3.4.0",
+                "is_tag": true,
+                "commit_sha": "ac6b1c4b9e0e7d",
+                "date": null
+            }
+        ],
+        "branches": [
+            {
+                "name": "main",
+                "is_tag": false,
+                "commit_sha": null,
+                "date": null
+            }
+        ],
+        "default_branch": "main",
+        "license": "BSL-1.0",
+        "license_text": null,
+        "topics": [
+            "testing",
+            "c++",
+            "tdd"
+        ],
+        "stars": 17000,
+        "last_updated": "2026-02-28T13:23:36.966763",
+        "fetched_at": "2026-02-28T13:23:36.966765",
+        "source_labels": [
+            "vcpkg",
+            "conan"
+        ]
+    },
+    "github/fmtlib/fmt": {
+        "id": "github/fmtlib/fmt",
+        "name": "fmt",
+        "description": "A modern formatting library",
+        "url": "https://github.com/fmtlib/fmt",
+        "canonical_url": "https://github.com/fmtlib/fmt",
+        "source_type": "github",
+        "org": "fmtlib",
+        "repo": "fmt",
+        "subfolder_path": "ports/fmt",
+        "catalog_sources": [
+            {
+                "source_name": "vcpkg-source",
+                "label": "vcpkg",
+                "index_path": "ports/fmt",
+                "registry_version": "10.2.1"
+            },
+            {
+                "source_name": "conan-source",
+                "label": "conan",
+                "index_path": "recipes/fmt",
+                "registry_version": "10.2.1"
+            }
+        ],
+        "manifests": [],
+        "readme": "# fmt\n\nA modern formatting library\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/fmt\n    url: https://github.com/fmtlib/fmt\n    tag: 10.2.1\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/fmt/`.\n",
+        "tags": [
+            {
+                "name": "10.2.1",
+                "is_tag": true,
+                "commit_sha": "ab7dec1b93229e",
+                "date": null
+            },
+            {
+                "name": "10.1.1",
+                "is_tag": true,
+                "commit_sha": "a96faeeb93229e",
+                "date": null
+            },
+            {
+                "name": "9.1.0",
+                "is_tag": true,
+                "commit_sha": "a1163ddb93229e",
+                "date": null
+            }
+        ],
+        "branches": [
+            {
+                "name": "main",
+                "is_tag": false,
+                "commit_sha": null,
+                "date": null
+            }
+        ],
+        "default_branch": "main",
+        "license": "MIT",
+        "license_text": null,
+        "topics": [
+            "formatting",
+            "c++",
+            "printf"
+        ],
+        "stars": 20000,
+        "last_updated": "2026-02-28T13:23:36.966773",
+        "fetched_at": "2026-02-28T13:23:36.966775",
+        "source_labels": [
+            "vcpkg",
+            "conan"
+        ]
+    },
+    "github/abseil/abseil-cpp": {
+        "id": "github/abseil/abseil-cpp",
+        "name": "abseil-cpp",
+        "description": "Abseil Common Libraries (C++), with CMake build instructions",
+        "url": "https://github.com/abseil/abseil-cpp",
+        "canonical_url": "https://github.com/abseil/abseil-cpp",
+        "source_type": "github",
+        "org": "abseil",
+        "repo": "abseil-cpp",
+        "subfolder_path": null,
+        "catalog_sources": [
+            {
+                "source_name": "vcpkg-source",
+                "label": "vcpkg",
+                "index_path": "ports/abseil-cpp",
+                "registry_version": "20240116.2"
+            },
+            {
+                "source_name": "conan-source",
+                "label": "conan",
+                "index_path": "recipes/abseil-cpp",
+                "registry_version": "20240116.2"
+            }
+        ],
+        "manifests": [],
+        "readme": "# abseil-cpp\n\nAbseil Common Libraries (C++), with CMake build instructions\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/abseil-cpp\n    url: https://github.com/abseil/abseil-cpp\n    tag: 20240116.2\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/abseil-cpp/`.\n",
+        "tags": [
+            {
+                "name": "20240116.2",
+                "is_tag": true,
+                "commit_sha": "a2a15f3b187bb6",
+                "date": null
+            },
+            {
+                "name": "20240116.1",
+                "is_tag": true,
+                "commit_sha": "a56d884b187bb6",
+                "date": null
+            }
+        ],
+        "branches": [
+            {
+                "name": "main",
+                "is_tag": false,
+                "commit_sha": null,
+                "date": null
+            }
+        ],
+        "default_branch": "main",
+        "license": "Apache-2.0",
+        "license_text": null,
+        "topics": [
+            "c++",
+            "utilities",
+            "google"
+        ],
+        "stars": 14000,
+        "last_updated": "2026-02-28T13:23:36.966782",
+        "fetched_at": "2026-02-28T13:23:36.966785",
+        "source_labels": [
+            "vcpkg",
+            "conan"
+        ]
+    },
+    "github/espressif/esp-idf": {
+        "id": "github/espressif/esp-idf",
+        "name": "esp-idf",
+        "description": "Espressif IoT Development Framework. Official development framework for Espressif SoCs.",
+        "url": "https://github.com/espressif/esp-idf",
+        "canonical_url": "https://github.com/espressif/esp-idf",
+        "source_type": "github",
+        "org": "espressif",
+        "repo": "esp-idf",
+        "subfolder_path": null,
+        "catalog_sources": [
+            {
+                "source_name": "esp-idf-source",
+                "label": "esp-idf",
+                "index_path": null,
+                "registry_version": "v5.2.1"
+            }
+        ],
+        "manifests": [],
+        "readme": "# esp-idf\n\nEspressif IoT Development Framework. Official development framework for Espressif SoCs.\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/esp-idf\n    url: https://github.com/espressif/esp-idf\n    tag: v5.2.1\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/esp-idf/`.\n",
+        "tags": [
+            {
+                "name": "v5.2.1",
+                "is_tag": true,
+                "commit_sha": "a8c2d20b09b9f5",
+                "date": null
+            },
+            {
+                "name": "v5.1.3",
+                "is_tag": true,
+                "commit_sha": "a310f6fb09b9f5",
+                "date": null
+            },
+            {
+                "name": "v4.4.7",
+                "is_tag": true,
+                "commit_sha": "abd5609b09b9f5",
+                "date": null
+            }
+        ],
+        "branches": [
+            {
+                "name": "main",
+                "is_tag": false,
+                "commit_sha": null,
+                "date": null
+            }
+        ],
+        "default_branch": "main",
+        "license": "Apache-2.0",
+        "license_text": null,
+        "topics": [
+            "esp32",
+            "iot",
+            "embedded",
+            "rtos"
+        ],
+        "stars": 12000,
+        "last_updated": "2026-02-28T13:23:36.966795",
+        "fetched_at": "2026-02-28T13:23:36.966798",
+        "source_labels": [
+            "esp-idf"
+        ]
+    },
+    "github/libuv/libuv": {
+        "id": "github/libuv/libuv",
+        "name": "libuv",
+        "description": "Cross-platform asynchronous I/O",
+        "url": "https://github.com/libuv/libuv",
+        "canonical_url": "https://github.com/libuv/libuv",
+        "source_type": "github",
+        "org": "libuv",
+        "repo": "libuv",
+        "subfolder_path": "ports/libuv",
+        "catalog_sources": [
+            {
+                "source_name": "vcpkg-source",
+                "label": "vcpkg",
+                "index_path": "ports/libuv",
+                "registry_version": "v1.48.0"
+            },
+            {
+                "source_name": "clib-source",
+                "label": "clib",
+                "index_path": null,
+                "registry_version": "v1.48.0"
+            }
+        ],
+        "manifests": [],
+        "readme": "# libuv\n\nCross-platform asynchronous I/O\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/libuv\n    url: https://github.com/libuv/libuv\n    tag: v1.48.0\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/libuv/`.\n",
+        "tags": [
+            {
+                "name": "v1.48.0",
+                "is_tag": true,
+                "commit_sha": "a951601b140fc8",
+                "date": null
+            },
+            {
+                "name": "v1.47.0",
+                "is_tag": true,
+                "commit_sha": "ace30c8b140fc8",
+                "date": null
+            },
+            {
+                "name": "v1.46.0",
+                "is_tag": true,
+                "commit_sha": "a2b9426b140fc8",
+                "date": null
+            }
+        ],
+        "branches": [
+            {
+                "name": "main",
+                "is_tag": false,
+                "commit_sha": null,
+                "date": null
+            }
+        ],
+        "default_branch": "main",
+        "license": "MIT",
+        "license_text": null,
+        "topics": [
+            "async",
+            "io",
+            "c",
+            "event-loop"
+        ],
+        "stars": 23000,
+        "last_updated": "2026-02-28T13:23:36.966808",
+        "fetched_at": "2026-02-28T13:23:36.966810",
+        "source_labels": [
+            "vcpkg",
+            "clib"
+        ]
+    },
+    "github/clibs/commander": {
+        "id": "github/clibs/commander",
+        "name": "commander",
+        "description": "Commander option parser ported to C \u2014 inspired by visionmedia/commander.js",
+        "url": "https://github.com/clibs/commander",
+        "canonical_url": "https://github.com/clibs/commander",
+        "source_type": "github",
+        "org": "clibs",
+        "repo": "commander",
+        "subfolder_path": null,
+        "catalog_sources": [
+            {
+                "source_name": "clib-source",
+                "label": "clib",
+                "index_path": null,
+                "registry_version": "v1.4.1"
+            }
+        ],
+        "manifests": [],
+        "readme": "# commander\n\nCommander option parser ported to C \u2014 inspired by visionmedia/commander.js\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/commander\n    url: https://github.com/clibs/commander\n    tag: v1.4.1\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/commander/`.\n",
+        "tags": [
+            {
+                "name": "v1.4.1",
+                "is_tag": true,
+                "commit_sha": "a37034dbc4f6cc",
+                "date": null
+            },
+            {
+                "name": "v1.3.0",
+                "is_tag": true,
+                "commit_sha": "ab80976bc4f6cc",
+                "date": null
+            }
+        ],
+        "branches": [
+            {
+                "name": "main",
+                "is_tag": false,
+                "commit_sha": null,
+                "date": null
+            }
+        ],
+        "default_branch": "main",
+        "license": "MIT",
+        "license_text": null,
+        "topics": [
+            "cli",
+            "c",
+            "arguments"
+        ],
+        "stars": 410,
+        "last_updated": "2026-02-18T13:23:36.966818",
+        "fetched_at": "2026-02-28T13:23:36.966820",
+        "source_labels": [
+            "clib"
+        ]
+    },
+    "github/clibs/hash": {
+        "id": "github/clibs/hash",
+        "name": "hash",
+        "description": "C hash table implementation",
+        "url": "https://github.com/clibs/hash",
+        "canonical_url": "https://github.com/clibs/hash",
+        "source_type": "github",
+        "org": "clibs",
+        "repo": "hash",
+        "subfolder_path": null,
+        "catalog_sources": [
+            {
+                "source_name": "clib-source",
+                "label": "clib",
+                "index_path": null,
+                "registry_version": "v0.2.0"
+            }
+        ],
+        "manifests": [],
+        "readme": "# hash\n\nC hash table implementation\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/hash\n    url: https://github.com/clibs/hash\n    tag: v0.2.0\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/hash/`.\n",
+        "tags": [
+            {
+                "name": "v0.2.0",
+                "is_tag": true,
+                "commit_sha": "a22f94fb81773d",
+                "date": null
+            }
+        ],
+        "branches": [
+            {
+                "name": "main",
+                "is_tag": false,
+                "commit_sha": null,
+                "date": null
+            }
+        ],
+        "default_branch": "main",
+        "license": "MIT",
+        "license_text": null,
+        "topics": [
+            "hash",
+            "c",
+            "data-structures"
+        ],
+        "stars": 180,
+        "last_updated": "2025-09-01T13:23:36.966826",
+        "fetched_at": "2026-02-28T13:23:36.966828",
+        "source_labels": [
+            "clib"
+        ]
+    },
+    "github/sqlite/sqlite": {
+        "id": "github/sqlite/sqlite",
+        "name": "sqlite",
+        "description": "Official Git mirror of the SQLite source tree",
+        "url": "https://github.com/sqlite/sqlite",
+        "canonical_url": "https://github.com/sqlite/sqlite",
+        "source_type": "github",
+        "org": "sqlite",
+        "repo": "sqlite",
+        "subfolder_path": "ports/sqlite3",
+        "catalog_sources": [
+            {
+                "source_name": "vcpkg-source",
+                "label": "vcpkg",
+                "index_path": "ports/sqlite",
+                "registry_version": "version-3.45.1"
+            }
+        ],
+        "manifests": [],
+        "readme": "# sqlite\n\nOfficial Git mirror of the SQLite source tree\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/sqlite\n    url: https://github.com/sqlite/sqlite\n    tag: version-3.45.1\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/sqlite/`.\n",
+        "tags": [
+            {
+                "name": "version-3.45.1",
+                "is_tag": true,
+                "commit_sha": "a82f489b2bd384",
+                "date": null
+            },
+            {
+                "name": "version-3.44.2",
+                "is_tag": true,
+                "commit_sha": "afa08a0b2bd384",
+                "date": null
+            }
+        ],
+        "branches": [
+            {
+                "name": "main",
+                "is_tag": false,
+                "commit_sha": null,
+                "date": null
+            }
+        ],
+        "default_branch": "main",
+        "license": "blessing",
+        "license_text": null,
+        "topics": [
+            "database",
+            "sql",
+            "c",
+            "embedded"
+        ],
+        "stars": 5400,
+        "last_updated": "2026-02-28T13:23:36.966841",
+        "fetched_at": "2026-02-28T13:23:36.966844",
+        "source_labels": [
+            "vcpkg"
+        ]
+    },
+    "github/curl/curl": {
+        "id": "github/curl/curl",
+        "name": "curl",
+        "description": "A command line tool and library for transferring data with URL syntax",
+        "url": "https://github.com/curl/curl",
+        "canonical_url": "https://github.com/curl/curl",
+        "source_type": "github",
+        "org": "curl",
+        "repo": "curl",
+        "subfolder_path": "ports/curl",
+        "catalog_sources": [
+            {
+                "source_name": "vcpkg-source",
+                "label": "vcpkg",
+                "index_path": "ports/curl",
+                "registry_version": "curl-8_6_0"
+            },
+            {
+                "source_name": "conan-source",
+                "label": "conan",
+                "index_path": "recipes/curl",
+                "registry_version": "curl-8_6_0"
+            }
+        ],
+        "manifests": [],
+        "readme": "# curl\n\nA command line tool and library for transferring data with URL syntax\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/curl\n    url: https://github.com/curl/curl\n    tag: curl-8_6_0\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/curl/`.\n",
+        "tags": [
+            {
+                "name": "curl-8_6_0",
+                "is_tag": true,
+                "commit_sha": "a5c9d0fb7841e1",
+                "date": null
+            },
+            {
+                "name": "curl-8_5_0",
+                "is_tag": true,
+                "commit_sha": "a9bee01b7841e1",
+                "date": null
+            },
+            {
+                "name": "curl-8_4_0",
+                "is_tag": true,
+                "commit_sha": "a554719b7841e1",
+                "date": null
+            }
+        ],
+        "branches": [
+            {
+                "name": "main",
+                "is_tag": false,
+                "commit_sha": null,
+                "date": null
+            }
+        ],
+        "default_branch": "main",
+        "license": "curl",
+        "license_text": null,
+        "topics": [
+            "http",
+            "network",
+            "c",
+            "transfer"
+        ],
+        "stars": 32000,
+        "last_updated": "2026-02-28T13:23:36.966854",
+        "fetched_at": "2026-02-28T13:23:36.966856",
+        "source_labels": [
+            "vcpkg",
+            "conan"
+        ]
+    }
+}
