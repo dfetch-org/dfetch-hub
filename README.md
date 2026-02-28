@@ -7,7 +7,7 @@ Explorer for finding new projects to dfetch
 ## Setup
 
 ```console
-pip install -e .[gui]
+pip install -e .
 ```
 
 ## Basic usage
@@ -15,11 +15,11 @@ pip install -e .[gui]
 ### CLI
 
 ```console
-DfetchHub-cli -u "https://github.com/dfetch-org/dfetch.git"
+dfetch-hub-update --limit 3
 ```
 
 ### Gui
 
 ```console
-python -m "dfetch_hub.example_gui.gui"
+python -m http.server -d dfetch_hub/example_gui
 ```

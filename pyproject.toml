@@ -33,10 +33,6 @@ development = [
     "vcrpy==7.0.0",
     "types-PyYaml==6.0.12"
 ]
-gui = [
-    "thefuzz==0.22.1",
-    "nicegui==2.11.1"
-]
 [project.urls]
 Homepage = "https://github.com/dfetch-org/dfetch-hub"
 Issues = "https://github.com/dfetch-org/dfetch-hub/issues"
@@ -53,6 +49,3 @@ files = "dfetch_hub"
 ignore_missing_imports = true
 strict = true
 
-[[tool.mypy.overrides]]
-module = "dfetch_hub.example_gui.gui"
-disable_error_code = ["attr-defined"]
