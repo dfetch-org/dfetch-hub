@@ -657,7 +657,7 @@ function renderRes(){
 function renderDetail(c){
   const ver=ltag(c);
   document.getElementById('dName').textContent=c.name;
-  document.getElementById('dVer').textContent=ver?'v'+ver:'';
+  document.getElementById('dVer').textContent=ver?ver:'';
   document.getElementById('dDesc').textContent=c.description||'';
   const lbls=(c.source_labels||[]).map(l=>`<span class="lbl lbl-${slug(l)}">${esc(l)}</span>`).join('');
   document.getElementById('dBadges').innerHTML=lbls+`<span class="lbl lbl-${slug(c.source_type)}">${esc(c.source_type)}</span>`;
