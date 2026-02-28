@@ -1,0 +1,46 @@
+{
+  "canonical_url": "https://github.com/espressif/esp-idf",
+  "org": "espressif",
+  "repo": "esp-idf",
+  "subfolder_path": null,
+  "catalog_sources": [
+    {
+      "source_name": "esp-idf-source",
+      "label": "esp-idf",
+      "index_path": null,
+      "registry_version": "v5.2.1"
+    }
+  ],
+  "manifests": [],
+  "readme": "# esp-idf\n\nEspressif IoT Development Framework. Official development framework for Espressif SoCs.\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/esp-idf\n    url: https://github.com/espressif/esp-idf\n    tag: v5.2.1\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/esp-idf/`.\n",
+  "tags": [
+    {
+      "name": "v5.2.1",
+      "is_tag": true,
+      "commit_sha": "a8c2d20b09b9f5",
+      "date": null
+    },
+    {
+      "name": "v5.1.3",
+      "is_tag": true,
+      "commit_sha": "a310f6fb09b9f5",
+      "date": null
+    },
+    {
+      "name": "v4.4.7",
+      "is_tag": true,
+      "commit_sha": "abd5609b09b9f5",
+      "date": null
+    }
+  ],
+  "branches": [
+    {
+      "name": "main",
+      "is_tag": false,
+      "commit_sha": null,
+      "date": null
+    }
+  ],
+  "license_text": null,
+  "fetched_at": "2026-02-28T13:23:36.966798"
+}

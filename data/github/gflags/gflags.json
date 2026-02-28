@@ -1,0 +1,46 @@
+{
+  "canonical_url": "https://github.com/gflags/gflags",
+  "org": "gflags",
+  "repo": "gflags",
+  "subfolder_path": "ports/gflags",
+  "catalog_sources": [
+    {
+      "source_name": "vcpkg-source",
+      "label": "vcpkg",
+      "index_path": "ports/gflags",
+      "registry_version": "v2.2.2"
+    },
+    {
+      "source_name": "conan-source",
+      "label": "conan",
+      "index_path": "recipes/gflags",
+      "registry_version": "v2.2.2"
+    }
+  ],
+  "manifests": [],
+  "readme": "# gflags\n\nThe gflags package contains a C++ library that implements commandline flags processing\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/gflags\n    url: https://github.com/gflags/gflags\n    tag: v2.2.2\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/gflags/`.\n",
+  "tags": [
+    {
+      "name": "v2.2.2",
+      "is_tag": true,
+      "commit_sha": "ab39fdfbe4636c",
+      "date": null
+    },
+    {
+      "name": "v2.2.1",
+      "is_tag": true,
+      "commit_sha": "a5b0abcbe4636c",
+      "date": null
+    }
+  ],
+  "branches": [
+    {
+      "name": "main",
+      "is_tag": false,
+      "commit_sha": null,
+      "date": null
+    }
+  ],
+  "license_text": null,
+  "fetched_at": "2026-02-28T13:23:36.966714"
+}
