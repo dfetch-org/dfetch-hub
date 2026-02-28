@@ -6,6 +6,7 @@ import argparse
 import sys
 import tempfile
 from pathlib import Path
+
 from dfetch.log import configure_root_logger, setup_root
 
 from dfetch_hub.catalog.config import HubConfig, SourceConfig, load_config
@@ -19,20 +20,25 @@ _DEFAULT_DATA_DIR = Path(__file__).parent.parent / "example_gui" / "data"
 configure_root_logger()
 logger = setup_root("dfetch-hub")
 
+
 def _process_source(
     source: SourceConfig,
     data_dir: Path,
     limit: int | None,
 ) -> None:
     if source.strategy != "subfolders":
-        logger.print_warning_line(source.name, f"strategy '{source.strategy}' not yet supported — skipped")
+        logger.print_warning_line(
+            source.name, f"strategy '{source.strategy}' not yet supported — skipped"
+        )
         return
 
     if not source.manifest:
         logger.print_warning_line(source.name, "no 'manifest' configured — skipped")
         return
 
-    logger.print_info_line(source.name, f"Fetching {source.url} (src: {source.path!r}) ...")
+    logger.print_info_line(
+        source.name, f"Fetching {source.url} (src: {source.path!r}) ..."
+    )
     with tempfile.TemporaryDirectory(prefix="dfetch-hub-") as tmp:
         tmp_path = Path(tmp)
         fetched_dir = fetch_source(source, tmp_path)
@@ -52,7 +58,9 @@ def _process_source(
                 manifests.append(m)
 
         if skipped:
-            logger.print_warning_line(source.name, f"Skipped {skipped} port(s) with no manifest")
+            logger.print_warning_line(
+                source.name, f"Skipped {skipped} port(s) with no manifest"
+            )
 
         _added, _updated = update_catalog(
             manifests,
@@ -64,7 +72,7 @@ def _process_source(
         logger.print_info_line(
             source.name,
             f"Done — {_added} added, {_updated} updated "
-            f"({len(manifests) - _added - _updated} skipped/no-github-url)"
+            f"({len(manifests) - _added - _updated} skipped/no-github-url)",
         )
 
 

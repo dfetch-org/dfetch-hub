@@ -2,12 +2,12 @@
 
 from pathlib import Path
 
+from dfetch.log import get_logger
 from dfetch.manifest.manifest import Manifest, ManifestDict
 from dfetch.manifest.parse import parse as parse_manifest
 from dfetch.manifest.project import ProjectEntryDict
 from dfetch.project import create_sub_project
 from dfetch.util.util import in_directory
-from dfetch.log import get_logger
 
 from dfetch_hub.catalog.config import SourceConfig
 
@@ -77,11 +77,10 @@ def fetch_source(source: SourceConfig, dest_dir: Path) -> Path:
         for project in manifest.projects:
             create_sub_project(project).update(force=True)
 
-    fetched = dest_dir / source.name
+    fetched = Path(dest_dir / source.name)
     if not fetched.is_dir():
         raise RuntimeError(
-            f"Expected dfetch output directory "
-            f"{fetched} not found after update"
+            f"Expected dfetch output directory {fetched} not found after update"
         )
     logger.debug("Fetch complete: %s", fetched)
     return fetched

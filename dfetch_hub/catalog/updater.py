@@ -7,9 +7,8 @@ import re
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
-from dfetch.vcs.git import GitRemote
 from dfetch.log import get_logger
-
+from dfetch.vcs.git import GitRemote
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -40,10 +39,7 @@ def _catalog_id(org: str, repo: str) -> str:
 
 def _fetch_upstream_tags(url: str) -> list[dict[str, Any]]:
     """Return git tags from *url* using dfetch's GitRemote."""
-    try:
-        info = GitRemote._ls_remote(url)
-    except Exception:  # noqa: BLE001
-        return []
+    info = GitRemote._ls_remote(url)  # pylint: disable=protected-access
 
     return [
         {
@@ -258,7 +254,9 @@ def update_catalog(
 
     for manifest in manifests:
         if not manifest.homepage:
-            logger.warning(f"cannot determine upstream repo without a URL of {manifest.port_name}")
+            logger.warning(
+                f"cannot determine upstream repo without a URL of {manifest.port_name}"
+            )
             continue
 
         parsed = _parse_github_url(manifest.homepage)
