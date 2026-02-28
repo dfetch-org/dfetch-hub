@@ -43,6 +43,7 @@ Issues = "https://github.com/dfetch-org/dfetch-hub/issues"
 
 [project.scripts]
 DfetchHub-cli = "dfetch_hub.project.cli:main_cli"
+dfetch-hub-update = "dfetch_hub.catalog.cli:main"
 
 [tool.pylint.format]
 max-line-length = "120"

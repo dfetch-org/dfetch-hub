@@ -1,0 +1,76 @@
+{
+  "canonical_url": "https://github.com/an-dr/abcmake",
+  "org": "an-dr",
+  "repo": "abcmake",
+  "subfolder_path": null,
+  "catalog_sources": [
+    {
+      "source_name": "vcpkg",
+      "label": "vcpkg",
+      "index_path": "ports/abcmake",
+      "registry_version": "6.4.0"
+    }
+  ],
+  "manifests": [],
+  "readme": "# abcmake\n\nSimple, component-first CMake helper for small & medium C/C++ projects\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/abcmake\n    url: https://github.com/an-dr/abcmake\n    tag: 6.4.0\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/abcmake/`.\n",
+  "tags": [
+    {
+      "name": "3",
+      "is_tag": true,
+      "commit_sha": "a05d02884934f1",
+      "date": null
+    },
+    {
+      "name": "v5.3.0",
+      "is_tag": true,
+      "commit_sha": "a052a66818bc1e",
+      "date": null
+    },
+    {
+      "name": "v5.3.1",
+      "is_tag": true,
+      "commit_sha": "d7f537ad2b42d1",
+      "date": null
+    },
+    {
+      "name": "v6.0.0",
+      "is_tag": true,
+      "commit_sha": "a85dbefef01039",
+      "date": null
+    },
+    {
+      "name": "v6.1.0",
+      "is_tag": true,
+      "commit_sha": "cdf8d1268bfc4e",
+      "date": null
+    },
+    {
+      "name": "v6.2.0",
+      "is_tag": true,
+      "commit_sha": "ae8a79896faa71",
+      "date": null
+    },
+    {
+      "name": "v6.3.0",
+      "is_tag": true,
+      "commit_sha": "2460a53d637ead",
+      "date": null
+    },
+    {
+      "name": "v6.4.0",
+      "is_tag": true,
+      "commit_sha": "4a45dea784dd98",
+      "date": null
+    }
+  ],
+  "branches": [
+    {
+      "name": "main",
+      "is_tag": false,
+      "commit_sha": null,
+      "date": null
+    }
+  ],
+  "license_text": null,
+  "fetched_at": "2026-02-28T21:24:46.189114+00:00"
+}

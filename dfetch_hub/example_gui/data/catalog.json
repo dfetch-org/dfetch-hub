@@ -273,6 +273,12 @@
     ],
     "tags": [
       {
+        "name": "20250814.1",
+        "is_tag": true,
+        "commit_sha": null,
+        "date": null
+      },
+      {
         "name": "20240116.2",
         "is_tag": true,
         "commit_sha": "a2a15f3b187bb6",
@@ -444,6 +450,98 @@
         "name": "curl-8_6_0",
         "is_tag": true,
         "commit_sha": "a5c9d0fb7841e1",
+        "date": null
+      }
+    ]
+  },
+  "github/an-dr/abcmake": {
+    "id": "github/an-dr/abcmake",
+    "name": "abcmake",
+    "description": "Simple, component-first CMake helper for small & medium C/C++ projects",
+    "url": "https://github.com/an-dr/abcmake",
+    "source_type": "github",
+    "default_branch": "main",
+    "license": "MIT",
+    "topics": [],
+    "stars": 0,
+    "last_updated": "2026-02-28T21:15:57.119113+00:00",
+    "source_labels": [
+      "vcpkg"
+    ],
+    "tags": [
+      {
+        "name": "6.4.0",
+        "is_tag": true,
+        "commit_sha": null,
+        "date": null
+      }
+    ]
+  },
+  "github/rvarago/absent": {
+    "id": "github/rvarago/absent",
+    "name": "absent",
+    "description": "A small C++17 library meant to simplify the composition of nullable types in a generic, type-safe, and declarative way",
+    "url": "https://github.com/rvarago/absent",
+    "source_type": "github",
+    "default_branch": "main",
+    "license": null,
+    "topics": [],
+    "stars": 0,
+    "last_updated": "2026-02-28T21:33:03.405588+00:00",
+    "source_labels": [
+      "vcpkg"
+    ],
+    "tags": [
+      {
+        "name": "0.3.1",
+        "is_tag": true,
+        "commit_sha": null,
+        "date": null
+      }
+    ]
+  },
+  "github/abumq/ripe": {
+    "id": "github/abumq/ripe",
+    "name": "abumq-ripe",
+    "description": "Lightweight cryptography library wrapper",
+    "url": "https://github.com/abumq/ripe",
+    "source_type": "github",
+    "default_branch": "main",
+    "license": "Apache-2.0",
+    "topics": [],
+    "stars": 0,
+    "last_updated": "2026-02-28T21:33:03.749213+00:00",
+    "source_labels": [
+      "vcpkg"
+    ],
+    "tags": [
+      {
+        "name": "4.2.2",
+        "is_tag": true,
+        "commit_sha": null,
+        "date": null
+      }
+    ]
+  },
+  "github/docgroup/ace_tao": {
+    "id": "github/docgroup/ace_tao",
+    "name": "ace",
+    "description": "The ADAPTIVE Communication Environment",
+    "url": "https://github.com/DOCGroup/ACE_TAO",
+    "source_type": "github",
+    "default_branch": "main",
+    "license": "DOC",
+    "topics": [],
+    "stars": 0,
+    "last_updated": "2026-02-28T21:33:04.068512+00:00",
+    "source_labels": [
+      "vcpkg"
+    ],
+    "tags": [
+      {
+        "name": "8.0.5",
+        "is_tag": true,
+        "commit_sha": null,
         "date": null
       }
     ]
