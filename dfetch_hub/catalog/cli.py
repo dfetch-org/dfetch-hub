@@ -70,6 +70,9 @@ def _process_source(
 
 def main(args: list[str] | None = None) -> None:
     """Main entry point for the dfetch-hub CLI."""
+
+    logger.info("[bold blue]Dfetch:[white]hub[/white] (0.0.1)[/bold blue]")
+
     parser = argparse.ArgumentParser(
         description="Fetch sources configured in dfetch-hub.toml and update the catalog.",
     )
