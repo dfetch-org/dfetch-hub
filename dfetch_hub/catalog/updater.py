@@ -2,10 +2,11 @@
 
 import json
 import re
-import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
+
+from dfetch.vcs.git import GitRemote
 
 from dfetch_hub.catalog.vcpkg import VcpkgManifest
 
@@ -31,40 +32,22 @@ def _catalog_id(org: str, repo: str) -> str:
 
 
 def _fetch_upstream_tags(url: str) -> List[Dict[str, Any]]:
-    """Return git tags from *url* via git ls-remote, newest first."""
+    """Return git tags from *url* using dfetch's GitRemote."""
     try:
-        result = subprocess.run(
-            ["git", "ls-remote", "--tags", url],
-            capture_output=True,
-            text=True,
-            timeout=60,
-            check=False,
-        )
-        if result.returncode != 0:
-            return []
-
-        # Build a dict of tag_name -> sha, preferring the peeled (^{}) SHA
-        # because that points to the actual commit for annotated tags.
-        tags: Dict[str, str] = {}
-        for line in result.stdout.splitlines():
-            parts = line.split("\t")
-            if len(parts) != 2:
-                continue
-            sha, ref = parts
-            if not ref.startswith("refs/tags/"):
-                continue
-            name = ref[len("refs/tags/"):]
-            if name.endswith("^{}"):
-                tags[name[:-3]] = sha[:14]   # peeled → real commit
-            elif name not in tags:
-                tags[name] = sha[:14]
-
-        return [
-            {"name": name, "is_tag": True, "commit_sha": sha, "date": None}
-            for name, sha in tags.items()
-        ]
-    except (subprocess.SubprocessError, OSError):
+        info = GitRemote._ls_remote(url)
+    except Exception:  # noqa: BLE001
         return []
+
+    return [
+        {
+            "name": ref.replace("refs/tags/", ""),
+            "is_tag": True,
+            "commit_sha": sha[:14],
+            "date": None,
+        }
+        for ref, sha in info.items()
+        if ref.startswith("refs/tags/")
+    ]
 
 
 # ---------------------------------------------------------------------------

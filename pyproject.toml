@@ -17,8 +17,8 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "dfetch==0.10.0",
-    "PyYAML==6.0.2"
+    "dfetch==0.12.1",
+    "PyYAML>=6.0.2"
 ]
 
 [project.optional-dependencies] # https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#writing-pyproject-toml

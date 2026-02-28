@@ -1,12 +1,13 @@
 """Create a dfetch manifest and fetch sources into a temporary directory."""
 
-import os
-import subprocess
-import sys
 from pathlib import Path
 
 from dfetch.manifest.manifest import Manifest, ManifestDict
+from dfetch.manifest.parse import parse as parse_manifest
 from dfetch.manifest.project import ProjectEntryDict
+from dfetch.project import create_sub_project
+from dfetch.util.util import in_directory
+from dfetch.vcs.git import GitRemote
 
 from dfetch_hub.catalog.config import SourceConfig
 
@@ -18,11 +19,12 @@ def create_manifest(source: SourceConfig, dest_dir: Path) -> Path:
     (e.g. ``ports/`` for vcpkg), placing the result at ``<name>/`` inside
     *dest_dir*.
     """
+    branch = source.branch or GitRemote(source.url).get_default_branch()
     project = ProjectEntryDict(
         name=source.name,
         url=source.url,
         src=source.path,
-        branch=source.branch or "",
+        branch=branch,
         revision="",
         repo_path="",
         vcs="git",
@@ -38,23 +40,16 @@ def create_manifest(source: SourceConfig, dest_dir: Path) -> Path:
 
 
 def fetch_source(source: SourceConfig, dest_dir: Path) -> Path:
-    """Fetch *source* into *dest_dir* using dfetch and return the fetched folder.
+    """Fetch *source* into *dest_dir* using the dfetch Python API.
 
     The fetched content ends up at ``<dest_dir>/<source.name>/``.
     """
-    create_manifest(source, dest_dir)
+    manifest_path = create_manifest(source, dest_dir)
+    manifest = parse_manifest(str(manifest_path))
 
-    dfetch_bin = _dfetch_executable()
-    result = subprocess.run(
-        [dfetch_bin, "update"],
-        cwd=str(dest_dir),
-        capture_output=False,
-        check=False,
-    )
-    if result.returncode != 0:
-        raise RuntimeError(
-            f"dfetch update failed in {dest_dir} (exit {result.returncode})"
-        )
+    with in_directory(dest_dir):
+        for project in manifest.projects:
+            create_sub_project(project).update(force=True)
 
     fetched = dest_dir / source.name
     if not fetched.is_dir():
@@ -62,17 +57,3 @@ def fetch_source(source: SourceConfig, dest_dir: Path) -> Path:
             f"Expected dfetch output directory {fetched} not found after update"
         )
     return fetched
-
-
-def _dfetch_executable() -> str:
-    """Return the path to the dfetch executable, preferring the active venv."""
-    # Check alongside the running Python interpreter (works inside a venv)
-    candidate = Path(sys.executable).parent / "dfetch"
-    if candidate.exists():
-        return str(candidate)
-    venv = os.environ.get("VIRTUAL_ENV")
-    if venv:
-        candidate = Path(venv) / "bin" / "dfetch"
-        if candidate.exists():
-            return str(candidate)
-    return "dfetch"
