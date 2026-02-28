@@ -483,7 +483,7 @@ let acIdx = -1;
 
 async function loadCatalog() {
   try {
-    const resp = await fetch('catalog.json'); // path to your external JSON
+    const resp = await fetch('data/catalog.json'); // summary catalog
     if (!resp.ok) throw new Error(`Failed to load catalog: ${resp.status}`);
     RAW = await resp.json();
 
@@ -515,7 +515,17 @@ loadCatalog();
 function showPage(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active')}
 function showHome(){showPage('page-home');document.getElementById('hInput').value='';document.getElementById('nInput').value='';curQ=''}
 function showResults(){showPage('page-results')}
-function showDetail(id){const c=RAW[id];if(!c)return;curPkg=id;renderDetail(c);showPage('page-detail');window.scrollTo(0,0)}
+async function showDetail(id){
+  const c=RAW[id];if(!c)return;
+  curPkg=id;showPage('page-detail');window.scrollTo(0,0);
+  if(!c._detailLoaded){
+    document.getElementById('readmeBody').innerHTML='<div class="readme-empty">Loading…</div>';
+    document.getElementById('vtbody').innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--subtle)">Loading…</td></tr>';
+    try{const resp=await fetch(`data/${id}.json`);if(resp.ok){const d=await resp.json();Object.assign(RAW[id],d);}}catch(e){}
+    RAW[id]._detailLoaded=true;
+  }
+  renderDetail(RAW[id]);
+}
 
 function score(c,q){
   if(!q)return 1;

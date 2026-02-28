@@ -1,0 +1,46 @@
+{
+  "canonical_url": "https://github.com/abseil/abseil-cpp",
+  "org": "abseil",
+  "repo": "abseil-cpp",
+  "subfolder_path": null,
+  "catalog_sources": [
+    {
+      "source_name": "vcpkg-source",
+      "label": "vcpkg",
+      "index_path": "ports/abseil-cpp",
+      "registry_version": "20240116.2"
+    },
+    {
+      "source_name": "conan-source",
+      "label": "conan",
+      "index_path": "recipes/abseil-cpp",
+      "registry_version": "20240116.2"
+    }
+  ],
+  "manifests": [],
+  "readme": "# abseil-cpp\n\nAbseil Common Libraries (C++), with CMake build instructions\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/abseil-cpp\n    url: https://github.com/abseil/abseil-cpp\n    tag: 20240116.2\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/abseil-cpp/`.\n",
+  "tags": [
+    {
+      "name": "20240116.2",
+      "is_tag": true,
+      "commit_sha": "a2a15f3b187bb6",
+      "date": null
+    },
+    {
+      "name": "20240116.1",
+      "is_tag": true,
+      "commit_sha": "a56d884b187bb6",
+      "date": null
+    }
+  ],
+  "branches": [
+    {
+      "name": "main",
+      "is_tag": false,
+      "commit_sha": null,
+      "date": null
+    }
+  ],
+  "license_text": null,
+  "fetched_at": "2026-02-28T13:23:36.966785"
+}
