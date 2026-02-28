@@ -1,7 +1,10 @@
 """Parse dfetch-hub.toml configuration."""
 
-import tomllib
+from __future__ import annotations
+
 from dataclasses import dataclass, field
+
+import tomllib
 
 
 @dataclass
@@ -16,6 +19,7 @@ class SourceConfig:
         manifest: Manifest filename inside each subfolder (e.g. ``vcpkg.json``).
         label:    Tag added to every component found here.
         branch:   Branch to fetch; auto-detected from the remote when empty.
+
     """
 
     name: str
@@ -35,6 +39,7 @@ class Settings:
         concurrency:  Number of parallel HTTP/git fetches.
         catalog_path: Where to write the generated catalog JSON.
         output_dir:   Directory for generated site artefacts.
+
     """
 
     concurrency: int = 8
@@ -49,6 +54,7 @@ class HubConfig:
     Attributes:
         settings: Global settings block.
         sources:  All ``[[source]]`` blocks, in declaration order.
+
     """
 
     settings: Settings = field(default_factory=Settings)
@@ -74,11 +80,14 @@ def load_config(path: str = "dfetch-hub.toml") -> HubConfig:
     Raises:
         FileNotFoundError: If *path* does not exist.
         tomllib.TOMLDecodeError: If the file is not valid TOML.
+
     """
     with open(path, "rb") as fh:
         data = tomllib.load(fh)
 
-    raw_settings = {k: v for k, v in data.get("settings", {}).items() if k in _SETTINGS_FIELDS}
+    raw_settings = {
+        k: v for k, v in data.get("settings", {}).items() if k in _SETTINGS_FIELDS
+    }
     settings = Settings(**raw_settings)
 
     sources: list[SourceConfig] = [

@@ -1,6 +1,5 @@
 """Create a dfetch manifest and fetch remote sources into a local directory."""
 
-import logging
 from pathlib import Path
 
 from dfetch.manifest.manifest import Manifest, ManifestDict
@@ -9,10 +8,11 @@ from dfetch.manifest.project import ProjectEntryDict
 from dfetch.project import create_sub_project
 from dfetch.util.util import in_directory
 from dfetch.vcs.git import GitRemote
+from dfetch.log import get_logger
 
 from dfetch_hub.catalog.config import SourceConfig
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def create_manifest(source: SourceConfig, dest_dir: Path) -> Path:
@@ -31,6 +31,7 @@ def create_manifest(source: SourceConfig, dest_dir: Path) -> Path:
 
     Returns:
         Path to the written ``dfetch.yaml``.
+
     """
     if source.branch:
         branch = source.branch
@@ -78,8 +79,8 @@ def fetch_source(source: SourceConfig, dest_dir: Path) -> Path:
     Raises:
         RuntimeError: If the expected output directory is absent after the
             fetch, which indicates a dfetch-level failure.
+
     """
-    logger.info("Fetching '%s' from %s (src: %r)", source.name, source.url, source.path)
     manifest_path = create_manifest(source, dest_dir)
     manifest = parse_manifest(str(manifest_path))
 
@@ -90,7 +91,8 @@ def fetch_source(source: SourceConfig, dest_dir: Path) -> Path:
     fetched = dest_dir / source.name
     if not fetched.is_dir():
         raise RuntimeError(
-            f"Expected dfetch output directory {fetched} not found after update"
+            f"Expected dfetch output directory "
+            f"{fetched} not found after update"
         )
     logger.debug("Fetch complete: %s", fetched)
     return fetched

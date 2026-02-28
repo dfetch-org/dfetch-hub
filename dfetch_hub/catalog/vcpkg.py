@@ -1,11 +1,16 @@
 """Parse vcpkg.json port manifest files."""
 
-import json
-import logging
-from dataclasses import dataclass, field
-from pathlib import Path
+from __future__ import annotations
 
-logger = logging.getLogger(__name__)
+import json
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+from dfetch.log import get_logger
+
+if TYPE_CHECKING:
+    from pathlib import Path
+
+logger = get_logger(__name__)
 
 
 @dataclass
@@ -21,6 +26,7 @@ class VcpkgManifest:
         version:      Resolved version string (from whichever version field is
                       present in the manifest), or ``None`` if absent.
         dependencies: Names of direct vcpkg dependencies.
+
     """
 
     port_name: str
@@ -38,7 +44,13 @@ def _extract_version(data: dict[str, object]) -> str | None:
     vcpkg supports several mutually exclusive version fields; we try them in
     order of specificity.
     """
-    for key in ("version-semver", "version", "version-date", "version-relaxed", "version-string"):
+    for key in (
+        "version-semver",
+        "version",
+        "version-date",
+        "version-relaxed",
+        "version-string",
+    ):
         if key in data:
             return str(data[key])
     return None
@@ -80,6 +92,7 @@ def parse_vcpkg_json(port_dir: Path) -> VcpkgManifest | None:
     Returns:
         A :class:`VcpkgManifest` on success, or ``None`` if the file is
         absent, unreadable, or contains invalid JSON.
+
     """
     manifest_path = port_dir / "vcpkg.json"
     if not manifest_path.exists():

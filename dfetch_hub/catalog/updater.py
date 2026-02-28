@@ -1,15 +1,18 @@
 """Update catalog.json and per-project detail JSONs with data from vcpkg.json files."""
 
+from __future__ import annotations
+
 import json
 import re
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any
 
 from dfetch.vcs.git import GitRemote
 
-from dfetch_hub.catalog.vcpkg import VcpkgManifest
+if TYPE_CHECKING:
+    from pathlib import Path
 
+    from dfetch_hub.catalog.vcpkg import VcpkgManifest
 
 # ---------------------------------------------------------------------------
 # GitHub URL helpers
@@ -21,7 +24,7 @@ _GITHUB_RE = re.compile(
 )
 
 
-def _parse_github_url(url: str) -> Optional[Tuple[str, str]]:
+def _parse_github_url(url: str) -> tuple[str, str] | None:
     """Return (org, repo) extracted from a GitHub URL, or None."""
     m = _GITHUB_RE.match(url.strip())
     return (m.group(1), m.group(2)) if m else None
@@ -31,7 +34,7 @@ def _catalog_id(org: str, repo: str) -> str:
     return f"github/{org.lower()}/{repo.lower()}"
 
 
-def _fetch_upstream_tags(url: str) -> List[Dict[str, Any]]:
+def _fetch_upstream_tags(url: str) -> list[dict[str, Any]]:
     """Return git tags from *url* using dfetch's GitRemote."""
     try:
         info = GitRemote._ls_remote(url)
@@ -53,6 +56,7 @@ def _fetch_upstream_tags(url: str) -> List[Dict[str, Any]]:
 # ---------------------------------------------------------------------------
 # catalog.json helpers
 # ---------------------------------------------------------------------------
+
 
 def _load_json(path: Path) -> Any:
     if path.exists():
@@ -76,15 +80,16 @@ def _now_iso() -> str:
 # Catalog entry (catalog.json)
 # ---------------------------------------------------------------------------
 
+
 def _merge_catalog_entry(
-    existing: Optional[Dict[str, Any]],
+    existing: dict[str, Any] | None,
     manifest: VcpkgManifest,
     org: str,
     repo: str,
     label: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create or update a catalog.json entry for this package."""
-    entry: Dict[str, Any] = existing or {
+    entry: dict[str, Any] = existing or {
         "id": _catalog_id(org, repo),
         "name": manifest.package_name,
         "description": manifest.description,
@@ -106,21 +111,24 @@ def _merge_catalog_entry(
         entry["license"] = manifest.license
 
     # Ensure our label is in source_labels
-    labels: List[str] = entry.setdefault("source_labels", [])
+    labels: list[str] = entry.setdefault("source_labels", [])
     if label not in labels:
         labels.append(label)
 
     # Add a version tag if we have one and it's not already listed
     if manifest.version:
-        tags: List[Dict[str, Any]] = entry.setdefault("tags", [])
+        tags: list[dict[str, Any]] = entry.setdefault("tags", [])
         tag_names = {t.get("name") for t in tags}
         if manifest.version not in tag_names:
-            tags.insert(0, {
-                "name": manifest.version,
-                "is_tag": True,
-                "commit_sha": None,
-                "date": None,
-            })
+            tags.insert(
+                0,
+                {
+                    "name": manifest.version,
+                    "is_tag": True,
+                    "commit_sha": None,
+                    "date": None,
+                },
+            )
 
     return entry
 
@@ -129,12 +137,13 @@ def _merge_catalog_entry(
 # Detail JSON (data/github/<org>/<repo>.json)
 # ---------------------------------------------------------------------------
 
+
 def _catalog_source_entry(
     manifest: VcpkgManifest,
     source_name: str,
     label: str,
     ports_path: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     return {
         "source_name": source_name,
         "label": label,
@@ -144,16 +153,16 @@ def _catalog_source_entry(
 
 
 def _merge_detail(
-    existing: Optional[Dict[str, Any]],
+    existing: dict[str, Any] | None,
     manifest: VcpkgManifest,
     org: str,
     repo: str,
     source_name: str,
     label: str,
     ports_path: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Create or update a per-project detail JSON."""
-    detail: Dict[str, Any] = existing or {
+    detail: dict[str, Any] = existing or {
         "canonical_url": manifest.homepage or f"https://github.com/{org}/{repo}",
         "org": org,
         "repo": repo,
@@ -162,15 +171,18 @@ def _merge_detail(
         "manifests": [],
         "readme": _generate_readme(manifest, org, repo),
         "tags": [],
-        "branches": [{"name": "main", "is_tag": False, "commit_sha": None, "date": None}],
+        "branches": [
+            {"name": "main", "is_tag": False, "commit_sha": None, "date": None},
+        ],
         "license_text": None,
         "fetched_at": _now_iso(),
     }
 
     # Update or add the catalog source for this label
-    sources: List[Dict[str, Any]] = detail.setdefault("catalog_sources", [])
+    sources: list[dict[str, Any]] = detail.setdefault("catalog_sources", [])
     existing_source = next(
-        (s for s in sources if s.get("source_name") == source_name), None
+        (s for s in sources if s.get("source_name") == source_name),
+        None,
     )
     new_source = _catalog_source_entry(manifest, source_name, label, ports_path)
     if existing_source is None:
@@ -179,7 +191,7 @@ def _merge_detail(
         existing_source.update(new_source)
 
     # Populate tags from the upstream repo when the list is empty
-    tags: List[Dict[str, Any]] = detail.setdefault("tags", [])
+    tags: list[dict[str, Any]] = detail.setdefault("tags", [])
     if not tags and manifest.homepage:
         tags.extend(_fetch_upstream_tags(manifest.homepage))
 
@@ -188,12 +200,15 @@ def _merge_detail(
     if manifest.version:
         tag_names_normalised = {t.get("name", "").lstrip("v") for t in tags}
         if manifest.version.lstrip("v") not in tag_names_normalised:
-            tags.insert(0, {
-                "name": manifest.version,
-                "is_tag": True,
-                "commit_sha": None,
-                "date": None,
-            })
+            tags.insert(
+                0,
+                {
+                    "name": manifest.version,
+                    "is_tag": True,
+                    "commit_sha": None,
+                    "date": None,
+                },
+            )
 
     return detail
 
@@ -219,19 +234,20 @@ def _generate_readme(manifest: VcpkgManifest, org: str, repo: str) -> str:
 # Public API
 # ---------------------------------------------------------------------------
 
+
 def update_catalog(
-    manifests: List[VcpkgManifest],
+    manifests: list[VcpkgManifest],
     data_dir: Path,
     source_name: str,
     label: str,
     ports_path: str,
-) -> Tuple[int, int]:
+) -> tuple[int, int]:
     """Update catalog.json and per-project detail JSONs.
 
     Returns (added, updated) counts.
     """
     catalog_path = data_dir / "catalog.json"
-    catalog: Dict[str, Any] = _load_json(catalog_path) or {}
+    catalog: dict[str, Any] = _load_json(catalog_path) or {}
 
     added = 0
     updated = 0
@@ -248,7 +264,13 @@ def update_catalog(
         cat_id = _catalog_id(org, repo)
 
         existing_entry = catalog.get(cat_id)
-        catalog[cat_id] = _merge_catalog_entry(existing_entry, manifest, org, repo, label)
+        catalog[cat_id] = _merge_catalog_entry(
+            existing_entry,
+            manifest,
+            org,
+            repo,
+            label,
+        )
         if existing_entry is None:
             added += 1
         else:
@@ -258,7 +280,13 @@ def update_catalog(
         detail_path = data_dir / "github" / org / f"{repo}.json"
         existing_detail = _load_json(detail_path)
         merged_detail = _merge_detail(
-            existing_detail, manifest, org, repo, source_name, label, ports_path
+            existing_detail,
+            manifest,
+            org,
+            repo,
+            source_name,
+            label,
+            ports_path,
         )
         _save_json(detail_path, merged_detail)
 
