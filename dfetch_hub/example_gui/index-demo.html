@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>dfetch-hub</title>
+
+  <!-- Favicon: dfetch dog SVG inline as data URI -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%23343131'/%3E%3Ctext x='50%25' y='54%25' dominant-baseline='middle' text-anchor='middle' font-size='38' font-family='serif'%3E🐕%3C/text%3E%3C/svg%3E" />
+
+  <!-- Lato: body font used throughout the dfetch RTD site -->
+  <!-- Nunito: the rounded bold font used in the dfetch logo/header image -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;0,900;1,400&family=Nunito:wght@700;800;900&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      /* dfetch / sphinx-rtd-theme palette */
+      --nav:      #343131;   /* RTD dark sidebar / navbar */
+      --nav-deep: #272525;   /* darker variant for hover/depth */
+      --accent:   #e88b24;   /* RTD warm orange highlight */
+      --accent2:  #d4790f;   /* darker orange for hover */
+      --blue:     #2980b9;   /* RTD link blue */
+      --blue2:    #1a6fa0;   /* link hover */
+      --green:    #27ae60;   /* success / add states */
+      --green2:   #1e8449;
+
+      /* Content area */
+      --bg:       #f5f5f5;   /* RTD body background */
+      --surface:  #ffffff;
+      --border:   #e1e4e5;   /* RTD border color */
+      --border2:  #c8cacc;
+      --text:     #404040;   /* RTD body text */
+      --muted:    #777777;
+      --subtle:   #9b9b9b;
+
+      --code-bg:#f8f8f8;
+      --tag-bg:#fff8e1;--tag-fg:#8d5c00;--tag-border:#f5c842;
+
+      --r:4px;--rm:3px;--rl:8px;
+      --mono:'Roboto Mono','Courier New',monospace;
+      --sans:'Lato','Helvetica Neue',Helvetica,Arial,sans-serif;
+      --logo:'Nunito','Helvetica Neue',Helvetica,Arial,sans-serif;
+    }
+    html{font-size:16px;scroll-behavior:smooth}
+    body{background:var(--bg);color:var(--text);font-family:var(--sans);font-size:.9375rem;line-height:1.6}
+    a{color:var(--blue);text-decoration:none}
+    a:hover{color:var(--blue2);text-decoration:underline}
+    button{cursor:pointer;border:none;background:none;font:inherit}
+    code,pre{font-family:var(--mono)}
+
+    .view{display:none}.view.active{display:block}
+
+    /* ── NAVBAR (RTD dark header) ─────────────────────────────────── */
+    .navbar{
+      background:var(--nav);
+      border-bottom:3px solid var(--accent);
+      padding:0 1.25rem;height:58px;
+      display:flex;align-items:center;gap:1.25rem;
+      position:sticky;top:0;z-index:1000;
+    }
+    .brand{
+      display:flex;align-items:center;gap:.5rem;
+      text-decoration:none!important;color:#fff;
+      font-family:var(--logo);font-size:1.25rem;font-weight:900;
+      white-space:nowrap;flex-shrink:0;letter-spacing:-.5px;
+    }
+    .brand-logo{width:28px;height:28px;object-fit:contain;border-radius:3px}
+    .brand-accent{color:var(--accent)}
+    .brand:hover{color:#fff;opacity:.92}
+    .nsearch{flex:1;max-width:560px;position:relative}
+    .nsearch input{
+      width:100%;padding:.4rem .9rem .4rem 2.2rem;
+      border-radius:var(--rm);
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.08);
+      color:#fff;font-family:var(--sans);font-size:.875rem;
+      outline:none;transition:.15s;
+    }
+    .nsearch input::placeholder{color:rgba(255,255,255,.38)}
+    .nsearch input:focus{background:rgba(255,255,255,.13);border-color:var(--accent)}
+    .nsearch-ico{position:absolute;left:.65rem;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.4);font-size:.85rem;pointer-events:none}
+    .acdrop{
+      position:absolute;top:calc(100% + 6px);left:0;right:0;
+      background:var(--surface);border:1px solid var(--border2);
+      border-radius:var(--r);box-shadow:0 6px 20px rgba(0,0,0,.15);
+      max-height:360px;overflow-y:auto;z-index:2000;display:none;
+    }
+    .acdrop.open{display:block}
+    .acitem{display:flex;align-items:center;gap:.65rem;padding:.5rem .85rem;cursor:pointer;border-bottom:1px solid var(--border);transition:.1s}
+    .acitem:last-child{border-bottom:none}
+    .acitem:hover,.acitem.sel{background:#fff8e1}
+    .acico{
+      width:32px;height:32px;border-radius:var(--rm);
+      background:var(--nav);display:flex;align-items:center;justify-content:center;
+      font-family:var(--logo);font-size:.72rem;font-weight:800;color:var(--accent);flex-shrink:0;
+    }
+    .acinfo{flex:1;min-width:0}
+    .acname{font-weight:700;font-size:.845rem;color:var(--text)}
+    .acdesc{font-size:.75rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .aclabels{display:flex;gap:.22rem;flex-shrink:0}
+    .nav-actions{display:flex;gap:.65rem;align-items:center;margin-left:auto}
+    .btn-mf{
+      display:flex;align-items:center;gap:.3rem;
+      background:var(--accent);color:#fff;font-family:var(--logo);
+      font-weight:800;font-size:.82rem;
+      padding:.3rem .8rem;border-radius:var(--rm);white-space:nowrap;transition:.15s;cursor:pointer;
+    }
+    .btn-mf:hover{background:var(--accent2)}
+    .mf-cnt{
+      background:rgba(0,0,0,.25);color:#fff;
+      border-radius:8px;font-size:.68rem;
+      padding:0 .38rem;font-weight:700;min-width:16px;text-align:center;
+    }
+
+    /* ── HERO ────────────────────────────────────────────────────── */
+    .hero{
+      background:var(--nav);
+      border-bottom:1px solid var(--nav-deep);
+      padding:3rem 1.5rem 2.8rem;text-align:center;
+    }
+    .hero-inner{display:flex;flex-direction:column;align-items:center;gap:1.1rem}
+    .hero-dogrow{display:flex;align-items:center;justify-content:center;gap:1.2rem;flex-wrap:wrap}
+    .hero-dog{
+      width:90px;height:90px;object-fit:contain;
+      border-radius:12px;
+      filter:drop-shadow(0 4px 12px rgba(0,0,0,.4));
+    }
+    .hero-textblock{text-align:left}
+    .hero-title{
+      font-family:var(--logo);font-size:clamp(2rem,5vw,3rem);
+      font-weight:900;color:#fff;line-height:1.1;letter-spacing:-1px;
+    }
+    .hero-title .accent{color:var(--accent)}
+    .hero-sub{color:rgba(255,255,255,.58);font-size:.95rem;margin-top:.35rem}
+    .hero-search{max-width:600px;width:100%;position:relative}
+    .hero-search input{
+      width:100%;padding:.8rem 1.1rem .8rem 2.85rem;
+      border-radius:var(--r);
+      border:2px solid rgba(255,255,255,.16);
+      background:rgba(255,255,255,.06);
+      color:#fff;font-size:1rem;font-family:var(--sans);
+      outline:none;transition:.2s;
+    }
+    .hero-search input::placeholder{color:rgba(255,255,255,.35)}
+    .hero-search input:focus{border-color:var(--accent);background:rgba(255,255,255,.1)}
+    .hero-search-ico{position:absolute;left:.95rem;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.42);pointer-events:none}
+    .hero-stats{display:flex;gap:2rem;justify-content:center;flex-wrap:wrap}
+    .hstat{color:rgba(255,255,255,.55);font-size:.84rem}
+    .hstat strong{color:var(--accent);font-weight:700}
+
+    /* ── RESULTS ─────────────────────────────────────────────────── */
+    .res-header{background:var(--surface);border-bottom:1px solid var(--border);padding:.65rem 1.25rem;display:flex;align-items:center;gap:.7rem;flex-wrap:wrap}
+    .res-count{font-size:.875rem;color:var(--muted)}
+    .res-count strong{color:var(--text);font-weight:700}
+    .fchips{display:flex;gap:.4rem;flex-wrap:wrap}
+    .chip{font-size:.76rem;padding:.16rem .55rem;border:1px solid var(--border2);border-radius:12px;cursor:pointer;color:var(--muted);background:var(--surface);transition:.15s}
+    .chip:hover{border-color:var(--accent);color:var(--accent)}
+    .chip.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+    .sort-sel{margin-left:auto;font-size:.82rem;color:var(--muted);border:1px solid var(--border2);border-radius:var(--rm);padding:.2rem .5rem;background:var(--surface);cursor:pointer}
+    .res-body{display:flex;max-width:1200px;margin:0 auto;padding:1.25rem;gap:1.5rem}
+    .res-side{width:205px;flex-shrink:0}
+    .res-main{flex:1;min-width:0}
+    .sg-title{
+      font-size:.71rem;font-weight:700;text-transform:uppercase;
+      letter-spacing:.09em;color:var(--muted);
+      margin-bottom:.4rem;padding-bottom:.3rem;
+      border-bottom:1px solid var(--border);
+    }
+    .sfbtn{display:block;width:100%;text-align:left;padding:.26rem .4rem;border-radius:var(--rm);font-size:.84rem;color:var(--text);cursor:pointer;transition:.1s}
+    .sfbtn:hover{background:#f0f0f0}
+    .sfbtn.active{background:var(--tag-bg);color:var(--tag-fg);font-weight:700}
+    .sfcnt{float:right;font-size:.71rem;color:var(--subtle)}
+    .sg{margin-bottom:1.2rem}
+    .pkg{
+      background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--r);padding:.9rem 1.1rem;margin-bottom:.6rem;
+      cursor:pointer;transition:border-color .15s,box-shadow .15s;
+      display:grid;grid-template-columns:1fr auto;gap:.2rem;
+    }
+    .pkg:hover{border-color:var(--accent);border-left:3px solid var(--accent);box-shadow:0 1px 6px rgba(0,0,0,.08)}
+    .pkg-name{font-family:var(--logo);font-size:1rem;font-weight:800;color:var(--nav)}
+    .pkg-ver{font-family:var(--mono);font-size:.77rem;color:var(--muted);padding-top:2px}
+    .pkg-desc{grid-column:1/-1;font-size:.865rem;color:var(--muted);margin-top:.12rem;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+    .pkg-meta{grid-column:1/-1;display:flex;align-items:center;gap:.55rem;margin-top:.35rem;flex-wrap:wrap}
+    .pstat{font-size:.75rem;color:var(--subtle);display:flex;align-items:center;gap:.2rem}
+    .padded{margin-left:auto;font-size:.75rem;color:var(--subtle)}
+    .added-ind{display:inline-flex;align-items:center;gap:.22rem;font-size:.75rem;color:var(--green);font-weight:700}
+    .no-res{text-align:center;padding:3rem 1rem;color:var(--muted)}
+    .no-res-ico{font-size:2.2rem;margin-bottom:.6rem}
+
+    /* ── DETAIL ─────────────────────────────────────────────────── */
+    .pkg-hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:1.4rem 1.5rem}
+    .pkg-hdr-inner{max-width:1200px;margin:0 auto}
+    .pkg-bc{font-size:.78rem;color:var(--muted);margin-bottom:.4rem}
+    .pkg-bc a{color:var(--blue)}
+    .pkg-trow{display:flex;align-items:flex-start;gap:.7rem;flex-wrap:wrap}
+    .pkg-ttitle{font-family:var(--logo);font-size:1.6rem;font-weight:900;color:var(--nav);letter-spacing:-.5px}
+    .pkg-tver{font-family:var(--mono);font-size:.92rem;color:var(--muted);align-self:flex-end;padding-bottom:2px}
+    .pkg-tbadges{display:flex;gap:.32rem;align-items:center;flex-wrap:wrap;margin-left:auto}
+    .pkg-tdesc{color:var(--muted);margin-top:.4rem;font-size:.93rem}
+    .pkg-tmeta{margin-top:.6rem;display:flex;gap:.8rem;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+    .pmi{display:flex;align-items:center;gap:.25rem}
+
+    /* Tabs */
+    .tabs-bar{background:var(--surface);border-bottom:2px solid var(--border);padding:0 1.5rem}
+    .tabs-inner{max-width:1200px;margin:0 auto;display:flex}
+    .tabbtn{padding:.65rem 1rem;font-size:.875rem;font-weight:700;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-2px;transition:.15s;cursor:pointer;font-family:var(--sans)}
+    .tabbtn:hover{color:var(--text)}
+    .tabbtn.active{color:var(--accent);border-bottom-color:var(--accent)}
+    .tabcontent{display:none}.tabcontent.active{display:block}
+
+    /* Body */
+    .pkg-body{max-width:1200px;margin:0 auto;padding:1.25rem;display:grid;grid-template-columns:1fr 270px;gap:1.5rem}
+    .pkg-cnt{min-width:0}
+
+    /* README */
+    .readme-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.6rem 1.8rem}
+    .readme-wrap h1,.readme-wrap h2{font-family:var(--logo);font-size:1.1rem;font-weight:800;margin:1em 0 .35em;padding-bottom:.2em;border-bottom:1px solid var(--border);color:var(--nav)}
+    .readme-wrap h3{font-size:.98rem;font-weight:700;margin:.85em 0 .28em;color:var(--nav)}
+    .readme-wrap p{margin:.6em 0}
+    .readme-wrap code{background:var(--code-bg);border:1px solid var(--border);border-radius:3px;padding:.1em .32em;font-size:.875em}
+    .readme-wrap pre{background:var(--code-bg);border:1px solid var(--border);border-radius:var(--rm);padding:.85rem;overflow-x:auto;margin:.75em 0}
+    .readme-wrap pre code{background:none;border:none;padding:0;font-size:.845rem}
+    .readme-wrap ul,.readme-wrap ol{padding-left:1.3em;margin:.4em 0}
+    .readme-wrap li{margin:.18em 0}
+    .readme-wrap a{color:var(--blue)}
+    .readme-wrap img{max-width:100%;height:auto;border-radius:var(--rm)}
+    .readme-wrap table{width:100%;border-collapse:collapse;margin:.75em 0;font-size:.875rem}
+    .readme-wrap th,.readme-wrap td{border:1px solid var(--border);padding:.32rem .65rem}
+    .readme-wrap th{background:var(--bg);font-weight:700}
+    .readme-empty{color:var(--subtle);font-style:italic;padding:2rem;text-align:center}
+
+    /* Versions */
+    .vtable{width:100%;border-collapse:collapse;background:var(--surface);border-radius:var(--r);border:1px solid var(--border);overflow:hidden}
+    .vtable th{background:var(--bg);font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:.55rem .85rem;text-align:left;color:var(--muted);border-bottom:1px solid var(--border)}
+    .vtable td{padding:.55rem .85rem;font-size:.875rem;border-bottom:1px solid var(--border)}
+    .vtable tr:last-child td{border-bottom:none}
+    .vtable tr:hover td{background:var(--bg)}
+    .vtag-name{font-family:var(--mono);font-weight:500}
+    .vtag-latest{font-size:.67rem;font-weight:700;text-transform:uppercase;background:var(--tag-bg);color:var(--tag-fg);border:1px solid var(--tag-border);padding:.06rem .32rem;border-radius:3px;margin-left:.4rem}
+    .vsha{font-family:var(--mono);font-size:.76rem;color:var(--subtle)}
+    .vbadge{font-size:.68rem;font-weight:700;text-transform:uppercase;padding:.06rem .35rem;border-radius:3px}
+    .vbadge-tag{background:#fef9e7;color:#8d6600;border:1px solid #f5c842}
+    .vbadge-branch{background:#e8f4f8;color:#1a5276;border:1px solid #aed6f1}
+
+    /* Snippet */
+    .snip-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+    .snip-toolbar{display:flex;align-items:center;justify-content:space-between;background:var(--nav);padding:.42rem .85rem}
+    .snip-label{font-size:.76rem;color:rgba(255,255,255,.5);font-family:var(--mono)}
+    .snip-copy{font-size:.75rem;background:var(--accent);color:#fff;border:none;border-radius:var(--rm);padding:.17rem .58rem;cursor:pointer;transition:.15s;font-weight:700}
+    .snip-copy:hover{background:var(--accent2)}
+    .snip-code{padding:1.1rem 1.3rem;background:#2b2b2b;color:#f8f8f2;font-family:var(--mono);font-size:.84rem;line-height:1.7;overflow-x:auto;white-space:pre}
+    .sk{color:#66d9e8}.sv{color:#a6e22e}.su{color:#e6db74}.sc{color:#75715e}
+
+    /* Aside */
+    .aside-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:.85rem .95rem;margin-bottom:.8rem}
+    .aside-t{font-size:.71rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:.45rem;padding-bottom:.3rem;border-bottom:1px solid var(--border)}
+    .aside-link{display:flex;align-items:center;gap:.32rem;font-size:.84rem;color:var(--blue);margin-bottom:.32rem}
+    .aside-link:hover{color:var(--blue2)}
+    .aside-row{display:flex;align-items:center;justify-content:space-between;font-size:.84rem;margin-bottom:.38rem}
+    .aside-k{color:var(--muted)}.aside-v{font-weight:700;color:var(--text)}
+    .aside-sources{display:flex;flex-direction:column;gap:.26rem}
+    .aside-src-row{display:flex;align-items:center;gap:.32rem;font-size:.81rem}
+    .btn-add{display:flex;align-items:center;justify-content:center;gap:.38rem;width:100%;padding:.58rem;border-radius:var(--rm);font-weight:700;font-size:.875rem;font-family:var(--logo);transition:.15s;cursor:pointer;border:none}
+    .btn-add.add{background:var(--accent);color:#fff}
+    .btn-add.add:hover{background:var(--accent2)}
+    .btn-add.rm{background:#fdecea;color:#c0392b;border:1px solid #e74c3c}
+    .btn-add.rm:hover{background:#f9d6d2}
+
+    /* MODAL */
+    .modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9000;display:none;align-items:center;justify-content:center}
+    .modal-ov.open{display:flex}
+    .modal{background:var(--surface);border-radius:var(--r);box-shadow:0 10px 36px rgba(0,0,0,.22);width:min(740px,95vw);max-height:88vh;display:flex;flex-direction:column}
+    .modal-hdr{display:flex;align-items:center;padding:.85rem 1.1rem;border-bottom:1px solid var(--border);gap:.65rem;background:var(--nav)}
+    .modal-title{font-family:var(--logo);font-size:1rem;font-weight:900;color:#fff;flex:1}
+    .modal-close{font-size:1.2rem;color:rgba(255,255,255,.6);cursor:pointer;padding:0 .2rem}
+    .modal-close:hover{color:#fff}
+    .modal-body{flex:1;overflow-y:auto;padding:1.1rem}
+    .modal-foot{padding:.85rem 1.1rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:.6rem;background:var(--bg)}
+    .modal-fi{font-size:.8rem;color:var(--muted);flex:1}
+    .btn-copy-mf{background:var(--accent);color:#fff;font-weight:700;font-family:var(--logo);font-size:.875rem;padding:.48rem 1rem;border-radius:var(--rm);cursor:pointer;transition:.15s}
+    .btn-copy-mf:hover{background:var(--accent2)}
+    .btn-dl-mf{background:var(--surface);border:1px solid var(--border2);color:var(--text);font-weight:600;font-size:.875rem;padding:.48rem 1rem;border-radius:var(--rm);cursor:pointer}
+    .msel-list{display:flex;flex-direction:column;gap:.42rem;margin-bottom:.9rem}
+    .msel-row{display:flex;align-items:center;gap:.6rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--rm);padding:.42rem .65rem}
+    .msel-name{font-family:var(--logo);font-weight:800;font-size:.855rem;flex:1}
+    .msel-rm{color:var(--subtle);font-size:1.05rem;cursor:pointer;padding:0 .12rem}
+    .msel-rm:hover{color:#c0392b}
+    .mf-code{background:#2b2b2b;color:#f8f8f2;font-family:var(--mono);font-size:.82rem;line-height:1.7;border-radius:var(--r);padding:1.1rem 1.3rem;overflow-x:auto;white-space:pre}
+    .mf-empty{text-align:center;padding:2rem;color:var(--muted)}
+
+    /* LABELS */
+    .lbl{display:inline-flex;align-items:center;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:.12rem .4rem;border-radius:var(--rm)}
+    .lbl-vcpkg{background:#d6eaf8;color:#1a5276}
+    .lbl-conan{background:#fef9e7;color:#7d6608}
+    .lbl-npm{background:#fde8e4;color:#922b21}
+    .lbl-clib{background:#e8d8f0;color:#4a235a}
+    .lbl-esp,.lbl-esp-idf{background:#d5f5e3;color:#1e8449}
+    .lbl-github{background:#eaecee;color:#2c3e50}
+    .lbl-gitlab{background:#fde8f0;color:#7b241c}
+    .lbl-svn{background:#fef5e7;color:#784212}
+    .lbl-default{background:#eaecee;color:#566573}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--nav);color:#fff;padding:.55rem .95rem;border-radius:var(--r);font-size:.875rem;border-left:3px solid var(--accent);box-shadow:0 3px 14px rgba(0,0,0,.18);z-index:9999;transform:translateY(6px);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none}
+    .toast.show{opacity:1;transform:translateY(0)}
+
+    @media(max-width:900px){.pkg-body{grid-template-columns:1fr}.res-side{display:none}}
+    @media(max-width:600px){.nsearch{display:none}.hero{padding:2rem 1rem}.res-body{padding:1rem}}
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="brand" href="#" onclick="showHome();return false">
+    <img class="brand-logo" src="https://github.com/dfetch-org/dfetch/raw/main/doc/images/dfetch_header.png"
+         onerror="this.style.display='none'"
+         alt="dfetch dog logo" />
+    <span><span class="brand-accent">d</span>fetch-hub</span>
+  </a>
+  <div class="nsearch" id="nsearch">
+    <span class="nsearch-ico">⌕</span>
+    <input id="nInput" type="search" placeholder="Search components…" autocomplete="off"
+      oninput="onNInput(this.value)" onkeydown="onNKey(event)"
+      onfocus="openAC()" onblur="setTimeout(closeAC,180)" />
+    <div class="acdrop" id="acdrop"></div>
+  </div>
+  <div class="nav-actions">
+    <button class="btn-mf" onclick="openModal()">⊕ Manifest <span class="mf-cnt" id="mfcnt">0</span></button>
+  </div>
+</nav>
+
+<!-- HOME -->
+<div class="view active" id="page-home">
+  <div class="hero">
+    <div class="hero-inner">
+      <div class="hero-dogrow">
+        <img class="hero-dog"
+             src="https://github.com/dfetch-org/dfetch/raw/main/doc/images/dfetch_header.png"
+             onerror="this.style.display='none'"
+             alt="dfetch — the fetching dog" />
+        <div class="hero-textblock">
+          <div class="hero-title"><span class="accent">d</span>fetch-hub</div>
+          <p class="hero-sub">Search &amp; compose <code style="color:var(--accent);background:rgba(0,0,0,.3);padding:.1em .4em;border-radius:3px;font-family:var(--mono)">dfetch.yaml</code> manifests</p>
+        </div>
+      </div>
+      <div class="hero-search">
+        <span class="hero-search-ico">⌕</span>
+        <input id="hInput" type="search" placeholder="Search packages, e.g. mbedtls, zlib, openssl…"
+          autocomplete="off" oninput="onHInput(this.value)" onkeydown="onHKey(event)" />
+      </div>
+      <div class="hero-stats">
+        <div class="hstat"><strong id="sCmp">0</strong> components</div>
+        <div class="hstat"><strong id="sReg">0</strong> registries</div>
+        <div class="hstat"><strong id="sLbl">0</strong> labels</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="view" id="page-results">
+  <div class="res-header">
+    <span class="res-count" id="rcount">Showing <strong>0</strong> packages</span>
+    <div class="fchips" id="fchips"></div>
+    <select class="sort-sel" id="sortSel" onchange="applySort()">
+      <option value="relevance">Relevance</option>
+      <option value="stars">Most stars</option>
+      <option value="updated">Recently updated</option>
+      <option value="name">Name A-Z</option>
+    </select>
+  </div>
+  <div class="res-body">
+    <aside class="res-side">
+      <div class="sg"><div class="sg-title">Registry</div><div id="sideLabels"></div></div>
+      <div class="sg"><div class="sg-title">VCS Type</div><div id="sideSrcs"></div></div>
+      <div class="sg"><div class="sg-title">License</div><div id="sideLics"></div></div>
+    </aside>
+    <main class="res-main">
+      <div id="rlist"></div>
+      <div class="no-res" id="noRes" style="display:none"><div class="no-res-ico">🔍</div><p><strong>No packages found</strong></p><p style="font-size:.86rem">Try different keywords or clear filters.</p></div>
+    </main>
+  </div>
+</div>
+
+<!-- DETAIL -->
+<div class="view" id="page-detail">
+  <div class="pkg-hdr">
+    <div class="pkg-hdr-inner">
+      <div class="pkg-bc"><a href="#" onclick="showResults();return false">← Back to results</a></div>
+      <div class="pkg-trow">
+        <div>
+          <span class="pkg-ttitle" id="dName"></span>
+          <span class="pkg-tver" id="dVer"></span>
+        </div>
+        <div class="pkg-tbadges" id="dBadges"></div>
+      </div>
+      <div class="pkg-tdesc" id="dDesc"></div>
+      <div class="pkg-tmeta" id="dMeta"></div>
+    </div>
+  </div>
+  <div class="tabs-bar">
+    <div class="tabs-inner">
+      <button class="tabbtn active" onclick="switchTab('readme')">README</button>
+      <button class="tabbtn" onclick="switchTab('versions')">Versions</button>
+      <button class="tabbtn" onclick="switchTab('manifest')">dfetch snippet</button>
+    </div>
+  </div>
+  <div class="pkg-body">
+    <div class="pkg-cnt">
+      <div class="tabcontent active" id="tab-readme">
+        <div class="readme-wrap" id="readmeBody"></div>
+      </div>
+      <div class="tabcontent" id="tab-versions">
+        <table class="vtable"><thead><tr><th>Ref</th><th>Type</th><th>SHA</th><th>Date</th></tr></thead>
+        <tbody id="vtbody"></tbody></table>
+      </div>
+      <div class="tabcontent" id="tab-manifest">
+        <div class="snip-wrap">
+          <div class="snip-toolbar">
+            <span class="snip-label">dfetch.yaml — project entry</span>
+            <button class="snip-copy" onclick="copySnip()">Copy</button>
+          </div>
+          <div class="snip-code" id="dSnip"></div>
+        </div>
+      </div>
+    </div>
+    <aside>
+      <button class="btn-add add" id="btnAdd" onclick="toggleMf()">＋ Add to manifest</button>
+      <div style="height:.9rem"></div>
+      <div class="aside-card"><div class="aside-t">Links</div><div id="aLinks"></div></div>
+      <div class="aside-card"><div class="aside-t">Details</div><div id="aDets"></div></div>
+      <div class="aside-card"><div class="aside-t">Found in</div><div class="aside-sources" id="aSrcs"></div></div>
+    </aside>
+  </div>
+</div>
+
+<!-- MANIFEST MODAL -->
+<div class="modal-ov" id="mfModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title">dfetch.yaml manifest builder</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="mf-empty" id="mfEmpty"><p>No components selected yet.</p><p style="font-size:.84rem;margin-top:.3rem">Browse and click <strong>Add to manifest</strong>.</p></div>
+      <div class="msel-list" id="mselList"></div>
+      <div class="mf-code" id="mfCode" style="display:none"></div>
+    </div>
+    <div class="modal-foot">
+      <span class="modal-fi" id="mfInfo"></span>
+      <button class="btn-dl-mf" onclick="dlMf()">⬇ Download</button>
+      <button class="btn-copy-mf" onclick="copyMf()">Copy YAML</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script id="catData" type="application/json">{"github/armmbed/mbedtls": {"id": "github/armmbed/mbedtls", "name": "mbedtls", "description": "Mbed TLS is a C library that implements cryptographic primitives, X.509 certificate manipulation and the SSL/TLS and DTLS protocols", "url": "https://github.com/ARMmbed/mbedtls", "canonical_url": "https://github.com/armmbed/mbedtls", "source_type": "github", "org": "ARMmbed", "repo": "mbedtls", "subfolder_path": "ports/mbedtls", "catalog_sources": [{"source_name": "vcpkg-source", "label": "vcpkg", "index_path": "ports/mbedtls", "registry_version": "v3.5.2"}, {"source_name": "conan-source", "label": "conan", "index_path": "recipes/mbedtls", "registry_version": "v3.5.2"}], "manifests": [], "readme": "# mbedtls\n\nMbed TLS is a C library that implements cryptographic primitives, X.509 certificate manipulation and the SSL/TLS and DTLS protocols\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/mbedtls\n    url: https://github.com/ARMmbed/mbedtls\n    tag: v3.5.2\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/mbedtls/`.\n", "tags": [{"name": "v3.5.2", "is_tag": true, "commit_sha": "a45d27fb459da6", "date": null}, {"name": "v3.4.1", "is_tag": true, "commit_sha": "a782e44b459da6", "date": null}, {"name": "v3.3.0", "is_tag": true, "commit_sha": "ac4e8f3b459da6", "date": null}, {"name": "v2.28.6", "is_tag": true, "commit_sha": "a5c2d39b459da6", "date": null}], "branches": [{"name": "main", "is_tag": false, "commit_sha": null, "date": null}], "default_branch": "main", "license": "Apache-2.0", "license_text": null, "topics": ["tls", "crypto", "ssl", "c", "embedded"], "stars": 4200, "last_updated": "2026-02-28T13:23:36.966541", "fetched_at": "2026-02-28T13:23:36.966660", "source_labels": ["vcpkg", "conan"]}, "github/madler/zlib": {"id": "github/madler/zlib", "name": "zlib", "description": "A massively spiffy yet delicately unobtrusive compression library", "url": "https://github.com/madler/zlib", "canonical_url": "https://github.com/madler/zlib", "source_type": "github", "org": "madler", "repo": "zlib", "subfolder_path": "ports/zlib", "catalog_sources": [{"source_name": "vcpkg-source", "label": "vcpkg", "index_path": "ports/zlib", "registry_version": "v1.3.1"}, {"source_name": "conan-source", "label": "conan", "index_path": "recipes/zlib", "registry_version": "v1.3.1"}, {"source_name": "clib-source", "label": "clib", "index_path": null, "registry_version": "v1.3.1"}], "manifests": [], "readme": "# zlib\n\nA massively spiffy yet delicately unobtrusive compression library\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/zlib\n    url: https://github.com/madler/zlib\n    tag: v1.3.1\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/zlib/`.\n", "tags": [{"name": "v1.3.1", "is_tag": true, "commit_sha": "a03c92bb2e1d45", "date": null}, {"name": "v1.3", "is_tag": true, "commit_sha": "a041d7bb2e1d45", "date": null}, {"name": "v1.2.13", "is_tag": true, "commit_sha": "afee0acb2e1d45", "date": null}], "branches": [{"name": "main", "is_tag": false, "commit_sha": null, "date": null}], "default_branch": "main", "license": "Zlib", "license_text": null, "topics": ["compression", "c", "deflate"], "stars": 5800, "last_updated": "2026-02-28T13:23:36.966682", "fetched_at": "2026-02-28T13:23:36.966686", "source_labels": ["vcpkg", "conan", "clib"]}, "github/openssl/openssl": {"id": "github/openssl/openssl", "name": "openssl", "description": "TLS/SSL and crypto library", "url": "https://github.com/openssl/openssl", "canonical_url": "https://github.com/openssl/openssl", "source_type": "github", "org": "openssl", "repo": "openssl", "subfolder_path": "ports/openssl", "catalog_sources": [{"source_name": "vcpkg-source", "label": "vcpkg", "index_path": "ports/openssl", "registry_version": "openssl-3.3.0"}], "manifests": [], "readme": "# openssl\n\nTLS/SSL and crypto library\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/openssl\n    url: https://github.com/openssl/openssl\n    tag: openssl-3.3.0\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/openssl/`.\n", "tags": [{"name": "openssl-3.3.0", "is_tag": true, "commit_sha": "a3a7836b8be4cd", "date": null}, {"name": "openssl-3.2.1", "is_tag": true, "commit_sha": "a6e5b89b8be4cd", "date": null}, {"name": "openssl-1.1.1w", "is_tag": true, "commit_sha": "ad36e10b8be4cd", "date": null}], "branches": [{"name": "main", "is_tag": false, "commit_sha": null, "date": null}], "default_branch": "main", "license": "Apache-2.0", "license_text": null, "topics": ["tls", "ssl", "crypto", "security"], "stars": 25000, "last_updated": "2026-02-28T13:23:36.966700", "fetched_at": "2026-02-28T13:23:36.966702", "source_labels": ["vcpkg"]}, "github/gflags/gflags": {"id": "github/gflags/gflags", "name": "gflags", "description": "The gflags package contains a C++ library that implements commandline flags processing", "url": "https://github.com/gflags/gflags", "canonical_url": "https://github.com/gflags/gflags", "source_type": "github", "org": "gflags", "repo": "gflags", "subfolder_path": "ports/gflags", "catalog_sources": [{"source_name": "vcpkg-source", "label": "vcpkg", "index_path": "ports/gflags", "registry_version": "v2.2.2"}, {"source_name": "conan-source", "label": "conan", "index_path": "recipes/gflags", "registry_version": "v2.2.2"}], "manifests": [], "readme": "# gflags\n\nThe gflags package contains a C++ library that implements commandline flags processing\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/gflags\n    url: https://github.com/gflags/gflags\n    tag: v2.2.2\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/gflags/`.\n", "tags": [{"name": "v2.2.2", "is_tag": true, "commit_sha": "ab39fdfbe4636c", "date": null}, {"name": "v2.2.1", "is_tag": true, "commit_sha": "a5b0abcbe4636c", "date": null}], "branches": [{"name": "main", "is_tag": false, "commit_sha": null, "date": null}], "default_branch": "main", "license": "BSD-3-Clause", "license_text": null, "topics": ["flags", "cli", "c++"], "stars": 3100, "last_updated": "2025-11-20T13:23:36.966710", "fetched_at": "2026-02-28T13:23:36.966714", "source_labels": ["vcpkg", "conan"]}, "github/google/googletest": {"id": "github/google/googletest", "name": "googletest", "description": "GoogleTest - Google Testing and Mocking Framework", "url": "https://github.com/google/googletest", "canonical_url": "https://github.com/google/googletest", "source_type": "github", "org": "google", "repo": "googletest", "subfolder_path": "ports/googletest", "catalog_sources": [{"source_name": "vcpkg-source", "label": "vcpkg", "index_path": "ports/googletest", "registry_version": "v1.14.0"}, {"source_name": "conan-source", "label": "conan", "index_path": "recipes/googletest", "registry_version": "v1.14.0"}], "manifests": [], "readme": "# googletest\n\nGoogleTest - Google Testing and Mocking Framework\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/googletest\n    url: https://github.com/google/googletest\n    tag: v1.14.0\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/googletest/`.\n", "tags": [{"name": "v1.14.0", "is_tag": true, "commit_sha": "a5b6eccb94a5b5", "date": null}, {"name": "v1.13.0", "is_tag": true, "commit_sha": "aa36eb3b94a5b5", "date": null}, {"name": "v1.12.1", "is_tag": true, "commit_sha": "a161174b94a5b5", "date": null}], "branches": [{"name": "main", "is_tag": false, "commit_sha": null, "date": null}], "default_branch": "main", "license": "BSD-3-Clause", "license_text": null, "topics": ["testing", "c++", "mocking"], "stars": 33000, "last_updated": "2026-02-28T13:23:36.966722", "fetched_at": "2026-02-28T13:23:36.966725", "source_labels": ["vcpkg", "conan"]}, "github/nlohmann/json": {"id": "github/nlohmann/json", "name": "nlohmann-json", "description": "JSON for Modern C++", "url": "https://github.com/nlohmann/json", "canonical_url": "https://github.com/nlohmann/json", "source_type": "github", "org": "nlohmann", "repo": "json", "subfolder_path": "ports/nlohmann-json", "catalog_sources": [{"source_name": "vcpkg-source", "label": "vcpkg", "index_path": "ports/nlohmann-json", "registry_version": "v3.11.3"}, {"source_name": "conan-source", "label": "conan", "index_path": "recipes/nlohmann-json", "registry_version": "v3.11.3"}], "manifests": [], "readme": "# nlohmann-json\n\nJSON for Modern C++\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/nlohmann-json\n    url: https://github.com/nlohmann/json\n    tag: v3.11.3\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/nlohmann-json/`.\n", "tags": [{"name": "v3.11.3", "is_tag": true, "commit_sha": "a894f13bb7169f", "date": null}, {"name": "v3.11.2", "is_tag": true, "commit_sha": "ad50cb1bb7169f", "date": null}, {"name": "v3.10.5", "is_tag": true, "commit_sha": "af08cf8bb7169f", "date": null}], "branches": [{"name": "main", "is_tag": false, "commit_sha": null, "date": null}], "default_branch": "main", "license": "MIT", "license_text": null, "topics": ["json", "c++", "header-only"], "stars": 40000, "last_updated": "2026-02-28T13:23:36.966736", "fetched_at": "2026-02-28T13:23:36.966744", "source_labels": ["vcpkg", "conan"]}, "github/boostorg/boost": {"id": "github/boostorg/boost", "name": "boost", "description": "Super-project for modularized Boost", "url": "https://github.com/boostorg/boost", "canonical_url": "https://github.com/boostorg/boost", "source_type": "github", "org": "boostorg", "repo": "boost", "subfolder_path": "ports/boost", "catalog_sources": [{"source_name": "vcpkg-source", "label": "vcpkg", "index_path": "ports/boost", "registry_version": "boost-1.84.0"}], "manifests": [], "readme": "# boost\n\nSuper-project for modularized Boost\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/boost\n    url: https://github.com/boostorg/boost\n    tag: boost-1.84.0\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/boost/`.\n", "tags": [{"name": "boost-1.84.0", "is_tag": true, "commit_sha": "a0a638cb283290", "date": null}, {"name": "boost-1.83.0", "is_tag": true, "commit_sha": "ad0eefeb283290", "date": null}], "branches": [{"name": "main", "is_tag": false, "commit_sha": null, "date": null}], "default_branch": "main", "license": "BSL-1.0", "license_text": null, "topics": ["c++", "utilities"], "stars": 7200, "last_updated": "2026-02-28T13:23:36.966754", "fetched_at": "2026-02-28T13:23:36.966756", "source_labels": ["vcpkg"]}, "github/catchorg/catch2": {"id": "github/catchorg/catch2", "name": "catch2", "description": "A modern, C++-native, test framework for unit-tests, TDD and BDD", "url": "https://github.com/catchorg/Catch2", "canonical_url": "https://github.com/catchorg/catch2", "source_type": "github", "org": "catchorg", "repo": "Catch2", "subfolder_path": "ports/catch2", "catalog_sources": [{"source_name": "vcpkg-source", "label": "vcpkg", "index_path": "ports/catch2", "registry_version": "v3.5.2"}, {"source_name": "conan-source", "label": "conan", "index_path": "recipes/catch2", "registry_version": "v3.5.2"}], "manifests": [], "readme": "# catch2\n\nA modern, C++-native, test framework for unit-tests, TDD and BDD\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/catch2\n    url: https://github.com/catchorg/Catch2\n    tag: v3.5.2\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/catch2/`.\n", "tags": [{"name": "v3.5.2", "is_tag": true, "commit_sha": "a45d27fb9e0e7d", "date": null}, {"name": "v3.4.0", "is_tag": true, "commit_sha": "ac6b1c4b9e0e7d", "date": null}], "branches": [{"name": "main", "is_tag": false, "commit_sha": null, "date": null}], "default_branch": "main", "license": "BSL-1.0", "license_text": null, "topics": ["testing", "c++", "tdd"], "stars": 17000, "last_updated": "2026-02-28T13:23:36.966763", "fetched_at": "2026-02-28T13:23:36.966765", "source_labels": ["vcpkg", "conan"]}, "github/fmtlib/fmt": {"id": "github/fmtlib/fmt", "name": "fmt", "description": "A modern formatting library", "url": "https://github.com/fmtlib/fmt", "canonical_url": "https://github.com/fmtlib/fmt", "source_type": "github", "org": "fmtlib", "repo": "fmt", "subfolder_path": "ports/fmt", "catalog_sources": [{"source_name": "vcpkg-source", "label": "vcpkg", "index_path": "ports/fmt", "registry_version": "10.2.1"}, {"source_name": "conan-source", "label": "conan", "index_path": "recipes/fmt", "registry_version": "10.2.1"}], "manifests": [], "readme": "# fmt\n\nA modern formatting library\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/fmt\n    url: https://github.com/fmtlib/fmt\n    tag: 10.2.1\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/fmt/`.\n", "tags": [{"name": "10.2.1", "is_tag": true, "commit_sha": "ab7dec1b93229e", "date": null}, {"name": "10.1.1", "is_tag": true, "commit_sha": "a96faeeb93229e", "date": null}, {"name": "9.1.0", "is_tag": true, "commit_sha": "a1163ddb93229e", "date": null}], "branches": [{"name": "main", "is_tag": false, "commit_sha": null, "date": null}], "default_branch": "main", "license": "MIT", "license_text": null, "topics": ["formatting", "c++", "printf"], "stars": 20000, "last_updated": "2026-02-28T13:23:36.966773", "fetched_at": "2026-02-28T13:23:36.966775", "source_labels": ["vcpkg", "conan"]}, "github/abseil/abseil-cpp": {"id": "github/abseil/abseil-cpp", "name": "abseil-cpp", "description": "Abseil Common Libraries (C++), with CMake build instructions", "url": "https://github.com/abseil/abseil-cpp", "canonical_url": "https://github.com/abseil/abseil-cpp", "source_type": "github", "org": "abseil", "repo": "abseil-cpp", "subfolder_path": null, "catalog_sources": [{"source_name": "vcpkg-source", "label": "vcpkg", "index_path": "ports/abseil-cpp", "registry_version": "20240116.2"}, {"source_name": "conan-source", "label": "conan", "index_path": "recipes/abseil-cpp", "registry_version": "20240116.2"}], "manifests": [], "readme": "# abseil-cpp\n\nAbseil Common Libraries (C++), with CMake build instructions\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/abseil-cpp\n    url: https://github.com/abseil/abseil-cpp\n    tag: 20240116.2\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/abseil-cpp/`.\n", "tags": [{"name": "20240116.2", "is_tag": true, "commit_sha": "a2a15f3b187bb6", "date": null}, {"name": "20240116.1", "is_tag": true, "commit_sha": "a56d884b187bb6", "date": null}], "branches": [{"name": "main", "is_tag": false, "commit_sha": null, "date": null}], "default_branch": "main", "license": "Apache-2.0", "license_text": null, "topics": ["c++", "utilities", "google"], "stars": 14000, "last_updated": "2026-02-28T13:23:36.966782", "fetched_at": "2026-02-28T13:23:36.966785", "source_labels": ["vcpkg", "conan"]}, "github/espressif/esp-idf": {"id": "github/espressif/esp-idf", "name": "esp-idf", "description": "Espressif IoT Development Framework. Official development framework for Espressif SoCs.", "url": "https://github.com/espressif/esp-idf", "canonical_url": "https://github.com/espressif/esp-idf", "source_type": "github", "org": "espressif", "repo": "esp-idf", "subfolder_path": null, "catalog_sources": [{"source_name": "esp-idf-source", "label": "esp-idf", "index_path": null, "registry_version": "v5.2.1"}], "manifests": [], "readme": "# esp-idf\n\nEspressif IoT Development Framework. Official development framework for Espressif SoCs.\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/esp-idf\n    url: https://github.com/espressif/esp-idf\n    tag: v5.2.1\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/esp-idf/`.\n", "tags": [{"name": "v5.2.1", "is_tag": true, "commit_sha": "a8c2d20b09b9f5", "date": null}, {"name": "v5.1.3", "is_tag": true, "commit_sha": "a310f6fb09b9f5", "date": null}, {"name": "v4.4.7", "is_tag": true, "commit_sha": "abd5609b09b9f5", "date": null}], "branches": [{"name": "main", "is_tag": false, "commit_sha": null, "date": null}], "default_branch": "main", "license": "Apache-2.0", "license_text": null, "topics": ["esp32", "iot", "embedded", "rtos"], "stars": 12000, "last_updated": "2026-02-28T13:23:36.966795", "fetched_at": "2026-02-28T13:23:36.966798", "source_labels": ["esp-idf"]}, "github/libuv/libuv": {"id": "github/libuv/libuv", "name": "libuv", "description": "Cross-platform asynchronous I/O", "url": "https://github.com/libuv/libuv", "canonical_url": "https://github.com/libuv/libuv", "source_type": "github", "org": "libuv", "repo": "libuv", "subfolder_path": "ports/libuv", "catalog_sources": [{"source_name": "vcpkg-source", "label": "vcpkg", "index_path": "ports/libuv", "registry_version": "v1.48.0"}, {"source_name": "clib-source", "label": "clib", "index_path": null, "registry_version": "v1.48.0"}], "manifests": [], "readme": "# libuv\n\nCross-platform asynchronous I/O\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/libuv\n    url: https://github.com/libuv/libuv\n    tag: v1.48.0\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/libuv/`.\n", "tags": [{"name": "v1.48.0", "is_tag": true, "commit_sha": "a951601b140fc8", "date": null}, {"name": "v1.47.0", "is_tag": true, "commit_sha": "ace30c8b140fc8", "date": null}, {"name": "v1.46.0", "is_tag": true, "commit_sha": "a2b9426b140fc8", "date": null}], "branches": [{"name": "main", "is_tag": false, "commit_sha": null, "date": null}], "default_branch": "main", "license": "MIT", "license_text": null, "topics": ["async", "io", "c", "event-loop"], "stars": 23000, "last_updated": "2026-02-28T13:23:36.966808", "fetched_at": "2026-02-28T13:23:36.966810", "source_labels": ["vcpkg", "clib"]}, "github/clibs/commander": {"id": "github/clibs/commander", "name": "commander", "description": "Commander option parser ported to C \u2014 inspired by visionmedia/commander.js", "url": "https://github.com/clibs/commander", "canonical_url": "https://github.com/clibs/commander", "source_type": "github", "org": "clibs", "repo": "commander", "subfolder_path": null, "catalog_sources": [{"source_name": "clib-source", "label": "clib", "index_path": null, "registry_version": "v1.4.1"}], "manifests": [], "readme": "# commander\n\nCommander option parser ported to C \u2014 inspired by visionmedia/commander.js\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/commander\n    url: https://github.com/clibs/commander\n    tag: v1.4.1\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/commander/`.\n", "tags": [{"name": "v1.4.1", "is_tag": true, "commit_sha": "a37034dbc4f6cc", "date": null}, {"name": "v1.3.0", "is_tag": true, "commit_sha": "ab80976bc4f6cc", "date": null}], "branches": [{"name": "main", "is_tag": false, "commit_sha": null, "date": null}], "default_branch": "main", "license": "MIT", "license_text": null, "topics": ["cli", "c", "arguments"], "stars": 410, "last_updated": "2026-02-18T13:23:36.966818", "fetched_at": "2026-02-28T13:23:36.966820", "source_labels": ["clib"]}, "github/clibs/hash": {"id": "github/clibs/hash", "name": "hash", "description": "C hash table implementation", "url": "https://github.com/clibs/hash", "canonical_url": "https://github.com/clibs/hash", "source_type": "github", "org": "clibs", "repo": "hash", "subfolder_path": null, "catalog_sources": [{"source_name": "clib-source", "label": "clib", "index_path": null, "registry_version": "v0.2.0"}], "manifests": [], "readme": "# hash\n\nC hash table implementation\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/hash\n    url: https://github.com/clibs/hash\n    tag: v0.2.0\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/hash/`.\n", "tags": [{"name": "v0.2.0", "is_tag": true, "commit_sha": "a22f94fb81773d", "date": null}], "branches": [{"name": "main", "is_tag": false, "commit_sha": null, "date": null}], "default_branch": "main", "license": "MIT", "license_text": null, "topics": ["hash", "c", "data-structures"], "stars": 180, "last_updated": "2025-09-01T13:23:36.966826", "fetched_at": "2026-02-28T13:23:36.966828", "source_labels": ["clib"]}, "github/sqlite/sqlite": {"id": "github/sqlite/sqlite", "name": "sqlite", "description": "Official Git mirror of the SQLite source tree", "url": "https://github.com/sqlite/sqlite", "canonical_url": "https://github.com/sqlite/sqlite", "source_type": "github", "org": "sqlite", "repo": "sqlite", "subfolder_path": "ports/sqlite3", "catalog_sources": [{"source_name": "vcpkg-source", "label": "vcpkg", "index_path": "ports/sqlite", "registry_version": "version-3.45.1"}], "manifests": [], "readme": "# sqlite\n\nOfficial Git mirror of the SQLite source tree\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/sqlite\n    url: https://github.com/sqlite/sqlite\n    tag: version-3.45.1\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/sqlite/`.\n", "tags": [{"name": "version-3.45.1", "is_tag": true, "commit_sha": "a82f489b2bd384", "date": null}, {"name": "version-3.44.2", "is_tag": true, "commit_sha": "afa08a0b2bd384", "date": null}], "branches": [{"name": "main", "is_tag": false, "commit_sha": null, "date": null}], "default_branch": "main", "license": "blessing", "license_text": null, "topics": ["database", "sql", "c", "embedded"], "stars": 5400, "last_updated": "2026-02-28T13:23:36.966841", "fetched_at": "2026-02-28T13:23:36.966844", "source_labels": ["vcpkg"]}, "github/curl/curl": {"id": "github/curl/curl", "name": "curl", "description": "A command line tool and library for transferring data with URL syntax", "url": "https://github.com/curl/curl", "canonical_url": "https://github.com/curl/curl", "source_type": "github", "org": "curl", "repo": "curl", "subfolder_path": "ports/curl", "catalog_sources": [{"source_name": "vcpkg-source", "label": "vcpkg", "index_path": "ports/curl", "registry_version": "curl-8_6_0"}, {"source_name": "conan-source", "label": "conan", "index_path": "recipes/curl", "registry_version": "curl-8_6_0"}], "manifests": [], "readme": "# curl\n\nA command line tool and library for transferring data with URL syntax\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/curl\n    url: https://github.com/curl/curl\n    tag: curl-8_6_0\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/curl/`.\n", "tags": [{"name": "curl-8_6_0", "is_tag": true, "commit_sha": "a5c9d0fb7841e1", "date": null}, {"name": "curl-8_5_0", "is_tag": true, "commit_sha": "a9bee01b7841e1", "date": null}, {"name": "curl-8_4_0", "is_tag": true, "commit_sha": "a554719b7841e1", "date": null}], "branches": [{"name": "main", "is_tag": false, "commit_sha": null, "date": null}], "default_branch": "main", "license": "curl", "license_text": null, "topics": ["http", "network", "c", "transfer"], "stars": 32000, "last_updated": "2026-02-28T13:23:36.966854", "fetched_at": "2026-02-28T13:23:36.966856", "source_labels": ["vcpkg", "conan"]}}</script>
+<script>
+'use strict';
+const RAW=JSON.parse(document.getElementById('catData').textContent||'{}');
+let ALL=Object.values(RAW),curQ='',curRes=[...ALL],curPkg=null;
+let AF={label:'',source:'',license:''};
+let MFS=new Set();
+let acIdx=-1;
+
+(function(){
+  document.getElementById('sCmp').textContent=ALL.length;
+  const ls=new Set(ALL.flatMap(c=>c.source_labels||[]));
+  const ss=new Set(ALL.map(c=>c.source_type));
+  document.getElementById('sReg').textContent=ss.size;
+  document.getElementById('sLbl').textContent=ls.size;
+  updMfCnt();
+})();
+
+function showPage(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active')}
+function showHome(){showPage('page-home');document.getElementById('hInput').value='';document.getElementById('nInput').value='';curQ=''}
+function showResults(){showPage('page-results')}
+function showDetail(id){const c=RAW[id];if(!c)return;curPkg=id;renderDetail(c);showPage('page-detail');window.scrollTo(0,0)}
+
+function score(c,q){
+  if(!q)return 1;
+  const ql=q.toLowerCase();
+  const n=(c.name||'').toLowerCase();
+  const d=(c.description||'').toLowerCase();
+  const k=[...(c.topics||[]),...(c.source_labels||[])].join(' ').toLowerCase();
+  if(n===ql)return 100;if(n.startsWith(ql))return 80;if(n.includes(ql))return 60;
+  if(d.includes(ql))return 30;if(k.includes(ql))return 20;return 0;
+}
+function doFilter(q){
+  const lq=(q||'').toLowerCase().trim();
+  return ALL.filter(c=>{
+    if(AF.label&&!(c.source_labels||[]).map(s=>s.toLowerCase()).includes(AF.label.toLowerCase()))return false;
+    if(AF.source&&c.source_type!==AF.source)return false;
+    if(AF.license&&c.license!==AF.license)return false;
+    if(!lq)return true;
+    return score(c,lq)>0;
+  });
+}
+function doSearch(q){curQ=q;curRes=doFilter(q);sortRes();renderRes();buildSide();showResults()}
+function onHInput(v){if(v.length>=1)doSearch(v)}
+function onHKey(e){if(e.key==='Enter'&&e.target.value.trim()){doSearch(e.target.value.trim());e.target.blur()}}
+function onNInput(v){updAC(v);if(v.length>=1&&document.getElementById('page-results').classList.contains('active'))doSearch(v)}
+function onNKey(e){
+  const dd=document.getElementById('acdrop');
+  const items=dd.querySelectorAll('.acitem');
+  if(e.key==='ArrowDown'){acIdx=Math.min(acIdx+1,items.length-1);hiAC(items);e.preventDefault();return}
+  if(e.key==='ArrowUp'){acIdx=Math.max(acIdx-1,-1);hiAC(items);e.preventDefault();return}
+  if(e.key==='Enter'){if(acIdx>=0&&items[acIdx])items[acIdx].click();else{closeAC();doSearch(e.target.value.trim())}e.preventDefault();return}
+  if(e.key==='Escape')closeAC();
+}
+function hiAC(items){items.forEach((el,i)=>el.classList.toggle('sel',i===acIdx));if(acIdx>=0)items[acIdx]?.scrollIntoView({block:'nearest'})}
+function openAC(){const v=document.getElementById('nInput').value;if(v.length>=1)updAC(v)}
+function closeAC(){document.getElementById('acdrop').classList.remove('open');acIdx=-1}
+function updAC(q){
+  const dd=document.getElementById('acdrop');
+  if(!q||q.length<1){closeAC();return}
+  const lq=q.toLowerCase();
+  const hits=ALL.map(c=>({c,s:score(c,lq)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s||(b.c.stars||0)-(a.c.stars||0)).slice(0,8);
+  if(!hits.length){closeAC();return}
+  dd.innerHTML=hits.map(({c})=>{
+    const ini=(c.name||'?').slice(0,2).toUpperCase();
+    const lbls=(c.source_labels||[]).slice(0,2).map(l=>`<span class="lbl lbl-${slug(l)}">${esc(l)}</span>`).join('');
+    const st=c.stars!=null?`<span style="font-size:.74rem;color:var(--subtle);flex-shrink:0">⭐ ${fmt(c.stars)}</span>`:'';
+    return `<div class="acitem" onmousedown="selAC('${esc(c.id)}')">
+      <div class="acico">${ini}</div>
+      <div class="acinfo"><div class="acname">${hl(esc(c.name),q)}</div><div class="acdesc">${esc((c.description||'').slice(0,80))}</div></div>
+      <div class="aclabels">${lbls}</div>${st}
+    </div>`;
+  }).join('');
+  dd.classList.add('open');acIdx=-1;
+}
+function selAC(id){closeAC();showDetail(id)}
+function hl(text,q){if(!q)return text;const re=new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');return text.replace(re,'<mark style="background:rgba(232,139,36,.28);border-radius:2px">$1</mark>')}
+
+function sortRes(){
+  const v=document.getElementById('sortSel')?.value||'relevance';
+  if(v==='relevance'&&curQ)curRes.sort((a,b)=>score(b,curQ)-score(a,curQ)||(b.stars||0)-(a.stars||0));
+  else if(v==='stars')curRes.sort((a,b)=>(b.stars||0)-(a.stars||0));
+  else if(v==='updated')curRes.sort((a,b)=>(b.last_updated||'').localeCompare(a.last_updated||''));
+  else if(v==='name')curRes.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
+}
+function applySort(){sortRes();renderRes()}
+
+function buildSide(){
+  function cnt(dim,val){return doFilter(curQ).filter(c=>{if(dim==='label')return(c.source_labels||[]).includes(val);if(dim==='source')return c.source_type===val;if(dim==='license')return c.license===val;return false}).length}
+  function buildG(id,dim,vals){
+    const el=document.getElementById(id);if(!el)return;
+    const all=doFilter(curQ).length;
+    let h=`<button class="sfbtn${!AF[dim]?' active':''}" onclick="setF('${dim}','')">All <span class="sfcnt">${all}</span></button>`;
+    vals.forEach(v=>{const c2=cnt(dim,v);if(!c2)return;const a=AF[dim]===v;h+=`<button class="sfbtn${a?' active':''}" onclick="setF('${dim}','${esc(v)}')">${esc(v)}<span class="sfcnt">${c2}</span></button>`});
+    el.innerHTML=h;
+  }
+  buildG('sideLabels','label',[...new Set(ALL.flatMap(c=>c.source_labels||[]))].sort());
+  buildG('sideSrcs','source',[...new Set(ALL.map(c=>c.source_type))].sort());
+  buildG('sideLics','license',[...new Set(ALL.map(c=>c.license).filter(Boolean))].sort());
+  const chips=document.getElementById('fchips');
+  if(chips){const active=Object.entries(AF).filter(([,v])=>v);chips.innerHTML=active.map(([k,v])=>`<span class="chip active" onclick="setF('${k}','')">✕ ${esc(k)}: ${esc(v)}</span>`).join('')}
+}
+function setF(dim,val){AF[dim]=val;curRes=doFilter(curQ);sortRes();renderRes();buildSide();showResults()}
+
+function renderRes(){
+  const list=document.getElementById('rlist');const none=document.getElementById('noRes');
+  document.getElementById('rcount').innerHTML=`Showing <strong>${curRes.length}</strong> package${curRes.length!==1?'s':''}`;
+  if(!curRes.length){list.innerHTML='';none.style.display='';return}
+  none.style.display='none';
+  list.innerHTML=curRes.slice(0,200).map(c=>{
+    const ver=ltag(c);
+    const lbls=(c.source_labels||[]).map(l=>`<span class="lbl lbl-${slug(l)}">${esc(l)}</span>`).join('');
+    const added=MFS.has(c.id)?`<span class="added-ind">✓ In manifest</span>`:'';
+    const stars=c.stars!=null?`<span class="pstat">⭐ ${fmt(c.stars)}</span>`:'';
+    const upd=c.last_updated?`<span class="padded">${relt(c.last_updated)}</span>`:'';
+    return `<div class="pkg" onclick="showDetail('${esc(c.id)}')">
+      <div class="pkg-name">${esc(c.name)}</div>
+      <div class="pkg-ver">${esc(ver)}</div>
+      <div class="pkg-desc">${esc(c.description||'')}</div>
+      <div class="pkg-meta"><div style="display:flex;gap:.25rem">${lbls}</div>${stars}${added}${upd}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderDetail(c){
+  const ver=ltag(c);
+  document.getElementById('dName').textContent=c.name;
+  document.getElementById('dVer').textContent=ver?'v'+ver:'';
+  document.getElementById('dDesc').textContent=c.description||'';
+  const lbls=(c.source_labels||[]).map(l=>`<span class="lbl lbl-${slug(l)}">${esc(l)}</span>`).join('');
+  document.getElementById('dBadges').innerHTML=lbls+`<span class="lbl lbl-${slug(c.source_type)}">${esc(c.source_type)}</span>`;
+  const parts=[];
+  if(c.license&&c.license!=='UNKNOWN')parts.push(`<span class="pmi">⚖ ${esc(c.license)}</span>`);
+  if(c.stars!=null)parts.push(`<span class="pmi">⭐ ${fmt(c.stars)}</span>`);
+  if(c.last_updated)parts.push(`<span class="pmi">🕒 ${relt(c.last_updated)}</span>`);
+  if(c.org)parts.push(`<span class="pmi">👤 ${esc(c.org)}</span>`);
+  document.getElementById('dMeta').innerHTML=parts.join('');
+  // README
+  const rb=document.getElementById('readmeBody');
+  rb.innerHTML=c.readme&&c.readme.trim()?parseMD(c.readme):'<div class="readme-empty">No README available.</div>';
+  // Versions
+  const allRefs=[...(c.tags||[]).map(t=>({...t,kind:'tag'})),...(c.branches||[]).map(b=>({...b,kind:'branch'}))];
+  document.getElementById('vtbody').innerHTML=allRefs.length?allRefs.slice(0,50).map((r,i)=>`<tr>
+    <td class="vtag-name">${esc(r.name)}${i===0&&r.kind==='tag'?'<span class="vtag-latest">latest</span>':''}</td>
+    <td><span class="vbadge vbadge-${r.kind}">${r.kind}</span></td>
+    <td class="vsha">${r.commit_sha?r.commit_sha.slice(0,10):'—'}</td>
+    <td style="font-size:.79rem;color:var(--subtle)">${r.date?r.date.slice(0,10):'—'}</td>
+  </tr>`).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--subtle)">No version info</td></tr>';
+  // Snippet
+  document.getElementById('dSnip').innerHTML=buildSnipHtml(c);
+  // Aside
+  const aLinks=document.getElementById('aLinks');
+  aLinks.innerHTML='';
+  if(c.url)aLinks.innerHTML+=`<a class="aside-link" href="${esc(c.url)}" target="_blank" rel="noopener">↗ Repository</a>`;
+  if(c.manifests?.[0]?.homepage)aLinks.innerHTML+=`<a class="aside-link" href="${esc(c.manifests[0].homepage)}" target="_blank" rel="noopener">↗ Homepage</a>`;
+  const aDets=document.getElementById('aDets');
+  aDets.innerHTML='';
+  [['License',c.license&&c.license!=='UNKNOWN'?c.license:'—'],['Stars',c.stars!=null?fmt(c.stars):'—'],['VCS',c.source_type||'—'],['Default branch',c.default_branch||'—'],...(c.subfolder_path?[['Index path',c.subfolder_path]]:[])].forEach(([k,v])=>{
+    aDets.innerHTML+=`<div class="aside-row"><span class="aside-k">${k}</span><span class="aside-v">${esc(v)}</span></div>`;
+  });
+  const aSrcs=document.getElementById('aSrcs');
+  aSrcs.innerHTML=(c.catalog_sources||[]).length?(c.catalog_sources||[]).map(cs=>{
+    const lbl=cs.label?`<span class="lbl lbl-${slug(cs.label)}">${esc(cs.label)}</span>`:'';
+    const p=cs.index_path?`<span style="font-size:.76rem;color:var(--subtle)"> ${esc(cs.index_path)}</span>`:'';
+    return `<div class="aside-src-row">${lbl}<span>${esc(cs.source_name)}${p}</span></div>`;
+  }).join(''):'<span style="font-size:.82rem;color:var(--subtle)">No registry info</span>';
+  updAddBtn();switchTab('readme');
+}
+function switchTab(name){
+  document.querySelectorAll('.tabbtn').forEach((b,i)=>{const ns=['readme','versions','manifest'];b.classList.toggle('active',ns[i]===name)});
+  document.querySelectorAll('.tabcontent').forEach(el=>el.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+function toggleMf(){
+  if(!curPkg)return;
+  if(MFS.has(curPkg)){MFS.delete(curPkg);showToast('Removed from manifest')}
+  else{MFS.add(curPkg);showToast('Added to manifest ✓')}
+  updAddBtn();updMfCnt();
+}
+function updAddBtn(){
+  const btn=document.getElementById('btnAdd');if(!btn)return;
+  const inM=MFS.has(curPkg);
+  btn.className='btn-add '+(inM?'rm':'add');
+  btn.textContent=inM?'− Remove from manifest':'＋ Add to manifest';
+}
+function updMfCnt(){const el=document.getElementById('mfcnt');if(el)el.textContent=MFS.size}
+function openModal(){renderModal();document.getElementById('mfModal').classList.add('open')}
+function closeModal(){document.getElementById('mfModal').classList.remove('open')}
+function renderModal(){
+  const items=[...MFS].map(id=>RAW[id]).filter(Boolean);
+  const empty=document.getElementById('mfEmpty'),list=document.getElementById('mselList'),code=document.getElementById('mfCode'),info=document.getElementById('mfInfo');
+  if(!items.length){empty.style.display='';list.innerHTML='';code.style.display='none';info.textContent='';return}
+  empty.style.display='none';
+  list.innerHTML=items.map(c=>`<div class="msel-row"><span class="msel-name">${esc(c.name)}</span><span style="font-size:.77rem;color:var(--subtle)">${esc(ltag(c)||c.default_branch||'main')}</span><span class="msel-rm" onclick="rmMf('${esc(c.id)}')">✕</span></div>`).join('');
+  code.textContent=buildFullMf(items);code.style.display='';
+  info.textContent=`${items.length} project${items.length!==1?'s':''} selected`;
+}
+function rmMf(id){MFS.delete(id);updMfCnt();renderModal();if(id===curPkg)updAddBtn()}
+function buildFullMf(items){let y="manifest:\n  version: '0.0'\n\nprojects:\n";items.forEach(c=>{y+=buildEntry(c)});return y}
+function buildEntry(c){
+  const ver=ltag(c);const br=c.default_branch||'main';const sn=(c.name||'comp').replace(/\s+/g,'-').toLowerCase();
+  let e=`  - name: ext/${sn}\n    url: ${c.url}\n`;
+  if(c.subfolder_path)e+=`    src: ${c.subfolder_path}\n`;
+  if(ver)e+=`    tag: ${ver}\n`;else e+=`    branch: ${br}\n`;
+  e+=`    dst: ext/${sn}\n`;return e;
+}
+function buildSnipHtml(c){
+  const ver=ltag(c);const br=c.default_branch||'main';const sn=(c.name||'comp').replace(/\s+/g,'-').toLowerCase();
+  const k=s=>`<span class="sk">${s}</span>`,v=s=>`<span class="sv">${s}</span>`,u=s=>`<span class="su">${s}</span>`;
+  let h=`${k('- name')}: ${v('ext/'+sn)}\n  ${k('url')}: ${u(esc(c.url))}\n`;
+  if(c.subfolder_path)h+=`  ${k('src')}: ${v(esc(c.subfolder_path))}\n`;
+  if(ver)h+=`  ${k('tag')}: ${v(esc(ver))}\n`;else h+=`  ${k('branch')}: ${v(esc(br))}\n`;
+  h+=`  ${k('dst')}: ${v('ext/'+sn)}\n`;return h;
+}
+function copySnip(){const c=curPkg?RAW[curPkg]:null;if(!c)return;cpTxt(buildEntry(c));showToast('Snippet copied!')}
+function copyMf(){cpTxt(buildFullMf([...MFS].map(id=>RAW[id]).filter(Boolean)));showToast('Manifest copied!')}
+function dlMf(){
+  const items=[...MFS].map(id=>RAW[id]).filter(Boolean);if(!items.length)return;
+  const blob=new Blob([buildFullMf(items)],{type:'text/yaml'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='dfetch.yaml';a.click();
+}
+
+function parseMD(md){
+  let h=esc(md);
+  h=h.replace(/```[^\n]*\n([\s\S]*?)```/g,(_,c)=>`<pre><code>${c}</code></pre>`);
+  h=h.replace(/`([^`]+)`/g,'<code>$1</code>');
+  h=h.replace(/^######\s(.+)$/gm,'<h6>$1</h6>');h=h.replace(/^#####\s(.+)$/gm,'<h5>$1</h5>');
+  h=h.replace(/^####\s(.+)$/gm,'<h4>$1</h4>');h=h.replace(/^###\s(.+)$/gm,'<h3>$1</h3>');
+  h=h.replace(/^##\s(.+)$/gm,'<h2>$1</h2>');h=h.replace(/^#\s(.+)$/gm,'<h1>$1</h1>');
+  h=h.replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>');
+  h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');h=h.replace(/\*(.+?)\*/g,'<em>$1</em>');
+  h=h.replace(/\[([^\]]+)\]\((https?[^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  h=h.replace(/!\[([^\]]*)\]\([^)]*\)/g,'<em>[image]</em>');
+  h=h.replace(/^---+$/gm,'<hr>');
+  h=h.replace(/^[\*\-]\s(.+)$/gm,'<li>$1</li>');h=h.replace(/(<li>.*<\/li>\n?)+/g,'<ul>$&</ul>');
+  h=h.replace(/^\d+\.\s(.+)$/gm,'<li>$1</li>');
+  h=h.replace(/\n\n+/g,'\n</p><p>');h=`<p>${h}</p>`;
+  h=h.replace(/<p>\s*<\/p>/g,'');
+  ['h[1-6]','ul','pre','hr'].forEach(t=>{h=h.replace(new RegExp(`<p>(<${t}>)`,'g'),'$1');h=h.replace(new RegExp(`(<\\/${t}>)<\\/p>`,'g'),'$1')});
+  return h;
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function slug(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'')}
+function fmt(n){if(n>=1000)return(n/1000).toFixed(1)+'k';return String(n)}
+function ltag(c){return(c.tags||[]).length?c.tags[0].name:''}
+function relt(iso){if(!iso)return'';const d=new Date(iso);const diff=Date.now()-d.getTime();const days=Math.floor(diff/86400000);if(days<1)return'today';if(days<7)return`${days}d ago`;if(days<30)return`${Math.floor(days/7)}w ago`;if(days<365)return`${Math.floor(days/30)}mo ago`;return`${Math.floor(days/365)}y ago`}
+function cpTxt(t){if(navigator.clipboard)navigator.clipboard.writeText(t);else{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200)}
+</script>
+</body>
+</html>
