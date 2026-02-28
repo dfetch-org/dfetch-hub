@@ -8,11 +8,15 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
 from dfetch.vcs.git import GitRemote
+from dfetch.log import get_logger
+
 
 if TYPE_CHECKING:
     from pathlib import Path
 
     from dfetch_hub.catalog.vcpkg import VcpkgManifest
+
+logger = get_logger(__name__)
 
 # ---------------------------------------------------------------------------
 # GitHub URL helpers
@@ -254,11 +258,13 @@ def update_catalog(
 
     for manifest in manifests:
         if not manifest.homepage:
-            continue  # cannot determine upstream repo without a URL
+            logger.warning(f"cannot determine upstream repo without a URL of {manifest.port_name}")
+            continue
 
         parsed = _parse_github_url(manifest.homepage)
         if not parsed:
-            continue  # skip non-GitHub URLs for now
+            logger.warning("skipping non-GitHub URL: %s", manifest.homepage)
+            continue
 
         org, repo = parsed
         cat_id = _catalog_id(org, repo)
