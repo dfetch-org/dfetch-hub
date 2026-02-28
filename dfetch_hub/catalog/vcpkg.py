@@ -1,41 +1,69 @@
-"""Parse vcpkg.json manifest files."""
+"""Parse vcpkg.json port manifest files."""
 
 import json
+import logging
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional, Union
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
 class VcpkgManifest:
-    """Parsed contents of a vcpkg.json file."""
+    """Parsed contents of a single ``vcpkg.json`` file.
 
-    port_name: str          # the folder name used as the port identifier
-    package_name: str       # "name" field inside vcpkg.json
+    Attributes:
+        port_name:    Name of the port directory (used as the vcpkg identifier).
+        package_name: Value of the ``name`` field inside ``vcpkg.json``.
+        description:  Human-readable description of the package.
+        homepage:     Upstream project URL, usually a GitHub link.
+        license:      SPDX license expression, or ``None`` if unspecified.
+        version:      Resolved version string (from whichever version field is
+                      present in the manifest), or ``None`` if absent.
+        dependencies: Names of direct vcpkg dependencies.
+    """
+
+    port_name: str
+    package_name: str
     description: str
-    homepage: Optional[str]
-    license: Optional[str]
-    version: Optional[str]
-    dependencies: List[str] = field(default_factory=list)
+    homepage: str | None
+    license: str | None
+    version: str | None
+    dependencies: list[str] = field(default_factory=list)
 
 
-def _extract_version(data: dict) -> Optional[str]:
+def _extract_version(data: dict[str, object]) -> str | None:
+    """Return the first version string found in *data*, or ``None``.
+
+    vcpkg supports several mutually exclusive version fields; we try them in
+    order of specificity.
+    """
     for key in ("version-semver", "version", "version-date", "version-relaxed", "version-string"):
         if key in data:
             return str(data[key])
     return None
 
 
-def _extract_description(data: dict) -> str:
+def _extract_description(data: dict[str, object]) -> str:
+    """Return the package description from *data* as a single string.
+
+    The ``description`` field may be either a plain string or a list of strings
+    (where the first element is the summary and subsequent ones are details).
+    """
     desc = data.get("description", "")
     if isinstance(desc, list):
-        return " ".join(desc)
+        return " ".join(str(d) for d in desc)
     return str(desc) if desc else ""
 
 
-def _extract_dependencies(data: dict) -> List[str]:
-    deps = []
-    for dep in data.get("dependencies", []):
+def _extract_dependencies(data: dict[str, object]) -> list[str]:
+    """Return a flat list of dependency names from *data*.
+
+    Each element in the ``dependencies`` array may be either a plain name
+    string or a dict with at least a ``"name"`` key.
+    """
+    deps: list[str] = []
+    for dep in data.get("dependencies", []):  # type: ignore[union-attr]
         if isinstance(dep, str):
             deps.append(dep)
         elif isinstance(dep, dict) and "name" in dep:
@@ -43,10 +71,15 @@ def _extract_dependencies(data: dict) -> List[str]:
     return deps
 
 
-def parse_vcpkg_json(port_dir: Path) -> Optional[VcpkgManifest]:
-    """Parse the vcpkg.json inside *port_dir*.
+def parse_vcpkg_json(port_dir: Path) -> VcpkgManifest | None:
+    """Parse the ``vcpkg.json`` inside *port_dir*.
 
-    Returns ``None`` if the file is absent or unparseable.
+    Args:
+        port_dir: Path to a single port directory (e.g. ``ports/abseil``).
+
+    Returns:
+        A :class:`VcpkgManifest` on success, or ``None`` if the file is
+        absent, unreadable, or contains invalid JSON.
     """
     manifest_path = port_dir / "vcpkg.json"
     if not manifest_path.exists():
@@ -54,16 +87,17 @@ def parse_vcpkg_json(port_dir: Path) -> Optional[VcpkgManifest]:
 
     try:
         with open(manifest_path, encoding="utf-8") as fh:
-            data = json.load(fh)
-    except (json.JSONDecodeError, OSError):
+            data: dict[str, object] = json.load(fh)
+    except (json.JSONDecodeError, OSError) as exc:
+        logger.warning("Could not parse %s: %s", manifest_path, exc)
         return None
 
     return VcpkgManifest(
         port_name=port_dir.name,
-        package_name=data.get("name", port_dir.name),
+        package_name=data.get("name", port_dir.name),  # type: ignore[arg-type]
         description=_extract_description(data),
-        homepage=data.get("homepage") or None,
-        license=data.get("license") or None,
+        homepage=data.get("homepage") or None,  # type: ignore[arg-type]
+        license=data.get("license") or None,  # type: ignore[arg-type]
         version=_extract_version(data),
         dependencies=_extract_dependencies(data),
     )

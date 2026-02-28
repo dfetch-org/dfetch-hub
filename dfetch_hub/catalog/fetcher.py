@@ -1,5 +1,6 @@
-"""Create a dfetch manifest and fetch sources into a temporary directory."""
+"""Create a dfetch manifest and fetch remote sources into a local directory."""
 
+import logging
 from pathlib import Path
 
 from dfetch.manifest.manifest import Manifest, ManifestDict
@@ -11,15 +12,33 @@ from dfetch.vcs.git import GitRemote
 
 from dfetch_hub.catalog.config import SourceConfig
 
+logger = logging.getLogger(__name__)
+
 
 def create_manifest(source: SourceConfig, dest_dir: Path) -> Path:
-    """Write a dfetch.yaml for *source* into *dest_dir* and return its path.
+    """Write a ``dfetch.yaml`` for *source* into *dest_dir*.
 
-    The manifest fetches only the configured sub-path of the remote repo
-    (e.g. ``ports/`` for vcpkg), placing the result at ``<name>/`` inside
-    *dest_dir*.
+    The manifest is configured to fetch only the sub-path specified by
+    ``source.path`` (e.g. ``ports/``), so the fetched content lands at
+    ``<dest_dir>/<source.name>/`` rather than the entire repository.
+
+    When ``source.branch`` is empty the default branch is auto-detected from
+    the remote via :meth:`~dfetch.vcs.git.GitRemote.get_default_branch`.
+
+    Args:
+        source:   Source configuration describing the remote to fetch.
+        dest_dir: Directory where the manifest file will be written.
+
+    Returns:
+        Path to the written ``dfetch.yaml``.
     """
-    branch = source.branch or GitRemote(source.url).get_default_branch()
+    if source.branch:
+        branch = source.branch
+    else:
+        logger.debug("Auto-detecting default branch for %s", source.url)
+        branch = GitRemote(source.url).get_default_branch()
+        logger.debug("Detected branch '%s' for %s", branch, source.url)
+
     project = ProjectEntryDict(
         name=source.name,
         url=source.url,
@@ -36,14 +55,31 @@ def create_manifest(source: SourceConfig, dest_dir: Path) -> Path:
     )
     manifest_path = dest_dir / "dfetch.yaml"
     Manifest(manifest_dict).dump(str(manifest_path))
+    logger.debug("Wrote manifest to %s", manifest_path)
     return manifest_path
 
 
 def fetch_source(source: SourceConfig, dest_dir: Path) -> Path:
     """Fetch *source* into *dest_dir* using the dfetch Python API.
 
+    Creates a temporary ``dfetch.yaml`` in *dest_dir*, then runs
+    :func:`dfetch.project.create_sub_project` + ``update`` for every project
+    declared in that manifest (in practice exactly one).
+
     The fetched content ends up at ``<dest_dir>/<source.name>/``.
+
+    Args:
+        source:   Source configuration describing what to fetch.
+        dest_dir: Directory that will receive the manifest and fetched files.
+
+    Returns:
+        Path to the directory containing the fetched sub-path.
+
+    Raises:
+        RuntimeError: If the expected output directory is absent after the
+            fetch, which indicates a dfetch-level failure.
     """
+    logger.info("Fetching '%s' from %s (src: %r)", source.name, source.url, source.path)
     manifest_path = create_manifest(source, dest_dir)
     manifest = parse_manifest(str(manifest_path))
 
@@ -56,4 +92,5 @@ def fetch_source(source: SourceConfig, dest_dir: Path) -> Path:
         raise RuntimeError(
             f"Expected dfetch output directory {fetched} not found after update"
         )
+    logger.debug("Fetch complete: %s", fetched)
     return fetched
