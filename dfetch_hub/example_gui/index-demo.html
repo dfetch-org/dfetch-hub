@@ -85,7 +85,7 @@
       position:absolute;top:calc(100% + 6px);left:0;right:0;
       background:var(--surface);border:1px solid var(--border2);
       border-radius:var(--r);box-shadow:0 6px 20px rgba(0,0,0,.15);
-      max-height:360px;overflow-y:auto;z-index:2000;display:none;
+      max-height:360px;overflow-y:auto;z-index:2000;display:none;text-align:left;
     }
     .acdrop.open{display:block}
     .acitem{display:flex;align-items:center;gap:.65rem;padding:.5rem .85rem;cursor:pointer;border-bottom:1px solid var(--border);transition:.1s}
@@ -354,7 +354,9 @@
       <div class="hero-search">
         <span class="hero-search-ico">⌕</span>
         <input id="hInput" type="search" placeholder="Search packages, e.g. mbedtls, zlib, openssl…"
-          autocomplete="off" oninput="onHInput(this.value)" onkeydown="onHKey(event)" />
+          autocomplete="off" oninput="onHInput(this.value)" onkeydown="onHKey(event)"
+          onfocus="openHAC()" onblur="setTimeout(closeHAC,180)" />
+        <div class="acdrop" id="hacdrop"></div>
       </div>
       <div class="hero-stats">
         <div class="hstat"><strong id="sCmp">0</strong> components</div>
@@ -480,6 +482,7 @@ let MFS_VERSIONS = {};  // id → {name, kind}
 let curVersion = null;  // version selected in current detail view
 let allRefsCache = [];  // refs for the current detail's version table
 let acIdx = -1;
+let hacIdx = -1;
 
 async function loadCatalog() {
   try {
@@ -547,8 +550,37 @@ function doFilter(q){
   });
 }
 function doSearch(q){curQ=q;curRes=doFilter(q);sortRes();renderRes();buildSide();showResults()}
-function onHInput(v){if(v.length>=1)doSearch(v)}
-function onHKey(e){if(e.key==='Enter'&&e.target.value.trim()){doSearch(e.target.value.trim());e.target.blur()}}
+function onHInput(v){updHAC(v)}
+function onHKey(e){
+  const dd=document.getElementById('hacdrop');
+  const items=dd.querySelectorAll('.acitem');
+  if(e.key==='ArrowDown'){hacIdx=Math.min(hacIdx+1,items.length-1);hiHAC(items);e.preventDefault();return}
+  if(e.key==='ArrowUp'){hacIdx=Math.max(hacIdx-1,-1);hiHAC(items);e.preventDefault();return}
+  if(e.key==='Enter'){if(hacIdx>=0&&items[hacIdx])items[hacIdx].click();else{closeHAC();if(e.target.value.trim())doSearch(e.target.value.trim())}e.preventDefault();return}
+  if(e.key==='Escape')closeHAC();
+}
+function openHAC(){const v=document.getElementById('hInput').value;if(v.length>=1)updHAC(v)}
+function closeHAC(){document.getElementById('hacdrop').classList.remove('open');hacIdx=-1}
+function updHAC(q){
+  const dd=document.getElementById('hacdrop');
+  if(!q||q.length<1){closeHAC();return}
+  const lq=q.toLowerCase();
+  const hits=ALL.map(c=>({c,s:score(c,lq)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s||(b.c.stars||0)-(a.c.stars||0)).slice(0,8);
+  if(!hits.length){closeHAC();return}
+  dd.innerHTML=hits.map(({c})=>{
+    const ini=(c.name||'?').slice(0,2).toUpperCase();
+    const lbls=(c.source_labels||[]).slice(0,2).map(l=>`<span class="lbl lbl-${slug(l)}">${esc(l)}</span>`).join('');
+    const st=c.stars!=null?`<span style="font-size:.74rem;color:var(--subtle);flex-shrink:0">⭐ ${fmt(c.stars)}</span>`:'';
+    return `<div class="acitem" onmousedown="selHAC('${esc(c.id)}')">
+      <div class="acico">${ini}</div>
+      <div class="acinfo"><div class="acname">${hl(esc(c.name),q)}</div><div class="acdesc">${esc((c.description||'').slice(0,80))}</div></div>
+      <div class="aclabels">${lbls}</div>${st}
+    </div>`;
+  }).join('');
+  dd.classList.add('open');hacIdx=-1;
+}
+function hiHAC(items){items.forEach((el,i)=>el.classList.toggle('sel',i===hacIdx));if(hacIdx>=0)items[hacIdx]?.scrollIntoView({block:'nearest'})}
+function selHAC(id){closeHAC();showDetail(id)}
 function onNInput(v){updAC(v);if(v.length>=1&&document.getElementById('page-results').classList.contains('active'))doSearch(v)}
 function onNKey(e){
   const dd=document.getElementById('acdrop');
