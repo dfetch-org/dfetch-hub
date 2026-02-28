@@ -7,7 +7,6 @@ from dfetch.manifest.parse import parse as parse_manifest
 from dfetch.manifest.project import ProjectEntryDict
 from dfetch.project import create_sub_project
 from dfetch.util.util import in_directory
-from dfetch.vcs.git import GitRemote
 from dfetch.log import get_logger
 
 from dfetch_hub.catalog.config import SourceConfig
@@ -22,9 +21,6 @@ def create_manifest(source: SourceConfig, dest_dir: Path) -> Path:
     ``source.path`` (e.g. ``ports/``), so the fetched content lands at
     ``<dest_dir>/<source.name>/`` rather than the entire repository.
 
-    When ``source.branch`` is empty the default branch is auto-detected from
-    the remote via :meth:`~dfetch.vcs.git.GitRemote.get_default_branch`.
-
     Args:
         source:   Source configuration describing the remote to fetch.
         dest_dir: Directory where the manifest file will be written.
@@ -33,18 +29,11 @@ def create_manifest(source: SourceConfig, dest_dir: Path) -> Path:
         Path to the written ``dfetch.yaml``.
 
     """
-    if source.branch:
-        branch = source.branch
-    else:
-        logger.debug("Auto-detecting default branch for %s", source.url)
-        branch = GitRemote(source.url).get_default_branch()
-        logger.debug("Detected branch '%s' for %s", branch, source.url)
-
     project = ProjectEntryDict(
         name=source.name,
         url=source.url,
         src=source.path,
-        branch=branch,
+        branch=source.branch or "",
         revision="",
         repo_path="",
         vcs="git",
