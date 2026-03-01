@@ -109,11 +109,12 @@ def _merge_catalog_entry(
     if label not in labels:
         labels.append(label)
 
-    # Add a version tag if we have one and it's not already listed
+    # Add a version tag if we have one and it's not already listed.
+    # Normalise by stripping a leading "v" so "6.4.0" matches "v6.4.0".
     if manifest.version:
         tags: list[dict[str, Any]] = entry.setdefault("tags", [])
-        tag_names = {t.get("name") for t in tags}
-        if manifest.version not in tag_names:
+        tag_names_normalised = {str(t.get("name") or "").lstrip("v") for t in tags}
+        if manifest.version.lstrip("v") not in tag_names_normalised:
             tags.insert(
                 0,
                 {
