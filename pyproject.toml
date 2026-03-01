@@ -27,7 +27,7 @@ development = [
     "isort==6.0.0",
     "mypy==1.19.1",
     "pre-commit==4.3.0",
-    "pylint==3.3.4",
+    "pylint==3.3.9",
     "pytest==8.4.2",
     "pytest-cov==7.0.0",
     "vcrpy==7.0.0",
