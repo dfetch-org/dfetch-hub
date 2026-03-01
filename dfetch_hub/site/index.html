@@ -857,8 +857,8 @@ function renderDetail(c){
   // Aside
   const aLinks=document.getElementById('aLinks');
   aLinks.innerHTML='';
-  if(c.url)aLinks.innerHTML+=`<a class="aside-link" href="${esc(c.url)}" target="_blank" rel="noopener">↗ Repository</a>`;
-  if(c.manifests?.[0]?.homepage)aLinks.innerHTML+=`<a class="aside-link" href="${esc(c.manifests[0].homepage)}" target="_blank" rel="noopener">↗ Homepage</a>`;
+  if(c.url&&isSafeHttpUrl(c.url))aLinks.innerHTML+=`<a class="aside-link" href="${esc(c.url)}" target="_blank" rel="noopener">↗ Repository</a>`;
+  if(c.manifests?.[0]?.homepage&&isSafeHttpUrl(c.manifests[0].homepage))aLinks.innerHTML+=`<a class="aside-link" href="${esc(c.manifests[0].homepage)}" target="_blank" rel="noopener">↗ Homepage</a>`;
   const aDets=document.getElementById('aDets');
   aDets.innerHTML='';
   [['License',c.license&&c.license!=='UNKNOWN'?c.license:'—'],['Stars',c.stars!=null?fmt(c.stars):'—'],['VCS',c.source_type||'—'],['Default branch',c.default_branch||'—'],...(c.subfolder_path?[['Index path',c.subfolder_path]]:[])].forEach(([k,v])=>{
@@ -974,6 +974,7 @@ function dlMf(){
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
 function slug(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'')}
 function fmt(n){if(n>=1000)return(n/1000).toFixed(1)+'k';return String(n)}
+function isSafeHttpUrl(url){try{const u=new URL(String(url||''));return u.protocol==='http:'||u.protocol==='https:';}catch(e){return false;}}
 function ltag(c){return(c.tags||[]).length?c.tags[0].name:''}
 function relt(iso){if(!iso)return'';const d=new Date(iso);const diff=Date.now()-d.getTime();const days=Math.floor(diff/86400000);if(days<1)return'today';if(days<7)return`${days}d ago`;if(days<30)return`${Math.floor(days/7)}w ago`;if(days<365)return`${Math.floor(days/30)}mo ago`;return`${Math.floor(days/365)}y ago`}
 function cpTxt(t){if(navigator.clipboard)navigator.clipboard.writeText(t);else{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove()}}
