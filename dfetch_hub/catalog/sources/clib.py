@@ -61,11 +61,16 @@ def _fetch_package_json(owner: str, repo: str) -> dict[str, object] | None:
         if raw is None:
             continue
         try:
-            data: dict[str, object] = json.loads(raw)
-            logger.debug("Fetched package.json for %s/%s from %s", owner, repo, branch)
-            return data
+            loaded = json.loads(raw)
         except json.JSONDecodeError as exc:
             logger.debug("Bad JSON in package.json for %s/%s: %s", owner, repo, exc)
+            continue
+        if not isinstance(loaded, dict):
+            logger.debug("Ignoring non-object package.json for %s/%s", owner, repo)
+            continue
+        data: dict[str, object] = loaded
+        logger.debug("Fetched package.json for %s/%s from %s", owner, repo, branch)
+        return data
     return None
 
 
