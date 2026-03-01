@@ -89,7 +89,13 @@ def _build_package(owner: str, repo: str, tagline: str, category: str) -> CLibPa
         description = tagline or str(pkg_json.get("description") or "")
         license_val = str(pkg_json.get("license") or "") or None
         version_val = str(pkg_json.get("version") or "") or None
-        json_kws: list[str] = [str(k) for k in (pkg_json.get("keywords") or [])]  # type: ignore[attr-defined]
+        raw_keywords = pkg_json.get("keywords")
+        if isinstance(raw_keywords, list):
+            json_kws: list[str] = [str(k) for k in raw_keywords]
+        elif isinstance(raw_keywords, str):
+            json_kws = [raw_keywords]
+        else:
+            json_kws = []
         # Prefer an explicit homepage from package.json (e.g. project website);
         # fall back to the GitHub repo URL so the field is always populated.
         canonical_url: str | None = str(pkg_json.get("homepage") or "") or github_url
@@ -153,12 +159,12 @@ def parse_packages_md(
             logger.debug("Skipping non-GitHub URL in Packages.md: %s", url)
             continue
 
+        if limit is not None and len(packages) >= limit:
+            break
+
         owner, repo = parsed
         packages.append(
             _build_package(owner, repo, (tagline or "").strip(), current_category)
         )
-
-        if limit is not None and len(packages) >= limit:
-            break
 
     return packages
