@@ -23,7 +23,11 @@ def _catalog_id(org: str, repo: str) -> str:
 
 def _fetch_upstream_tags(url: str) -> list[dict[str, Any]]:
     """Return git tags from *url* using dfetch's GitRemote."""
-    info = GitRemote._ls_remote(url)  # pylint: disable=protected-access
+    try:
+        info = GitRemote._ls_remote(url)  # pylint: disable=protected-access
+    except Exception as exc:  # pylint: disable=broad-exception-caught
+        logger.warning("Could not list tags for %s: %s", url, exc)  # pragma: no cover
+        return []  # pragma: no cover
 
     return [
         {
