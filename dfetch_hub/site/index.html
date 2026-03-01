@@ -214,6 +214,7 @@
       display:grid;grid-template-columns:1fr auto;gap:.2rem;
     }
     .pkg:hover{border-color:var(--accent);border-left:3px solid var(--accent);box-shadow:0 1px 6px rgba(0,0,0,.08)}
+    .pkg:focus-visible{border-color:var(--accent);border-left:3px solid var(--accent);outline:2px solid var(--accent);outline-offset:1px}
     .pkg.in-manifest{border-left:3px solid var(--green);background:#fafffe}
     .pkg.in-manifest:hover{border-left:3px solid var(--green);border-color:var(--green)}
     .pkg-name{font-family:var(--logo);font-size:1rem;font-weight:800;color:var(--nav)}
@@ -778,7 +779,7 @@ function renderRes(){
     const added=MFS.has(c.id)?`<span class="added-ind">✓ In manifest</span>`:'';
     const stars=c.stars!=null?`<span class="pstat">⭐ ${fmt(c.stars)}</span>`:'';
     const upd=c.last_updated?`<span class="padded">${relt(c.last_updated)}</span>`:'';
-    return `<div class="pkg${MFS.has(c.id)?' in-manifest':''}" onclick="showDetail('${esc(c.id)}')">
+    return `<div class="pkg${MFS.has(c.id)?' in-manifest':''}" role="button" tabindex="0" onclick="showDetail('${esc(c.id)}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();showDetail('${esc(c.id)}')}">
       <div class="pkg-name">${esc(c.name)}</div>
       <div class="pkg-ver">${esc(ver)}</div>
       <div class="pkg-desc">${esc(c.description||'')}</div>
