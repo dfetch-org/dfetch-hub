@@ -5,7 +5,7 @@
   "subfolder_path": null,
   "catalog_sources": [
     {
-      "source_name": "clib",
+      "source_name": "clib-source",
       "label": "clib",
       "index_path": "clib/jwerle/chfreq.c",
       "registry_version": "0.0.1"

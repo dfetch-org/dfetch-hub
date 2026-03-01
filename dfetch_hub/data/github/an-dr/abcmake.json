@@ -5,7 +5,7 @@
   "subfolder_path": null,
   "catalog_sources": [
     {
-      "source_name": "vcpkg",
+      "source_name": "vcpkg-source",
       "label": "vcpkg",
       "index_path": "ports/abcmake",
       "registry_version": "6.4.0"

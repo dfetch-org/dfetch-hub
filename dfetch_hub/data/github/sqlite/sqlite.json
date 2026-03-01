@@ -7,7 +7,7 @@
     {
       "source_name": "vcpkg-source",
       "label": "vcpkg",
-      "index_path": "ports/sqlite",
+      "index_path": "ports/sqlite3",
       "registry_version": "version-3.45.1"
     }
   ],

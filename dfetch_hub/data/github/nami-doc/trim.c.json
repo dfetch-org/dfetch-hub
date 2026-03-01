@@ -5,14 +5,14 @@
   "subfolder_path": null,
   "catalog_sources": [
     {
-      "source_name": "clib",
+      "source_name": "clib-source",
       "label": "clib",
       "index_path": "clib/nami-doc/trim.c",
       "registry_version": "0.0.1"
     }
   ],
   "manifests": [],
-  "readme": "# Trim\r\n\r\n  Trims a string in-place.\r\n\r\n# Installation\r\n\r\n`$ clib install vendethiel/trim.c`\r\n\r\n## Example\r\n\r\n```c\r\nchar[] str = \"hello world \";\r\nstr = trim(str);\r\n``` \r\n",
+  "readme": "# Trim\r\n\r\n  Trims a string in-place.\r\n\r\n# Installation\r\n\r\n`$ clib install vendethiel/trim.c`\r\n\r\n## Example\r\n\r\n```c\r\nchar str[] = \"hello world \";\r\ntrim(str);\r\n``` \r\n",
   "tags": [
     {
       "name": "0.0.1",

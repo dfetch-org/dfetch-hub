@@ -5,7 +5,7 @@
   "subfolder_path": null,
   "catalog_sources": [
     {
-      "source_name": "conan-center",
+      "source_name": "conan-source",
       "label": "conan",
       "index_path": "recipes/7bitdi",
       "registry_version": "1.0.0"

@@ -5,7 +5,7 @@
   "subfolder_path": null,
   "catalog_sources": [
     {
-      "source_name": "vcpkg",
+      "source_name": "vcpkg-source",
       "label": "vcpkg",
       "index_path": "ports/abumq-ripe",
       "registry_version": "4.2.2"

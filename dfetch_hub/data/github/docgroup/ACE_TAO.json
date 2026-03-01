@@ -5,7 +5,7 @@
   "subfolder_path": null,
   "catalog_sources": [
     {
-      "source_name": "vcpkg",
+      "source_name": "vcpkg-source",
       "label": "vcpkg",
       "index_path": "ports/ace",
       "registry_version": "8.0.5"

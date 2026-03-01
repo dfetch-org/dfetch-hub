@@ -17,13 +17,13 @@
       "registry_version": "20240116.2"
     },
     {
-      "source_name": "vcpkg",
+      "source_name": "vcpkg-source",
       "label": "vcpkg",
       "index_path": "ports/abseil",
       "registry_version": "20250814.1"
     },
     {
-      "source_name": "conan-center",
+      "source_name": "conan-source",
       "label": "conan",
       "index_path": "recipes/abseil",
       "registry_version": "20230125.3"

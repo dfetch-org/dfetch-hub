@@ -5,13 +5,13 @@
   "subfolder_path": null,
   "catalog_sources": [
     {
-      "source_name": "vcpkg",
+      "source_name": "vcpkg-source",
       "label": "vcpkg",
       "index_path": "ports/absent",
       "registry_version": "0.3.1"
     },
     {
-      "source_name": "conan-center",
+      "source_name": "conan-source",
       "label": "conan",
       "index_path": "recipes/absent",
       "registry_version": "0.0.1"
