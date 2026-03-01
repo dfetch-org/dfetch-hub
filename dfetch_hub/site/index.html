@@ -932,11 +932,11 @@ function renderModal(){
 function rmMf(id){MFS.delete(id);updMfCnt();renderModal();renderRes();if(id===curPkg)updAddBtn()}
 function buildFullMf(items){let y="manifest:\n  version: '0.0'\n\nprojects:\n";items.forEach(c=>{y+=buildEntry(c)});return y}
 function buildEntry(c,version){
-  const v=version||MFS_VERSIONS[c.id];const br=c.default_branch||'main';const sn=(c.name||'comp').replace(/\s+/g,'-').toLowerCase();
-  let e=`  - name: ext/${sn}\n    url: ${c.url}\n`;
-  if(c.subfolder_path)e+=`    src: ${c.subfolder_path}\n`;
-  if(v){if(v.kind==='branch')e+=`    branch: ${v.name}\n`;else e+=`    tag: ${v.name}\n`;}
-  else{const t=ltag(c);if(t)e+=`    tag: ${t}\n`;else e+=`    branch: ${br}\n`;}
+  const v=version||MFS_VERSIONS[c.id];const br=c.default_branch||'main';const sn=slug(c.name||'comp');
+  let e=`  - name: ext/${sn}\n    url: ${yamlQ(c.url)}\n`;
+  if(c.subfolder_path)e+=`    src: ${yamlQ(c.subfolder_path)}\n`;
+  if(v){if(v.kind==='branch')e+=`    branch: ${yamlQ(v.name)}\n`;else e+=`    tag: ${yamlQ(v.name)}\n`;}
+  else{const t=ltag(c);if(t)e+=`    tag: ${yamlQ(t)}\n`;else e+=`    branch: ${yamlQ(br)}\n`;}
   e+=`    dst: ext/${sn}\n`;return e;
 }
 function buildSnipHtml(c,version){
@@ -972,6 +972,7 @@ function dlMf(){
 
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+function yamlQ(s){return"'"+String(s||'').replace(/'/g,"''")+"'"}
 function slug(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'')}
 function fmt(n){if(n>=1000)return(n/1000).toFixed(1)+'k';return String(n)}
 function isSafeHttpUrl(url){try{const u=new URL(String(url||''));return u.protocol==='http:'||u.protocol==='https:';}catch(e){return false;}}
