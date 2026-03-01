@@ -27,6 +27,11 @@ jobs:
       - name: Generate documentation
         run: dfetch-hub publish --output ./public
 
+      - name: Debug public folder
+        run: |
+          echo "==== PUBLIC CONTENT ===="
+          ls -R public
+
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
         with:
