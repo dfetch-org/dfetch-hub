@@ -412,6 +412,28 @@ def test_merge_detail_version_tag_not_duplicated() -> None:
     assert sum(1 for t in detail["tags"] if t["name"].lstrip("v") == "1.2.3") == 1
 
 
+def test_merge_detail_stale_source_name_replaced_not_duplicated() -> None:
+    """A source entry with the same index_path but an old source_name is replaced.
+
+    This covers the case where a source is renamed in dfetch-hub.toml (e.g.
+    "vcpkg-source" → "vcpkg"): the old entry must be purged so only one entry
+    survives, avoiding duplicate catalog_sources entries.
+    """
+    existing = _existing_detail()
+    # Simulate the stale entry left by a previous manual rename
+    # Simulate a stale entry: same index_path ("ports/abseil") but old source_name
+    existing["catalog_sources"][0]["source_name"] = "vcpkg-source"
+
+    m = _manifest(version="1.0")
+    with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
+        detail = _merge_detail(
+            existing, m, "abseil", "abseil-cpp", "vcpkg", "vcpkg", "ports"
+        )
+
+    source_names = [s["source_name"] for s in detail["catalog_sources"]]
+    assert source_names == ["vcpkg"], f"expected only 'vcpkg', got {source_names}"
+
+
 # ---------------------------------------------------------------------------
 # write_catalog
 # ---------------------------------------------------------------------------

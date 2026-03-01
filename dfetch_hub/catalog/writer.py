@@ -178,13 +178,23 @@ def _merge_detail(  # pylint: disable=too-many-arguments,too-many-positional-arg
     if fetched_readme:
         detail["readme"] = fetched_readme
 
-    # Update or add the catalog source for this label
+    # Update or add the catalog source for this label.
+    # First, purge any stale entries that share the same index_path but carry an
+    # outdated source_name (e.g. after a source rename in dfetch-hub.toml).
     sources: list[dict[str, Any]] = detail.setdefault("catalog_sources", [])
-    existing_source = next(
-        (s for s in sources if s.get("source_name") == source_name),
-        None,
-    )
     new_source = _catalog_source_entry(manifest, source_name, label, ports_path)
+    new_index_path = new_source["index_path"]
+    detail["catalog_sources"] = sources = [
+        s
+        for s in sources
+        if not (
+            s.get("index_path") == new_index_path
+            and s.get("source_name") != source_name
+        )
+    ]
+    existing_source = next(
+        (s for s in sources if s.get("source_name") == source_name), None
+    )
     if existing_source is None:
         sources.append(new_source)
     else:
