@@ -144,7 +144,15 @@ def _find_conanfile(recipe_dir: Path, preferred_folder: str) -> Path | None:
     if preferred.exists():
         return preferred
 
-    for sub in sorted(recipe_dir.iterdir()):
+    if not recipe_dir.exists() or not recipe_dir.is_dir():
+        return None
+
+    try:
+        entries = sorted(recipe_dir.iterdir())
+    except OSError:
+        return None
+
+    for sub in entries:
         if sub.is_dir():
             candidate = sub / "conanfile.py"
             if candidate.exists():
