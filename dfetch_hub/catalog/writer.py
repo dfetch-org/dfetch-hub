@@ -95,9 +95,9 @@ def _merge_catalog_entry(
         existing_topics.extend(t for t in topics if t not in existing_topics)
 
     # Update fields that the manifest knows about and the catalog may be stale on
-    if manifest.description and not existing:
+    if manifest.description and not entry.get("description"):
         entry["description"] = manifest.description
-    if manifest.license and not existing:
+    if manifest.license and not entry.get("license"):
         entry["license"] = manifest.license
 
     # Ensure our label is in source_labels
