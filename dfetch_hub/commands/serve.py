@@ -11,6 +11,14 @@ from pathlib import Path
 _PACKAGE_DIR = Path(__file__).parent.parent
 
 
+def _port_type(value: str) -> int:
+    """Parse *value* as a TCP port number (1–65535)."""
+    port = int(value)
+    if not 1 <= port <= 65535:
+        raise argparse.ArgumentTypeError("--port must be between 1 and 65535")
+    return port
+
+
 def _cmd_serve(parsed: argparse.Namespace) -> None:
     """Serve the site from the package directory and open the browser."""
     port: int = parsed.port
@@ -50,8 +58,8 @@ def register(subparsers: argparse._SubParsersAction) -> None:  # type: ignore[ty
     )
     serve_p.add_argument(
         "--port",
-        type=int,
+        type=_port_type,
         default=8000,
-        help="TCP port to listen on (default: %(default)s)",
+        help="TCP port to listen on (1–65535, default: %(default)s)",
     )
     serve_p.set_defaults(func=_cmd_serve)
