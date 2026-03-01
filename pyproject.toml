@@ -40,6 +40,16 @@ Issues = "https://github.com/dfetch-org/dfetch-hub/issues"
 [project.scripts]
 dfetch-hub = "dfetch_hub.cli:main"
 
+[tool.setuptools.packages.find]
+include = ["dfetch_hub*"]
+
+[tool.setuptools.package-data]
+dfetch_hub = [
+    "site/*",
+    "data/*.json",
+    "data/github/**/*.json",
+]
+
 [tool.isort]
 profile = "black"
 line_length = 120
