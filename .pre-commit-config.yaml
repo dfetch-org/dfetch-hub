@@ -30,7 +30,7 @@ repos:
       types: [file, python]
   -   id: pyright
       name: pyright type check
-      entry: pyright --pythonpath .venv/bin/python
+      entry: pyright
       language: python
       files: ^dfetch_hub/
       types: [file, python]
