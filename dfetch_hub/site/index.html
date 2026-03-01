@@ -619,6 +619,13 @@ window.addEventListener('popstate', async ()=>{
 function showPage(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active')}
 function showHome(){_pushURL({});showPage('page-home');document.getElementById('hInput').value='';document.getElementById('nInput').value='';curQ=''}
 function showResults(){showPage('page-results')}
+function _semverCmp(a,b){
+  const p=s=>{const m=s.name.replace(/^v/i,'').match(/^(\d+)(?:\.(\d+))?(?:\.(\d+))?/);return m?[+m[1],+(m[2]||0),+(m[3]||0)]:null};
+  const[av,bv]=[p(a),p(b)];
+  if(!av&&!bv)return 0;if(!av)return 1;if(!bv)return -1;
+  for(let i=0;i<3;i++){const d=av[i]-bv[i];if(d!==0)return -d}
+  return 0;
+}
 async function showDetail(id){
   const c=RAW[id];if(!c)return;
   _pushURL({pkg:id});curPkg=id;showPage('page-detail');window.scrollTo(0,0);
@@ -819,9 +826,10 @@ function renderDetail(c){
   const rb=document.getElementById('readmeBody');
   rb.innerHTML=c.readme&&c.readme.trim()?DOMPurify.sanitize(marked.parse(c.readme)):'<div class="readme-empty">No README available.</div>';
   // Versions — init curVersion to first tag or default branch
-  const allRefs=[...(c.tags||[]).map(t=>({...t,kind:'tag'})),...(c.branches||[]).map(b=>({...b,kind:'branch'}))];
+  const sortedTags=[...(c.tags||[])].sort(_semverCmp);
+  const allRefs=[...sortedTags.map(t=>({...t,kind:'tag'})),...(c.branches||[]).map(b=>({...b,kind:'branch'}))];
   allRefsCache=allRefs.slice(0,50);
-  const firstTag=(c.tags||[]).length?{name:c.tags[0].name,kind:'tag'}:null;
+  const firstTag=sortedTags.length?{name:sortedTags[0].name,kind:'tag'}:null;
   curVersion=firstTag||{name:c.default_branch||'main',kind:'branch'};
   document.getElementById('vtbody').innerHTML=allRefsCache.length?allRefsCache.map((r,i)=>{
     const sel=curVersion&&curVersion.name===r.name&&curVersion.kind===r.kind;
