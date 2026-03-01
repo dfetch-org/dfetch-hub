@@ -3,40 +3,18 @@
 from __future__ import annotations
 
 import json
-import re
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
 
 from dfetch.log import get_logger
 from dfetch.vcs.git import GitRemote
 
-from dfetch_hub.catalog.sources import BaseManifest
+from dfetch_hub.catalog.sources import BaseManifest, _parse_github_slug
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 logger = get_logger(__name__)
-
-
-# ---------------------------------------------------------------------------
-# GitHub URL helpers
-# ---------------------------------------------------------------------------
-
-_GITHUB_RE = re.compile(
-    r"https?://github\.com/([^/]+)/([^/\s#?]+?)(?:\.git)?/?$",
-    re.IGNORECASE,
-)
-
-
-def _parse_github_url(url: str) -> tuple[str, str] | None:
-    """Return (org, repo) extracted from a GitHub URL, normalised to lowercase.
-
-    GitHub URLs are case-insensitive; lowercasing ensures the catalog ID, the
-    detail-file path, and the ``org``/``repo`` fields in the detail JSON are
-    all consistent with each other so the frontend can derive paths from IDs.
-    """
-    m = _GITHUB_RE.match(url.strip())
-    return (m.group(1).lower(), m.group(2).lower()) if m else None
 
 
 def _catalog_id(org: str, repo: str) -> str:
@@ -285,7 +263,7 @@ def write_catalog(  # pylint: disable=too-many-locals
             )
             continue
 
-        parsed = _parse_github_url(manifest.homepage)
+        parsed = _parse_github_slug(manifest.homepage)
         if not parsed:
             logger.warning("skipping non-GitHub URL: %s", manifest.homepage)
             continue

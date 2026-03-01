@@ -1,7 +1,7 @@
 """Tests for dfetch_hub.catalog.writer: catalog JSON writing pipeline.
 
 Covers:
-- _parse_github_url: URL parsing and lowercase normalisation.
+- _parse_github_slug: URL parsing and lowercase normalisation.
 - _catalog_id: ID string format.
 - _merge_catalog_entry: create / update catalog.json entries.
 - _generate_readme: fallback README content.
@@ -18,14 +18,13 @@ from unittest.mock import patch
 
 import pytest
 
-from dfetch_hub.catalog.sources import BaseManifest
+from dfetch_hub.catalog.sources import BaseManifest, _parse_github_slug
 from dfetch_hub.catalog.sources.clib import CLibPackage
 from dfetch_hub.catalog.writer import (
     _catalog_id,
     _generate_readme,
     _merge_catalog_entry,
     _merge_detail,
-    _parse_github_url,
     write_catalog,
 )
 
@@ -98,7 +97,7 @@ def _existing_detail() -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# _parse_github_url
+# _parse_github_slug
 # ---------------------------------------------------------------------------
 
 
@@ -111,12 +110,12 @@ def _existing_detail() -> dict[str, Any]:
         ("http://github.com/foo/bar", ("foo", "bar")),
     ],
 )
-def test_parse_github_url_valid(url: str, expected: tuple[str, str]) -> None:
-    assert _parse_github_url(url) == expected
+def test_parse_github_slug_valid(url: str, expected: tuple[str, str]) -> None:
+    assert _parse_github_slug(url) == expected
 
 
-def test_parse_github_url_lowercases_org_and_repo() -> None:
-    assert _parse_github_url("https://github.com/ABSEIL/Abseil-CPP") == (
+def test_parse_github_slug_lowercases_org_and_repo() -> None:
+    assert _parse_github_slug("https://github.com/ABSEIL/Abseil-CPP") == (
         "abseil",
         "abseil-cpp",
     )
@@ -132,8 +131,8 @@ def test_parse_github_url_lowercases_org_and_repo() -> None:
         "https://github.com/only-org",
     ],
 )
-def test_parse_github_url_non_github_returns_none(url: str) -> None:
-    assert _parse_github_url(url) is None
+def test_parse_github_slug_non_github_returns_none(url: str) -> None:
+    assert _parse_github_slug(url) is None
 
 
 # ---------------------------------------------------------------------------
