@@ -7,8 +7,8 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
-from urllib.request import urlopen, Request
 from urllib.error import URLError
+from urllib.request import Request, urlopen
 
 from dfetch.log import get_logger
 
@@ -84,7 +84,7 @@ def _fetch_raw(url: str) -> str | None:
     try:
         req = Request(url, headers=_HEADERS)
         with urlopen(req, timeout=10) as resp:
-            return resp.read().decode(errors="replace")
+            return str(resp.read().decode(errors="replace"))
     except (URLError, OSError) as exc:
         logger.debug("GET %s failed: %s", url, exc)
         return None
@@ -150,7 +150,7 @@ def _build_package(
         description = tagline or str(pkg_json.get("description") or "")
         license_val = str(pkg_json.get("license") or "") or None
         version_val = str(pkg_json.get("version") or "") or None
-        json_kws: list[str] = [str(k) for k in (pkg_json.get("keywords") or [])]
+        json_kws: list[str] = [str(k) for k in (pkg_json.get("keywords") or [])]  # type: ignore[attr-defined]
         # Prefer an explicit homepage from package.json (e.g. project website);
         # fall back to the GitHub repo URL so the field is always populated.
         canonical_url: str | None = str(pkg_json.get("homepage") or "") or github_url

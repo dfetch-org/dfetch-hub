@@ -76,7 +76,7 @@ def _extract_dependencies(data: dict[str, object]) -> list[str]:
     string or a dict with at least a ``"name"`` key.
     """
     deps: list[str] = []
-    for dep in data.get("dependencies", []):  # type: ignore[union-attr]
+    for dep in data.get("dependencies", []):  # type: ignore[attr-defined]
         if isinstance(dep, str):
             deps.append(dep)
         elif isinstance(dep, dict) and "name" in dep:

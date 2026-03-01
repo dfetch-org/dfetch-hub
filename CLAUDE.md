@@ -54,7 +54,7 @@
 - `fetch_source()` (fetcher.py) uses the dfetch Python API — no `subprocess`.
 - External HTTP calls use stdlib `urllib.request` only — no `requests` dependency.
 - GitHub org/repo values are **always lowercased** at extraction time so catalog IDs, file paths, and JSON fields stay consistent.
-- New source strategies: add a parser module (`catalog/<name>.py`), register in the `_SUBFOLDER_PARSERS` dict or add a dispatch branch in `_process_source` inside `cli.py`.
+- New source strategies: add a parser module under `catalog/sources/`, register in the `_SUBFOLDER_PARSERS` dict or add a dispatch branch in `_process_source` inside `cli.py`.
 - Limits are **per-source** (not global): slice or accept a `limit` parameter in each parser.
 
 ## Testing

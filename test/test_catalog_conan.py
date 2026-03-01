@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from dfetch_hub.catalog.conan import (
+from dfetch_hub.catalog.sources.conan import (
     ConanManifest,
     _extract_str_attr,
     _extract_tuple_attr,
@@ -15,13 +15,11 @@ from dfetch_hub.catalog.conan import (
     parse_conan_recipe,
 )
 
-
 # ---------------------------------------------------------------------------
 # Shared conanfile.py fixtures
 # ---------------------------------------------------------------------------
 
-_CONANFILE_SIMPLE = textwrap.dedent(
-    """\
+_CONANFILE_SIMPLE = textwrap.dedent("""\
     from conan import ConanFile
 
     class AbseilConan(ConanFile):
@@ -34,11 +32,9 @@ _CONANFILE_SIMPLE = textwrap.dedent(
 
         def build(self):
             pass
-    """
-)
+    """)
 
-_CONANFILE_MULTILINE_DESC = textwrap.dedent(
-    """\
+_CONANFILE_MULTILINE_DESC = textwrap.dedent("""\
     from conan import ConanFile
 
     class ZlibConan(ConanFile):
@@ -49,11 +45,9 @@ _CONANFILE_MULTILINE_DESC = textwrap.dedent(
         license = "Zlib"
         topics = ("compression", "deflate")
         url = "https://github.com/conan-io/conan-center-index"
-    """
-)
+    """)
 
-_CONFIG_YML = textwrap.dedent(
-    """\
+_CONFIG_YML = textwrap.dedent("""\
     versions:
       "1.0.0":
         folder: all
@@ -61,8 +55,7 @@ _CONFIG_YML = textwrap.dedent(
         folder: all
       "3.1.0":
         folder: all
-    """
-)
+    """)
 
 
 @pytest.fixture
@@ -85,7 +78,10 @@ def test_extract_str_attr_simple() -> None:
 
 
 def test_extract_str_attr_homepage() -> None:
-    assert _extract_str_attr(_CONANFILE_SIMPLE, "homepage") == "https://github.com/abseil/abseil-cpp"
+    assert (
+        _extract_str_attr(_CONANFILE_SIMPLE, "homepage")
+        == "https://github.com/abseil/abseil-cpp"
+    )
 
 
 def test_extract_str_attr_license() -> None:
@@ -140,7 +136,7 @@ def test_latest_version_missing_file(tmp_path: Path) -> None:
 
 def test_latest_version_single_entry(tmp_path: Path) -> None:
     config = tmp_path / "config.yml"
-    config.write_text("versions:\n  \"1.3.1\":\n    folder: all\n", encoding="utf-8")
+    config.write_text('versions:\n  "1.3.1":\n    folder: all\n', encoding="utf-8")
     version, _ = _latest_version(config)
     assert version == "1.3.1"
 
@@ -175,7 +171,7 @@ def test_parse_conan_recipe_port_name_is_dir_name(recipe_dir: Path) -> None:
 
 def test_parse_conan_recipe_no_conanfile_returns_none(tmp_path: Path) -> None:
     (tmp_path / "config.yml").write_text(
-        "versions:\n  \"1.0\":\n    folder: all\n", encoding="utf-8"
+        'versions:\n  "1.0":\n    folder: all\n', encoding="utf-8"
     )
     # No conanfile.py created
     assert parse_conan_recipe(tmp_path) is None
@@ -184,7 +180,7 @@ def test_parse_conan_recipe_no_conanfile_returns_none(tmp_path: Path) -> None:
 def test_parse_conan_recipe_falls_back_to_any_subfolder(tmp_path: Path) -> None:
     """When config.yml points to a missing folder, fall back to scanning subdirs."""
     (tmp_path / "config.yml").write_text(
-        "versions:\n  \"1.0\":\n    folder: 1.x\n", encoding="utf-8"
+        'versions:\n  "1.0":\n    folder: 1.x\n', encoding="utf-8"
     )
     other_dir = tmp_path / "other"
     other_dir.mkdir()
@@ -200,7 +196,7 @@ def test_parse_conan_recipe_multiline_description(tmp_path: Path) -> None:
     all_dir.mkdir()
     (all_dir / "conanfile.py").write_text(_CONANFILE_MULTILINE_DESC, encoding="utf-8")
     (tmp_path / "config.yml").write_text(
-        "versions:\n  \"1.3.1\":\n    folder: all\n", encoding="utf-8"
+        'versions:\n  "1.3.1":\n    folder: all\n', encoding="utf-8"
     )
 
     m = parse_conan_recipe(tmp_path)

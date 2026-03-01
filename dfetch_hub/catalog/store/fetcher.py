@@ -9,7 +9,7 @@ from dfetch.manifest.project import ProjectEntryDict
 from dfetch.project import create_sub_project
 from dfetch.util.util import in_directory
 
-from dfetch_hub.catalog.config import SourceConfig
+from dfetch_hub.config import SourceConfig
 
 logger = get_logger(__name__)
 

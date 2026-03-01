@@ -9,14 +9,14 @@ from pathlib import Path
 
 from dfetch.log import configure_root_logger, setup_root
 
-from dfetch_hub.catalog.clib import CLibPackage, parse_packages_md
-from dfetch_hub.catalog.conan import parse_conan_recipe
-from dfetch_hub.catalog.config import HubConfig, SourceConfig, load_config
-from dfetch_hub.catalog.fetcher import fetch_source
-from dfetch_hub.catalog.updater import ComponentManifest, update_catalog
-from dfetch_hub.catalog.vcpkg import parse_vcpkg_json
+from dfetch_hub.catalog.sources.clib import CLibPackage, parse_packages_md
+from dfetch_hub.catalog.sources.conan import parse_conan_recipe
+from dfetch_hub.catalog.sources.vcpkg import parse_vcpkg_json
+from dfetch_hub.catalog.store.fetcher import fetch_source
+from dfetch_hub.catalog.store.updater import ComponentManifest, update_catalog
+from dfetch_hub.config import HubConfig, SourceConfig, load_config
 
-_DEFAULT_DATA_DIR = Path(__file__).parent.parent / "example_gui" / "data"
+_DEFAULT_DATA_DIR = Path(__file__).parent / "example_gui" / "data"
 
 
 configure_root_logger()
@@ -69,7 +69,7 @@ def _process_subfolders_source(
             if m is None:
                 skipped += 1
             else:
-                manifests.append(m)  # type: ignore[arg-type]
+                manifests.append(m)
 
         if skipped:
             logger.print_warning_line(

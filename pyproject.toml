@@ -38,8 +38,11 @@ Homepage = "https://github.com/dfetch-org/dfetch-hub"
 Issues = "https://github.com/dfetch-org/dfetch-hub/issues"
 
 [project.scripts]
-DfetchHub-cli = "dfetch_hub.project.cli:main_cli"
-dfetch-hub-update = "dfetch_hub.catalog.cli:main"
+dfetch-hub-update = "dfetch_hub.cli:main"
+
+[tool.isort]
+profile = "black"
+line_length = 120
 
 [tool.pylint.format]
 max-line-length = "120"
