@@ -6,7 +6,7 @@ import argparse
 
 from dfetch.log import configure_root_logger, setup_root
 
-from dfetch_hub.commands import serve, update
+from dfetch_hub.commands import publish, serve, update
 
 configure_root_logger()
 logger = setup_root("dfetch-hub")
@@ -25,6 +25,7 @@ def main(args: list[str] | None = None) -> None:
 
     update.register(subparsers)
     serve.register(subparsers)
+    publish.register(subparsers)
 
     parsed = parser.parse_args(args)
     parsed.func(parsed)

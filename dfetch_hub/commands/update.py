@@ -73,7 +73,9 @@ def _process_subfolders_source(
                 manifests.append(m)
 
         if skipped:
-            logger.warning("%s: Skipped %d port(s) with no manifest", source.name, skipped)
+            logger.warning(
+                "%s: Skipped %d port(s) with no manifest", source.name, skipped
+            )
 
         _added, _updated = update_catalog(
             manifests,
@@ -124,7 +126,9 @@ def _process_git_wiki_source(
         logger.info("%s: Parsing %s ...", source.name, source.manifest)
         packages: list[CLibPackage] = parse_packages_md(index_file, limit=limit)
 
-        logger.info("%s: Fetched metadata for %d package(s)", source.name, len(packages))
+        logger.info(
+            "%s: Fetched metadata for %d package(s)", source.name, len(packages)
+        )
         _added, _updated = update_catalog(
             packages,  # type: ignore[arg-type]
             data_dir,
@@ -151,7 +155,11 @@ def _process_source(
     elif source.strategy == "git-wiki":
         _process_git_wiki_source(source, data_dir, limit)
     else:
-        logger.warning("%s: strategy '%s' not yet supported — skipped", source.name, source.strategy)
+        logger.warning(
+            "%s: strategy '%s' not yet supported — skipped",
+            source.name,
+            source.strategy,
+        )
 
 
 def _cmd_update(parsed: argparse.Namespace) -> None:
