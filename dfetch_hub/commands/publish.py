@@ -32,7 +32,7 @@ def _cmd_publish(parsed: argparse.Namespace) -> None:
     data_dir = Path(parsed.data_dir)
 
     if output.exists():
-        logger.print_info_line("publish", "Removing existing '%s' ...", output)
+        logger.print_info_line("publish", f"Removing existing '{output}' ...")
         shutil.rmtree(output)
     output.mkdir(parents=True)
 
@@ -55,16 +55,14 @@ def _cmd_publish(parsed: argparse.Namespace) -> None:
 
     # Copy and minify all JSON from the data directory.
     json_files = sorted(data_dir.rglob("*.json"))
-    logger.print_info_line("publish", "Minifying %d JSON file(s) ...", len(json_files))
+    logger.print_info_line("publish", f"Minifying {len(json_files)} JSON file(s) ...")
     for src in json_files:
         dst = output / "data" / src.relative_to(data_dir)
         _minify_json(src, dst)
 
     logger.print_info_line(
         "publish",
-        "Done — static site written to '%s' (%d JSON file(s) minified)",
-        output,
-        len(json_files),
+        f"Done — static site written to '{output}' ({len(json_files)} JSON file(s) minified)",
     )
 
 
