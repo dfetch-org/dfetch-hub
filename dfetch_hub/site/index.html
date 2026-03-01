@@ -96,6 +96,16 @@
     }
     .nsearch input::placeholder{color:rgba(255,255,255,.38)}
     .nsearch input:focus{background:rgba(255,255,255,.13);border-color:var(--accent)}
+    .nsearch input::-webkit-search-cancel-button{
+      -webkit-appearance:none;appearance:none;
+      width:14px;height:14px;cursor:pointer;flex-shrink:0;
+      background-color:rgba(255,255,255,.55);
+      -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='black' d='M12.854 3.146a.5.5 0 0 0-.708 0L8 7.293 3.854 3.146a.5.5 0 0 0-.708.708L7.293 8l-4.147 4.146a.5.5 0 0 0 .708.708L8 8.707l4.146 4.147a.5.5 0 0 0 .708-.708L8.707 8l4.147-4.146a.5.5 0 0 0 0-.708z'/%3E%3C/svg%3E");
+      -webkit-mask-size:contain;-webkit-mask-repeat:no-repeat;-webkit-mask-position:center;
+      mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='black' d='M12.854 3.146a.5.5 0 0 0-.708 0L8 7.293 3.854 3.146a.5.5 0 0 0-.708.708L7.293 8l-4.147 4.146a.5.5 0 0 0 .708.708L8 8.707l4.146 4.147a.5.5 0 0 0 .708-.708L8.707 8l4.147-4.146a.5.5 0 0 0 0-.708z'/%3E%3C/svg%3E");
+      mask-size:contain;mask-repeat:no-repeat;mask-position:center;
+    }
+    .nsearch input::-webkit-search-cancel-button:hover{background-color:#fff}
     .nsearch-ico{position:absolute;left:.65rem;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.4);font-size:.85rem;pointer-events:none}
     .acdrop{
       position:absolute;top:calc(100% + 6px);left:0;right:0;
@@ -607,7 +617,7 @@ function doFilter(q){
     return score(c,lq)>0;
   });
 }
-function doSearch(q){curQ=q;curPage=0;curRes=doFilter(q);sortRes();renderRes();buildSide();showResults()}
+function doSearch(q){curQ=q;curPage=0;curRes=doFilter(q);sortRes();renderRes();buildSide();showResults();document.getElementById('nInput').value=q;}
 function onHInput(v){updHAC(v)}
 function onHKey(e){
   const dd=document.getElementById('hacdrop');
@@ -639,7 +649,7 @@ function updHAC(q){
 }
 function hiHAC(items){items.forEach((el,i)=>el.classList.toggle('sel',i===hacIdx));if(hacIdx>=0)items[hacIdx]?.scrollIntoView({block:'nearest'})}
 function selHAC(id){closeHAC();showDetail(id)}
-function onNInput(v){updAC(v);if(v.length>=1&&document.getElementById('page-results').classList.contains('active'))doSearch(v)}
+function onNInput(v){updAC(v);if(document.getElementById('page-results').classList.contains('active'))doSearch(v)}
 function onNKey(e){
   const dd=document.getElementById('acdrop');
   const items=dd.querySelectorAll('.acitem');
