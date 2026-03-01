@@ -174,7 +174,7 @@ def test_build_package_non_github_readme_is_none() -> None:
 
 
 def test_build_package_basic_fields() -> None:
-    """port_name, package_name, version, license and keywords are set correctly."""
+    """entry_name, package_name, version, license and keywords are set correctly."""
     with (
         patch(
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
@@ -190,7 +190,7 @@ def test_build_package_basic_fields() -> None:
             "String manipulation",
         )
 
-    assert pkg.port_name == "clibs/buffer"
+    assert pkg.entry_name == "clibs/buffer"
     assert pkg.package_name == "buffer"
     assert pkg.version == "0.4.0"
     assert pkg.license == "MIT"
@@ -306,10 +306,10 @@ def test_parse_packages_md_category_becomes_keyword(packages_md_file: Path) -> N
     ):
         pkgs = parse_packages_md(packages_md_file)
 
-    buffer_pkg = next(p for p in pkgs if p.port_name == "clibs/buffer")
+    buffer_pkg = next(p for p in pkgs if p.entry_name == "clibs/buffer")
     assert "String manipulation" in buffer_pkg.keywords
 
-    jsawk_pkg = next(p for p in pkgs if p.port_name == "micha/jsawk")
+    jsawk_pkg = next(p for p in pkgs if p.entry_name == "micha/jsawk")
     assert "Math" in jsawk_pkg.keywords
 
 

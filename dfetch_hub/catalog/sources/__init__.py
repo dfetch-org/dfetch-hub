@@ -123,8 +123,8 @@ class BaseManifest:
     """Shared base fields for all catalog manifest dataclasses.
 
     Attributes:
-        port_name:      Unique identifier within the source registry.
-        package_name:   Human-readable package name (may differ from port_name).
+        entry_name:     Unique identifier within the source registry.
+        package_name:   Human-readable package name (may differ from entry_name).
         description:    Short description of the package.
         homepage:       Upstream project URL, or ``None`` if unknown.
         license:        SPDX license expression, or ``None`` if unspecified.
@@ -132,7 +132,7 @@ class BaseManifest:
         readme_content: Raw README text fetched from the upstream repo, or ``None``.
     """
 
-    port_name: str
+    entry_name: str
     package_name: str
     description: str
     homepage: str | None

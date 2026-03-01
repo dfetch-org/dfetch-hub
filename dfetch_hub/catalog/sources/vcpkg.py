@@ -77,18 +77,18 @@ def _extract_dependencies(data: dict[str, object]) -> list[str]:
     return deps
 
 
-def parse_vcpkg_json(port_dir: Path) -> VcpkgManifest | None:
-    """Parse the ``vcpkg.json`` inside *port_dir*.
+def parse_vcpkg_json(entry_dir: Path) -> VcpkgManifest | None:
+    """Parse the ``vcpkg.json`` inside *entry_dir*.
 
     Args:
-        port_dir: Path to a single port directory (e.g. ``ports/abseil``).
+        entry_dir: Path to a single port directory (e.g. ``ports/abseil``).
 
     Returns:
         A :class:`VcpkgManifest` on success, or ``None`` if the file is
         absent, unreadable, or contains invalid JSON.
 
     """
-    manifest_path = port_dir / "vcpkg.json"
+    manifest_path = entry_dir / "vcpkg.json"
     if not manifest_path.exists():
         return None
 
@@ -100,7 +100,7 @@ def parse_vcpkg_json(port_dir: Path) -> VcpkgManifest | None:
         return None
 
     if not isinstance(loaded, dict):
-        logger.warning("Ignoring non-object vcpkg.json in %s", port_dir)
+        logger.warning("Ignoring non-object vcpkg.json in %s", entry_dir)
         return None
 
     data: dict[str, object] = loaded
@@ -109,10 +109,10 @@ def parse_vcpkg_json(port_dir: Path) -> VcpkgManifest | None:
     raw_license = data.get("license")
     license_val: str | None = str(raw_license) if isinstance(raw_license, str) else None
     raw_name = data.get("name")
-    package_name = str(raw_name) if isinstance(raw_name, str) else port_dir.name
+    package_name = str(raw_name) if isinstance(raw_name, str) else entry_dir.name
 
     return VcpkgManifest(
-        port_name=port_dir.name,
+        entry_name=entry_dir.name,
         package_name=package_name,
         description=_extract_description(data),
         homepage=homepage,

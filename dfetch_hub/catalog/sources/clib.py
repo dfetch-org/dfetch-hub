@@ -131,7 +131,7 @@ def _build_package(  # pylint: disable=too-many-locals
         k for k in json_kws if k != category
     ]
     return CLibPackage(
-        port_name=f"{owner}/{repo}",
+        entry_name=f"{owner}/{repo}",
         package_name=package_name,
         description=description,
         homepage=canonical_url,

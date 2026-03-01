@@ -34,7 +34,7 @@ from dfetch_hub.catalog.writer import (
 
 
 def _manifest(  # pylint: disable=too-many-arguments,too-many-positional-arguments
-    port_name: str = "abseil",
+    entry_name: str = "abseil",
     package_name: str = "abseil-cpp",
     description: str = "Abseil C++ libraries from Google",
     homepage: str | None = "https://github.com/abseil/abseil-cpp",
@@ -43,7 +43,7 @@ def _manifest(  # pylint: disable=too-many-arguments,too-many-positional-argumen
 ) -> BaseManifest:
     """Build a minimal BaseManifest with sensible defaults for testing."""
     return BaseManifest(
-        port_name=port_name,
+        entry_name=entry_name,
         package_name=package_name,
         description=description,
         homepage=homepage,
@@ -426,7 +426,7 @@ def test_merge_detail_new_adds_catalog_source() -> None:
 def test_merge_detail_readme_content_overwrites_generated() -> None:
     """readme_content on the manifest (e.g. CLibPackage) replaces the generated placeholder."""
     m = CLibPackage(
-        port_name="clibs/buffer",
+        entry_name="clibs/buffer",
         package_name="buffer",
         description="Tiny C buffer library",
         homepage="https://github.com/clibs/buffer",
@@ -442,7 +442,7 @@ def test_merge_detail_readme_content_overwrites_generated() -> None:
 def test_merge_detail_readme_content_overwrites_existing_readme() -> None:
     """readme_content always overwrites, even when updating an existing detail."""
     m = CLibPackage(
-        port_name="clibs/buffer",
+        entry_name="clibs/buffer",
         package_name="buffer",
         description="desc",
         homepage="https://github.com/clibs/buffer",
@@ -547,7 +547,7 @@ def test_write_catalog_writes_catalog_json(tmp_path: Path) -> None:
             tmp_path,
             source_name="vcpkg",
             label="vcpkg",
-            ports_path="ports",
+            registry_path="ports",
         )
     assert (tmp_path / "catalog.json").exists()
 
@@ -560,7 +560,7 @@ def test_write_catalog_entry_in_catalog_json(tmp_path: Path) -> None:
             tmp_path,
             source_name="vcpkg",
             label="vcpkg",
-            ports_path="ports",
+            registry_path="ports",
         )
     catalog = json.loads((tmp_path / "catalog.json").read_text(encoding="utf-8"))
     assert "github/abseil/abseil-cpp" in catalog
@@ -574,7 +574,7 @@ def test_write_catalog_writes_detail_json(tmp_path: Path) -> None:
             tmp_path,
             source_name="vcpkg",
             label="vcpkg",
-            ports_path="ports",
+            registry_path="ports",
         )
     detail_path = tmp_path / "github" / "abseil" / "abseil-cpp.json"
     assert detail_path.exists()
@@ -586,7 +586,7 @@ def test_write_catalog_writes_detail_json(tmp_path: Path) -> None:
 def test_write_catalog_returns_added_count(tmp_path: Path) -> None:
     """Two distinct packages each increment the added counter."""
     boost = _manifest(
-        port_name="boost",
+        entry_name="boost",
         package_name="boost",
         homepage="https://github.com/boostorg/boost",
         description="Boost C++ libraries",
@@ -597,7 +597,7 @@ def test_write_catalog_returns_added_count(tmp_path: Path) -> None:
             tmp_path,
             source_name="vcpkg",
             label="vcpkg",
-            ports_path="ports",
+            registry_path="ports",
         )
     assert added == 2
     assert updated == 0
@@ -611,14 +611,14 @@ def test_write_catalog_returns_updated_count(tmp_path: Path) -> None:
             tmp_path,
             source_name="vcpkg",
             label="vcpkg",
-            ports_path="ports",
+            registry_path="ports",
         )
         added, updated = write_catalog(
             [_manifest()],
             tmp_path,
             source_name="vcpkg",
             label="vcpkg",
-            ports_path="ports",
+            registry_path="ports",
         )
     assert added == 0
     assert updated == 1
@@ -632,7 +632,7 @@ def test_write_catalog_skips_manifest_without_homepage(tmp_path: Path) -> None:
             tmp_path,
             source_name="vcpkg",
             label="vcpkg",
-            ports_path="ports",
+            registry_path="ports",
         )
     catalog = json.loads((tmp_path / "catalog.json").read_text(encoding="utf-8"))
     assert len(catalog) == 0
@@ -648,7 +648,7 @@ def test_write_catalog_skips_unrecognized_url(tmp_path: Path) -> None:
             tmp_path,
             source_name="vcpkg",
             label="vcpkg",
-            ports_path="ports",
+            registry_path="ports",
         )
     catalog = json.loads((tmp_path / "catalog.json").read_text(encoding="utf-8"))
     assert len(catalog) == 0
@@ -659,7 +659,7 @@ def test_write_catalog_skips_unrecognized_url(tmp_path: Path) -> None:
 def test_write_catalog_accepts_gitlab_homepage(tmp_path: Path) -> None:
     """GitLab-hosted packages are written under the gitlab/ directory."""
     gitlab_manifest = _manifest(
-        port_name="mylib",
+        entry_name="mylib",
         package_name="mylib",
         homepage="https://gitlab.com/myorg/mylib",
         description="A library on GitLab",
@@ -670,7 +670,7 @@ def test_write_catalog_accepts_gitlab_homepage(tmp_path: Path) -> None:
             tmp_path,
             source_name="some-source",
             label="some-source",
-            ports_path="packages",
+            registry_path="packages",
         )
     catalog = json.loads((tmp_path / "catalog.json").read_text(encoding="utf-8"))
     assert "gitlab/myorg/mylib" in catalog
@@ -688,14 +688,14 @@ def test_write_catalog_merges_across_two_sources(tmp_path: Path) -> None:
             tmp_path,
             source_name="vcpkg",
             label="vcpkg",
-            ports_path="ports",
+            registry_path="ports",
         )
         write_catalog(
             [_manifest()],
             tmp_path,
             source_name="conan",
             label="conan",
-            ports_path="recipes",
+            registry_path="recipes",
         )
     catalog = json.loads((tmp_path / "catalog.json").read_text(encoding="utf-8"))
     entry = catalog["github/abseil/abseil-cpp"]
@@ -711,14 +711,14 @@ def test_write_catalog_detail_json_has_both_sources(tmp_path: Path) -> None:
             tmp_path,
             source_name="vcpkg",
             label="vcpkg",
-            ports_path="ports",
+            registry_path="ports",
         )
         write_catalog(
             [_manifest()],
             tmp_path,
             source_name="conan",
             label="conan",
-            ports_path="recipes",
+            registry_path="recipes",
         )
     detail = json.loads(
         (tmp_path / "github" / "abseil" / "abseil-cpp.json").read_text(encoding="utf-8")

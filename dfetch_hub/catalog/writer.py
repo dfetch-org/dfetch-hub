@@ -166,12 +166,12 @@ def _catalog_source_entry(
     manifest: BaseManifest,
     source_name: str,
     label: str,
-    ports_path: str,
+    registry_path: str,
 ) -> dict[str, Any]:
     return {
         "source_name": source_name,
         "label": label,
-        "index_path": f"{ports_path}/{manifest.port_name}",
+        "index_path": f"{registry_path}/{manifest.entry_name}",
         "registry_version": manifest.version,
     }
 
@@ -183,7 +183,7 @@ def _merge_detail(  # pylint: disable=too-many-arguments,too-many-positional-arg
     repo: str,
     source_name: str,
     label: str,
-    ports_path: str,
+    registry_path: str,
 ) -> dict[str, Any]:
     """Create or update a per-project detail JSON."""
     fetched_readme: str | None = getattr(manifest, "readme_content", None)
@@ -212,7 +212,7 @@ def _merge_detail(  # pylint: disable=too-many-arguments,too-many-positional-arg
     # First, purge any stale entries that share the same index_path but carry an
     # outdated source_name (e.g. after a source rename in dfetch-hub.toml).
     sources: list[dict[str, Any]] = detail.setdefault("catalog_sources", [])
-    new_source = _catalog_source_entry(manifest, source_name, label, ports_path)
+    new_source = _catalog_source_entry(manifest, source_name, label, registry_path)
     new_index_path = new_source["index_path"]
     detail["catalog_sources"] = sources = [
         s
@@ -292,16 +292,16 @@ def write_catalog(  # pylint: disable=too-many-locals
     data_dir: Path,
     source_name: str,
     label: str,
-    ports_path: str,
+    registry_path: str,
 ) -> tuple[int, int]:
     """Write *manifests* into catalog.json and per-project detail JSONs under *data_dir*.
 
     Args:
-        manifests:   Parsed package manifests from any source strategy.
-        data_dir:    Root of the catalog data directory.
-        source_name: Internal name of the source (e.g. ``"vcpkg"``).
-        label:       Human-readable label added to each entry's ``source_labels``.
-        ports_path:  Sub-path used to build the ``index_path`` in the detail JSON.
+        manifests:     Parsed package manifests from any source strategy.
+        data_dir:      Root of the catalog data directory.
+        source_name:   Internal name of the source (e.g. ``"vcpkg"``).
+        label:         Human-readable label added to each entry's ``source_labels``.
+        registry_path: Sub-path used to build the ``index_path`` in the detail JSON.
 
     Returns:
         A ``(added, updated)`` tuple with the count of new and existing entries written.
@@ -316,7 +316,7 @@ def write_catalog(  # pylint: disable=too-many-locals
     for manifest in manifests:
         if not manifest.homepage:
             logger.warning(
-                f"cannot determine upstream repo without a URL of {manifest.port_name}"
+                f"cannot determine upstream repo without a URL of {manifest.entry_name}"
             )
             continue
 
@@ -355,7 +355,7 @@ def write_catalog(  # pylint: disable=too-many-locals
             repo,
             source_name,
             label,
-            ports_path,
+            registry_path,
         )
         _save_json(detail_path, merged_detail)
 

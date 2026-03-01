@@ -133,7 +133,7 @@ class TestParseReadmeDir:
         result = parse_readme_dir(pkg)
 
         assert result is not None
-        assert result.port_name == "my-pkg"
+        assert result.entry_name == "my-pkg"
         assert result.package_name == "my-pkg"
         assert result.description == "A great package."
         assert result.homepage is None
@@ -151,7 +151,7 @@ class TestParseReadmeDir:
         result = parse_readme_dir(pkg)
 
         assert result is not None
-        assert result.port_name == "rst-pkg"
+        assert result.entry_name == "rst-pkg"
         assert result.description == "RST description here."
 
     def test_returns_none_when_no_readme(self, tmp_path: Path) -> None:
@@ -206,4 +206,4 @@ class TestParseReadmeDir:
         result = parse_readme_dir(pkg)
 
         assert result is not None
-        assert result.port_name == "pkg"
+        assert result.entry_name == "pkg"
