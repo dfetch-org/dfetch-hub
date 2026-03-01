@@ -10,11 +10,12 @@ from typing import TYPE_CHECKING
 
 from dfetch.log import get_logger
 
+from dfetch_hub.catalog.sources import BaseManifest
 from dfetch_hub.catalog.sources.clib import CLibPackage, parse_packages_md
 from dfetch_hub.catalog.sources.conan import parse_conan_recipe
 from dfetch_hub.catalog.sources.vcpkg import parse_vcpkg_json
 from dfetch_hub.catalog.store.fetcher import fetch_source
-from dfetch_hub.catalog.store.updater import ComponentManifest, update_catalog
+from dfetch_hub.catalog.store.updater import update_catalog
 from dfetch_hub.config import HubConfig, SourceConfig, load_config
 
 if TYPE_CHECKING:
@@ -65,7 +66,7 @@ def _process_subfolders_source(
             port_dirs = port_dirs[:limit]
 
         logger.print_info_line(source.name, f"Parsing {len(port_dirs)} port(s) ...")
-        manifests: list[ComponentManifest] = []
+        manifests: list[BaseManifest] = []
         skipped = 0
         for port_dir in port_dirs:
             m = parse_fn(port_dir)

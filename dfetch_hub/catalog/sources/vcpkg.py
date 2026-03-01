@@ -1,4 +1,3 @@
-# pylint: disable=duplicate-code
 """Parse vcpkg.json port manifest files."""
 
 from __future__ import annotations
@@ -9,6 +8,8 @@ from typing import TYPE_CHECKING
 
 from dfetch.log import get_logger
 
+from dfetch_hub.catalog.sources import BaseManifest
+
 if TYPE_CHECKING:
     from pathlib import Path
 
@@ -16,27 +17,13 @@ logger = get_logger(__name__)
 
 
 @dataclass
-class VcpkgManifest:
+class VcpkgManifest(BaseManifest):
     """Parsed contents of a single ``vcpkg.json`` file.
 
     Attributes:
-        port_name:    Name of the port directory (used as the vcpkg identifier).
-        package_name: Value of the ``name`` field inside ``vcpkg.json``.
-        description:  Human-readable description of the package.
-        homepage:     Upstream project URL, usually a GitHub link.
-        license:      SPDX license expression, or ``None`` if unspecified.
-        version:      Resolved version string (from whichever version field is
-                      present in the manifest), or ``None`` if absent.
         dependencies: Names of direct vcpkg dependencies.
-
     """
 
-    port_name: str
-    package_name: str
-    description: str
-    homepage: str | None
-    license: str | None
-    version: str | None
     dependencies: list[str] = field(default_factory=list)
 
 

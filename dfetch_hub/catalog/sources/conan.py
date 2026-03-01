@@ -10,6 +10,8 @@ from typing import TYPE_CHECKING, Any
 import yaml
 from dfetch.log import get_logger
 
+from dfetch_hub.catalog.sources import BaseManifest
+
 if TYPE_CHECKING:
     from pathlib import Path
 
@@ -94,25 +96,13 @@ def _extract_tuple_attr(text: str, attr: str) -> list[str]:
 
 
 @dataclass
-class ConanManifest:
+class ConanManifest(BaseManifest):
     """Parsed metadata for a single conan-center-index recipe.
 
     Attributes:
-        port_name:    Recipe directory name (used as the conan package identifier).
-        package_name: ``name`` from ``conanfile.py``, or the directory name.
-        description:  ``description`` from ``conanfile.py``.
-        homepage:     ``homepage`` from ``conanfile.py``.
-        license:      ``license`` from ``conanfile.py``, or ``None``.
-        version:      Most recent version from ``config.yml``, or ``None``.
-        topics:       ``topics`` tuple from ``conanfile.py``.
+        topics: ``topics`` tuple from ``conanfile.py``.
     """
 
-    port_name: str
-    package_name: str
-    description: str
-    homepage: str | None
-    license: str | None
-    version: str | None
     topics: list[str] = field(default_factory=list)
 
 

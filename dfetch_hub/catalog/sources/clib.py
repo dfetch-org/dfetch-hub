@@ -12,6 +12,8 @@ from urllib.request import Request, urlopen
 
 from dfetch.log import get_logger
 
+from dfetch_hub.catalog.sources import BaseManifest
+
 if TYPE_CHECKING:
     pass
 
@@ -38,27 +40,14 @@ _RAW_BRANCHES = ("main", "master")
 
 
 @dataclass
-class CLibPackage:  # pylint: disable=too-many-instance-attributes
+class CLibPackage(BaseManifest):
     """Parsed representation of a single clib package entry.
 
     Attributes:
-        port_name:      ``owner/repo`` slug used as the index identifier.
-        package_name:   ``name`` field from ``package.json``, or the repo name.
-        description:    Tagline from Packages.md, possibly augmented from package.json.
-        homepage:       Canonical project URL: ``homepage`` from ``package.json`` when
-                        present, otherwise the GitHub repo URL.
-        license:        License from ``package.json``, or ``None``.
-        version:        Version from ``package.json``, or ``None``.
         keywords:       Category from Packages.md plus keywords from package.json.
         readme_content: Raw README.md text fetched from the upstream repo, or ``None``.
     """
 
-    port_name: str
-    package_name: str
-    description: str
-    homepage: str | None
-    license: str | None
-    version: str | None
     keywords: list[str] = field(default_factory=list)
     readme_content: str | None = None
 

@@ -5,27 +5,17 @@ from __future__ import annotations
 import json
 import re
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any
 
 from dfetch.log import get_logger
 from dfetch.vcs.git import GitRemote
+
+from dfetch_hub.catalog.sources import BaseManifest
 
 if TYPE_CHECKING:
     from pathlib import Path
 
 logger = get_logger(__name__)
-
-
-@runtime_checkable
-class ComponentManifest(Protocol):  # pylint: disable=too-few-public-methods
-    """Common interface for package manifests (vcpkg, clib, …)."""
-
-    port_name: str
-    package_name: str
-    description: str
-    homepage: str | None
-    license: str | None
-    version: str | None
 
 
 # ---------------------------------------------------------------------------
@@ -99,7 +89,7 @@ def _now_iso() -> str:
 
 def _merge_catalog_entry(
     existing: dict[str, Any] | None,
-    manifest: ComponentManifest,
+    manifest: BaseManifest,
     org: str,
     repo: str,
     label: str,
@@ -161,7 +151,7 @@ def _merge_catalog_entry(
 
 
 def _catalog_source_entry(
-    manifest: ComponentManifest,
+    manifest: BaseManifest,
     source_name: str,
     label: str,
     ports_path: str,
@@ -176,7 +166,7 @@ def _catalog_source_entry(
 
 def _merge_detail(  # pylint: disable=too-many-arguments,too-many-positional-arguments
     existing: dict[str, Any] | None,
-    manifest: ComponentManifest,
+    manifest: BaseManifest,
     org: str,
     repo: str,
     source_name: str,
@@ -240,7 +230,7 @@ def _merge_detail(  # pylint: disable=too-many-arguments,too-many-positional-arg
     return detail
 
 
-def _generate_readme(manifest: ComponentManifest, org: str, repo: str) -> str:
+def _generate_readme(manifest: BaseManifest, org: str, repo: str) -> str:
     version_line = f"\n    tag: {manifest.version}" if manifest.version else ""
     return (
         f"# {manifest.package_name}\n\n"
@@ -263,7 +253,7 @@ def _generate_readme(manifest: ComponentManifest, org: str, repo: str) -> str:
 
 
 def update_catalog(  # pylint: disable=too-many-locals
-    manifests: list[ComponentManifest],
+    manifests: list[BaseManifest],
     data_dir: Path,
     source_name: str,
     label: str,
