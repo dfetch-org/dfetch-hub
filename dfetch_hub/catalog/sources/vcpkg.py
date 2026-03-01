@@ -89,19 +89,29 @@ def parse_vcpkg_json(port_dir: Path) -> VcpkgManifest | None:
 
     try:
         with open(manifest_path, encoding="utf-8") as fh:
-            data: dict[str, object] = json.load(fh)
+            loaded = json.load(fh)
     except (json.JSONDecodeError, OSError) as exc:
         logger.warning("Could not parse %s: %s", manifest_path, exc)
         return None
 
-    homepage: str | None = data.get("homepage") or None  # type: ignore[assignment]
+    if not isinstance(loaded, dict):
+        logger.warning("Ignoring non-object vcpkg.json in %s", port_dir)
+        return None
+
+    data: dict[str, object] = loaded
+    raw_homepage = data.get("homepage")
+    homepage: str | None = str(raw_homepage) if isinstance(raw_homepage, str) else None
+    raw_license = data.get("license")
+    license_val: str | None = str(raw_license) if isinstance(raw_license, str) else None
+    raw_name = data.get("name")
+    package_name = str(raw_name) if isinstance(raw_name, str) else port_dir.name
 
     return VcpkgManifest(
         port_name=port_dir.name,
-        package_name=data.get("name", port_dir.name),  # type: ignore[arg-type]
+        package_name=package_name,
         description=_extract_description(data),
         homepage=homepage,
-        license=data.get("license") or None,  # type: ignore[arg-type]
+        license=license_val,
         version=_extract_version(data),
         dependencies=_extract_dependencies(data),
         readme_content=fetch_readme_for_homepage(homepage),
