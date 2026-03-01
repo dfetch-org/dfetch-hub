@@ -34,6 +34,7 @@ dependencies = [
 development = [
     "bandit[toml]==1.9.4",
     "black==25.1.0",
+    "djlint==1.36.4",
     "doc8==2.0.0",
     "isort==6.0.0",
     "mypy==1.14.1",
@@ -105,6 +106,9 @@ ignore = [
 
 [tool.ruff.lint.isort]
 known-first-party = ["dfetch_hub"]
+
+[tool.djlint]
+ignore = "H021,H031"  # H021: inline styles intentional in single-file app; H031: meta keywords are obsolete
 
 [tool.doc8]
 max-line-length = 120

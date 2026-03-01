@@ -57,6 +57,11 @@ repos:
       language: python
       pass_filenames: false
       args: [.]
+  -   id: djlint
+      name: HTML linter
+      entry: djlint --lint
+      language: python
+      files: \.(html|jinja|j2)$
   -   id: pydocstyle
       name: docstring style
       entry: pydocstyle --convention=google

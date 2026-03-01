@@ -31,6 +31,7 @@ jobs:
       - run: bandit -c pyproject.toml -r dfetch_hub                                      # Security linting
       - run: xenon --max-absolute C --max-modules B --max-average A dfetch_hub           # Cyclomatic complexity
       - run: pyroma --directory --min 9 .                                                 # Package metadata quality
+      - run: djlint --lint dfetch_hub                                                     # HTML linting
       - run: pydocstyle --convention=google dfetch_hub                                    # Docstring style (Google convention)
       - run: doc8 --extension .md --max-line-length 120 README.md                          # Documentation prose style
       - run: pytest --cov=dfetch_hub test                                                 # Run tests with coverage
