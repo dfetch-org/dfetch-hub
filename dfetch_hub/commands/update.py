@@ -11,8 +11,10 @@ from typing import TYPE_CHECKING
 from dfetch.log import get_logger
 
 from dfetch_hub.catalog.cloner import clone_source
+from dfetch_hub.catalog.sources import parse_github_slug
 from dfetch_hub.catalog.sources.clib import CLibPackage, parse_packages_md
 from dfetch_hub.catalog.sources.conan import parse_conan_recipe
+from dfetch_hub.catalog.sources.readme import parse_readme_dir
 from dfetch_hub.catalog.sources.vcpkg import parse_vcpkg_json
 from dfetch_hub.catalog.writer import write_catalog
 from dfetch_hub.commands import load_config_with_data_dir
@@ -30,6 +32,61 @@ _SUBFOLDER_PARSERS = {
     "vcpkg.json": parse_vcpkg_json,
     "conandata.yml": parse_conan_recipe,
 }
+
+
+def _filter_sentinel(source: SourceConfig, port_dirs: list[Path]) -> list[Path]:
+    """Remove entries from *port_dirs* that contain ``source.ignore_if_present``.
+
+    When ``source.ignore_if_present`` is an empty string the original list is
+    returned unchanged.  Otherwise every directory that contains a file (or
+    sub-directory) with that name is removed, and the number of removals is
+    logged at info level.
+
+    Args:
+        source:    Source configuration (provides ``ignore_if_present`` and ``name``).
+        port_dirs: Candidate port directories to filter.
+
+    Returns:
+        Filtered list with sentinel-containing directories removed.
+
+    """
+    if not source.ignore_if_present:
+        return port_dirs
+    before = len(port_dirs)
+    filtered = [d for d in port_dirs if not (d / source.ignore_if_present).exists()]
+    ignored = before - len(filtered)
+    if ignored:
+        logger.print_info_line(
+            source.name,
+            f"Ignored {ignored} folder(s) containing '{source.ignore_if_present}'",
+        )
+    return filtered
+
+
+def _subfolder_homepage(source: SourceConfig, folder_name: str) -> str | None:
+    """Build a GitHub tree URL for a specific subfolder within *source*, if possible.
+
+    Constructs ``https://github.com/{owner}/{repo}/tree/{branch}/{path}/{folder}``
+    when *source.url* is a GitHub URL.  Returns ``None`` for non-GitHub remotes.
+
+    Args:
+        source:      Source configuration supplying the remote URL, branch, and path.
+        folder_name: Name of the subfolder to link to.
+
+    Returns:
+        An absolute GitHub URL string, or ``None`` if the URL is not a GitHub URL.
+
+    """
+    slug = parse_github_slug(source.url)
+    if slug is None:
+        return None
+    owner, repo = slug
+    branch = source.branch or "main"
+    segments = [f"https://github.com/{owner}/{repo}/tree/{branch}"]
+    if source.path:
+        segments.append(source.path)
+    segments.append(folder_name)
+    return "/".join(segments)
 
 
 def _process_subfolders_source(
@@ -62,6 +119,7 @@ def _process_subfolders_source(
         fetched_dir = clone_source(source, tmp_path)
 
         port_dirs = sorted(d for d in fetched_dir.iterdir() if d.is_dir())
+        port_dirs = _filter_sentinel(source, port_dirs)
         if limit is not None:
             port_dirs = port_dirs[:limit]
 
@@ -142,6 +200,72 @@ def _process_git_wiki_source(
         )
 
 
+def _process_readme_only_source(
+    source: SourceConfig,
+    data_dir: Path,
+    limit: int | None,
+) -> None:
+    """Handle strategy='readme-only': index subfolders using only their README.
+
+    Clones the repository, iterates every immediate subdirectory, and for each
+    one builds a :class:`~dfetch_hub.catalog.sources.BaseManifest` from the
+    README file found there — no structured manifest file is required.
+
+    A homepage URL pointing to the subfolder on GitHub is derived from
+    *source.url* when possible and injected into each manifest.
+
+    Sentinel filtering (``ignore_if_present``) is applied before the limit.
+
+    Args:
+        source:   Source configuration.
+        data_dir: Catalog output directory.
+        limit:    Maximum number of subfolders to process (``None`` = unlimited).
+
+    """
+    logger.print_info_line(
+        source.name, f"Fetching {source.url} (src: {source.path}) ..."
+    )
+    with tempfile.TemporaryDirectory(prefix="dfetch-hub-") as tmp:
+        tmp_path = Path(tmp)
+        fetched_dir = clone_source(source, tmp_path)
+
+        port_dirs = sorted(d for d in fetched_dir.iterdir() if d.is_dir())
+        port_dirs = _filter_sentinel(source, port_dirs)
+        if limit is not None:
+            port_dirs = port_dirs[:limit]
+
+        logger.print_info_line(source.name, f"Parsing {len(port_dirs)} folder(s) ...")
+        manifests: list[BaseManifest] = []
+        skipped = 0
+        for port_dir in port_dirs:
+            m = parse_readme_dir(port_dir)
+            if m is None:
+                skipped += 1
+                continue
+            homepage = _subfolder_homepage(source, port_dir.name)
+            if homepage is not None:
+                m.homepage = homepage
+            manifests.append(m)
+
+        if skipped:
+            logger.print_warning_line(
+                source.name,
+                f"Skipped {skipped} folder(s) with no README",
+            )
+
+        _added, _updated = write_catalog(
+            manifests,
+            data_dir,
+            source_name=source.name,
+            label=source.label or source.name,
+            ports_path=source.path or source.name,
+        )
+        logger.print_info_line(
+            source.name,
+            f"Done — {_added} added, {_updated} updated ({len(manifests) - _added - _updated} skipped/no-github-url)",
+        )
+
+
 def _process_source(
     source: SourceConfig,
     data_dir: Path,
@@ -151,6 +275,8 @@ def _process_source(
         _process_subfolders_source(source, data_dir, limit)
     elif source.strategy == "git-wiki":
         _process_git_wiki_source(source, data_dir, limit)
+    elif source.strategy == "readme-only":
+        _process_readme_only_source(source, data_dir, limit)
     else:
         logger.warning(
             "%s: strategy '%s' not yet supported — skipped",

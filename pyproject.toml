@@ -74,6 +74,9 @@ line_length = 120
 [tool.pylint.format]
 max-line-length = "120"
 
+[tool.pylint.design]
+max-attributes = 8
+
 [tool.mypy]
 files = "dfetch_hub"
 ignore_missing_imports = true
