@@ -15,7 +15,7 @@ from dfetch_hub.catalog.sources import (
     _fetch_raw,
     _raw_url,
     fetch_readme,
-    parse_github_slug,
+    parse_vcs_slug,
 )
 
 if TYPE_CHECKING:
@@ -79,10 +79,30 @@ def _fetch_package_json(owner: str, repo: str) -> dict[str, object] | None:
 # ---------------------------------------------------------------------------
 
 
-def _build_package(owner: str, repo: str, tagline: str, category: str) -> CLibPackage:
-    """Build a :class:`CLibPackage` from a bullet entry and its ``package.json``."""
-    github_url = f"https://github.com/{owner}/{repo}"
-    pkg_json = _fetch_package_json(owner, repo)
+def _build_package(  # pylint: disable=too-many-locals
+    host: str, owner: str, repo: str, tagline: str, category: str
+) -> CLibPackage:
+    """Build a :class:`CLibPackage` from a bullet entry and optional ``package.json``.
+
+    For ``github.com`` entries the function fetches ``package.json`` and the
+    README via raw content URLs (GitHub-specific).  For other VCS hosts the
+    entry is created with only the information available from the wiki index
+    (tagline, VCS URL) and no upstream enrichment.
+
+    Args:
+        host:     Lowercased VCS hostname (e.g. ``"github.com"``).
+        owner:    Repository owner / organisation.
+        repo:     Repository name.
+        tagline:  Short description extracted from the wiki bullet.
+        category: Nearest section heading (used as a keyword).
+
+    Returns:
+        A populated :class:`CLibPackage`.
+
+    """
+    vcs_url = f"https://{host}/{owner}/{repo}"
+    is_github = host == "github.com"
+    pkg_json = _fetch_package_json(owner, repo) if is_github else None
 
     if pkg_json is not None:
         package_name = str(pkg_json.get("name") or repo)
@@ -97,15 +117,15 @@ def _build_package(owner: str, repo: str, tagline: str, category: str) -> CLibPa
         else:
             json_kws = []
         # Prefer an explicit homepage from package.json (e.g. project website);
-        # fall back to the GitHub repo URL so the field is always populated.
-        canonical_url: str | None = str(pkg_json.get("homepage") or "") or github_url
+        # fall back to the VCS repo URL so the field is always populated.
+        canonical_url: str | None = str(pkg_json.get("homepage") or "") or vcs_url
     else:
         package_name = repo
         description = tagline
         license_val = None
         version_val = None
         json_kws = []
-        canonical_url = github_url
+        canonical_url = vcs_url
 
     keywords: list[str] = ([category] if category else []) + [
         k for k in json_kws if k != category
@@ -118,7 +138,7 @@ def _build_package(owner: str, repo: str, tagline: str, category: str) -> CLibPa
         license=license_val,
         version=version_val,
         keywords=keywords,
-        readme_content=fetch_readme(owner, repo),
+        readme_content=fetch_readme(owner, repo) if is_github else None,
     )
 
 
@@ -129,9 +149,10 @@ def parse_packages_md(
 
     For each bullet-point entry the function:
 
-    1. Extracts the GitHub URL and tagline.
+    1. Extracts the VCS URL and tagline.
     2. Records the nearest ``## Heading`` as a *category* keyword.
-    3. Fetches the repo's ``package.json`` (via HTTPS) for richer metadata.
+    3. Fetches the repo's ``package.json`` via HTTPS for richer metadata
+       (GitHub-hosted repos only; other VCS hosts get basic metadata only).
 
     Args:
         packages_md: Path to the ``Packages.md`` file.
@@ -154,17 +175,19 @@ def parse_packages_md(
             continue
 
         _link_text, url, tagline = bullet_match.groups()
-        parsed = parse_github_slug(url)
+        parsed = parse_vcs_slug(url)
         if not parsed:
-            logger.debug("Skipping non-GitHub URL in Packages.md: %s", url)
+            logger.debug(
+                "Skipping URL without recognized VCS host in Packages.md: %s", url
+            )
             continue
 
         if limit is not None and len(packages) >= limit:
             break
 
-        owner, repo = parsed
+        host, owner, repo = parsed
         packages.append(
-            _build_package(owner, repo, (tagline or "").strip(), current_category)
+            _build_package(host, owner, repo, (tagline or "").strip(), current_category)
         )
 
     return packages

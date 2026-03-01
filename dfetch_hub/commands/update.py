@@ -11,7 +11,6 @@ from typing import TYPE_CHECKING
 from dfetch.log import get_logger
 
 from dfetch_hub.catalog.cloner import clone_source
-from dfetch_hub.catalog.sources import parse_github_slug
 from dfetch_hub.catalog.sources.clib import CLibPackage, parse_packages_md
 from dfetch_hub.catalog.sources.conan import parse_conan_recipe
 from dfetch_hub.catalog.sources.readme import parse_readme_dir
@@ -63,30 +62,22 @@ def _filter_sentinel(source: SourceConfig, port_dirs: list[Path]) -> list[Path]:
     return filtered
 
 
-def _subfolder_homepage(source: SourceConfig, folder_name: str) -> str | None:
-    """Build a GitHub tree URL for a specific subfolder within *source*, if possible.
+def _subfolder_homepage(source: SourceConfig) -> str | None:
+    """Return the repository URL as a homepage for a subfolder package.
 
-    Constructs ``https://github.com/{owner}/{repo}/tree/{branch}/{path}/{folder}``
-    when *source.url* is a GitHub URL.  Returns ``None`` for non-GitHub remotes.
+    VCS hosting providers (GitHub, GitLab, Gitea, Bitbucket, company-hosted
+    instances) each use different URL schemes for linking to subdirectories, so
+    we do not attempt to construct a provider-specific tree URL.  The repository
+    root URL is always a valid and useful landing page.
 
     Args:
-        source:      Source configuration supplying the remote URL, branch, and path.
-        folder_name: Name of the subfolder to link to.
+        source: Source configuration supplying the remote URL.
 
     Returns:
-        An absolute GitHub URL string, or ``None`` if the URL is not a GitHub URL.
+        ``source.url`` if non-empty, ``None`` otherwise.
 
     """
-    slug = parse_github_slug(source.url)
-    if slug is None:
-        return None
-    owner, repo = slug
-    branch = source.branch or "main"
-    segments = [f"https://github.com/{owner}/{repo}/tree/{branch}"]
-    if source.path:
-        segments.append(source.path)
-    segments.append(folder_name)
-    return "/".join(segments)
+    return source.url or None
 
 
 def _process_subfolders_source(
@@ -148,7 +139,7 @@ def _process_subfolders_source(
         )
         logger.print_info_line(
             source.name,
-            f"Done — {_added} added, {_updated} updated ({len(manifests) - _added - _updated} skipped/no-github-url)",
+            f"Done — {_added} added, {_updated} updated ({len(manifests) - _added - _updated} skipped/no-vcs-url)",
         )
 
 
@@ -196,7 +187,7 @@ def _process_git_wiki_source(
         )
         logger.print_info_line(
             source.name,
-            f"Done — {_added} added, {_updated} updated ({len(packages) - _added - _updated} skipped/no-github-url)",
+            f"Done — {_added} added, {_updated} updated ({len(packages) - _added - _updated} skipped/no-vcs-url)",
         )
 
 
@@ -242,7 +233,7 @@ def _process_readme_only_source(
             if m is None:
                 skipped += 1
                 continue
-            homepage = _subfolder_homepage(source, port_dir.name)
+            homepage = _subfolder_homepage(source)
             if homepage is not None:
                 m.homepage = homepage
             manifests.append(m)
@@ -262,7 +253,7 @@ def _process_readme_only_source(
         )
         logger.print_info_line(
             source.name,
-            f"Done — {_added} added, {_updated} updated ({len(manifests) - _added - _updated} skipped/no-github-url)",
+            f"Done — {_added} added, {_updated} updated ({len(manifests) - _added - _updated} skipped/no-vcs-url)",
         )
 
 

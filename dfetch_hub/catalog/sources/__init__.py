@@ -13,24 +13,33 @@ logger = get_logger(__name__)
 
 
 # ---------------------------------------------------------------------------
-# GitHub URL helpers
+# VCS URL helpers
 # ---------------------------------------------------------------------------
 
-_GITHUB_RE = re.compile(
-    r"https?://github\.com/([^/]+)/([^/\s#?]+?)(?:\.git)?/?$",
+# Matches any https://host/owner/repo[.git] URL regardless of hosting provider.
+_VCS_URL_RE = re.compile(
+    r"https?://([^/]+)/([^/]+)/([^/\s#?]+?)(?:\.git)?/?$",
     re.IGNORECASE,
 )
 
 
-def parse_github_slug(url: str) -> tuple[str, str] | None:
-    """Return ``(owner, repo)`` extracted from a GitHub URL, normalised to lowercase.
+def parse_vcs_slug(url: str) -> tuple[str, str, str] | None:
+    """Return ``(host, owner, repo)`` extracted from a VCS URL, normalised to lowercase.
 
-    GitHub URLs are case-insensitive; lowercasing ensures the catalog ID, the
-    detail-file path, and the ``org``/``repo`` fields in the detail JSON are all
-    consistent with each other.
+    Works with any ``https://host/owner/repo`` URL — GitHub, GitLab, Gitea,
+    Bitbucket, and company-hosted instances.  Lowercasing ensures the catalog
+    ID, the detail-file path, and the JSON fields are all consistent.
+
+    Args:
+        url: A VCS repository URL.
+
+    Returns:
+        A ``(host, owner, repo)`` triple, or ``None`` if *url* does not match
+        the expected ``https://host/owner/repo`` pattern.
+
     """
-    m = _GITHUB_RE.match(url.strip())
-    return (m.group(1).lower(), m.group(2).lower()) if m else None
+    m = _VCS_URL_RE.match(url.strip())
+    return (m.group(1).lower(), m.group(2).lower(), m.group(3).lower()) if m else None
 
 
 # ---------------------------------------------------------------------------
@@ -83,9 +92,10 @@ def fetch_readme(owner: str, repo: str) -> str | None:
 def fetch_readme_for_homepage(homepage: str | None) -> str | None:
     """Fetch the README for a package given its homepage URL.
 
-    Extracts the GitHub owner/repo from *homepage* and delegates to
-    :func:`fetch_readme`.  Returns ``None`` if *homepage* is ``None`` or is not
-    a recognised GitHub URL.
+    Extracts the VCS host/owner/repo from *homepage* and delegates to
+    :func:`fetch_readme` when the host is ``github.com``.  Returns ``None``
+    for ``None`` input, non-VCS URLs, or non-GitHub hosts (README fetching
+    via raw content URLs is currently only implemented for GitHub).
 
     Args:
         homepage: Upstream project URL (may be ``None`` or a non-GitHub URL).
@@ -96,8 +106,11 @@ def fetch_readme_for_homepage(homepage: str | None) -> str | None:
     """
     if not homepage:
         return None
-    parsed = parse_github_slug(homepage)
-    return fetch_readme(*parsed) if parsed else None
+    parsed = parse_vcs_slug(homepage)
+    if parsed is None or parsed[0] != "github.com":
+        return None
+    _, owner, repo = parsed
+    return fetch_readme(owner, repo)
 
 
 # ---------------------------------------------------------------------------

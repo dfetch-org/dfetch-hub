@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 from dfetch.log import get_logger
 from dfetch.vcs.git import GitRemote
 
-from dfetch_hub.catalog.sources import BaseManifest, parse_github_slug
+from dfetch_hub.catalog.sources import BaseManifest, parse_vcs_slug
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -17,8 +17,36 @@ if TYPE_CHECKING:
 logger = get_logger(__name__)
 
 
-def _catalog_id(org: str, repo: str) -> str:
-    return f"github/{org.lower()}/{repo.lower()}"
+# ---------------------------------------------------------------------------
+# VCS host normalisation
+# ---------------------------------------------------------------------------
+
+_VCS_HOST_ALIASES: dict[str, str] = {
+    "github.com": "github",
+    "gitlab.com": "gitlab",
+    "bitbucket.org": "bitbucket",
+}
+
+
+def _vcs_host_label(host: str) -> str:
+    """Return a short, filesystem-safe label for a VCS hostname.
+
+    Well-known public hosts are mapped to their common short name
+    (``github``, ``gitlab``, ``bitbucket``).  Unknown hosts (e.g.
+    self-hosted Gitea instances) are used verbatim.
+
+    Args:
+        host: Lowercased hostname extracted from a VCS URL.
+
+    Returns:
+        A short label string suitable for use in catalog IDs and directory names.
+
+    """
+    return _VCS_HOST_ALIASES.get(host, host)
+
+
+def _catalog_id(vcs_host: str, org: str, repo: str) -> str:
+    return f"{vcs_host.lower()}/{org.lower()}/{repo.lower()}"
 
 
 def _fetch_upstream_tags(url: str) -> list[dict[str, Any]]:
@@ -69,9 +97,10 @@ def _now_iso() -> str:
 # ---------------------------------------------------------------------------
 
 
-def _merge_catalog_entry(
+def _merge_catalog_entry(  # pylint: disable=too-many-arguments,too-many-positional-arguments
     existing: dict[str, Any] | None,
     manifest: BaseManifest,
+    vcs_host: str,
     org: str,
     repo: str,
     label: str,
@@ -79,11 +108,11 @@ def _merge_catalog_entry(
     """Create or update a catalog.json entry for this package."""
     topics: list[str] = list(getattr(manifest, "topics", []))
     entry: dict[str, Any] = existing or {
-        "id": _catalog_id(org, repo),
+        "id": _catalog_id(vcs_host, org, repo),
         "name": manifest.package_name,
         "description": manifest.description,
-        "url": manifest.homepage or f"https://github.com/{org}/{repo}",
-        "source_type": "github",
+        "url": manifest.homepage or "",
+        "source_type": vcs_host,
         "default_branch": "main",
         "license": manifest.license,
         "topics": topics,
@@ -129,7 +158,7 @@ def _merge_catalog_entry(
 
 
 # ---------------------------------------------------------------------------
-# Detail JSON (data/github/<org>/<repo>.json)
+# Detail JSON (data/<vcs_host>/<org>/<repo>.json)
 # ---------------------------------------------------------------------------
 
 
@@ -159,13 +188,14 @@ def _merge_detail(  # pylint: disable=too-many-arguments,too-many-positional-arg
     """Create or update a per-project detail JSON."""
     fetched_readme: str | None = getattr(manifest, "readme_content", None)
     detail: dict[str, Any] = existing or {
-        "canonical_url": manifest.homepage or f"https://github.com/{org}/{repo}",
+        "canonical_url": manifest.homepage or "",
         "org": org,
         "repo": repo,
         "subfolder_path": None,
         "catalog_sources": [],
         "manifests": [],
-        "readme": fetched_readme or _generate_readme(manifest, org, repo),
+        "readme": fetched_readme
+        or _generate_readme(manifest, repo, manifest.homepage or ""),
         "tags": [],
         "branches": [
             {"name": "main", "is_tag": False, "commit_sha": None, "date": None},
@@ -223,7 +253,19 @@ def _merge_detail(  # pylint: disable=too-many-arguments,too-many-positional-arg
     return detail
 
 
-def _generate_readme(manifest: BaseManifest, org: str, repo: str) -> str:
+def _generate_readme(manifest: BaseManifest, repo: str, url: str) -> str:
+    """Generate a minimal installation README for a package.
+
+    Args:
+        manifest: Package metadata supplying name, description, and version.
+        repo:     Repository name used as the local checkout directory name.
+        url:      Full VCS URL to embed in the dfetch.yaml snippet.
+
+    Returns:
+        A Markdown string with a package heading, description, and dfetch
+        installation snippet.
+
+    """
     version_line = f"\n    tag: {manifest.version}" if manifest.version else ""
     return (
         f"# {manifest.package_name}\n\n"
@@ -233,7 +275,7 @@ def _generate_readme(manifest: BaseManifest, org: str, repo: str) -> str:
         "```yaml\n"
         "projects:\n"
         f"  - name: ext/{repo}\n"
-        f"    url: https://github.com/{org}/{repo}{version_line}\n"
+        f"    url: {url}{version_line}\n"
         "```\n\n"
         "## Usage\n\n"
         f"After running `dfetch update`, the library will be available at `ext/{repo}/`.\n"
@@ -278,18 +320,22 @@ def write_catalog(  # pylint: disable=too-many-locals
             )
             continue
 
-        parsed = parse_github_slug(manifest.homepage)
+        parsed = parse_vcs_slug(manifest.homepage)
         if not parsed:
-            logger.warning("skipping non-GitHub URL: %s", manifest.homepage)
+            logger.warning(
+                "skipping entry without recognized VCS URL: %s", manifest.homepage
+            )
             continue
 
-        org, repo = parsed
-        cat_id = _catalog_id(org, repo)
+        host, org, repo = parsed
+        vcs_host = _vcs_host_label(host)
+        cat_id = _catalog_id(vcs_host, org, repo)
 
         existing_entry = catalog.get(cat_id)
         catalog[cat_id] = _merge_catalog_entry(
             existing_entry,
             manifest,
+            vcs_host,
             org,
             repo,
             label,
@@ -300,7 +346,7 @@ def write_catalog(  # pylint: disable=too-many-locals
             updated += 1
 
         # Per-project detail JSON
-        detail_path = data_dir / "github" / org / f"{repo}.json"
+        detail_path = data_dir / vcs_host / org / f"{repo}.json"
         existing_detail = _load_json(detail_path)
         merged_detail = _merge_detail(
             existing_detail,

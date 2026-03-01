@@ -64,7 +64,7 @@ include = ["dfetch_hub*"]
 dfetch_hub = [
     "site/*",
     "data/*.json",
-    "data/github/**/*.json",
+    "data/**/*.json",
 ]
 
 [tool.isort]
