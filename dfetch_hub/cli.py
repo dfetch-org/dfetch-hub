@@ -3,18 +3,24 @@
 from __future__ import annotations
 
 import argparse
+from importlib.metadata import version as _pkg_version
 
 from dfetch.log import configure_root_logger, setup_root
 
 from dfetch_hub.commands import publish, serve, update
 
-configure_root_logger()
-logger = setup_root("dfetch-hub")
-
 
 def main(args: list[str] | None = None) -> None:
     """Main entry point for the dfetch-hub CLI."""
-    logger.info("[bold blue]Dfetch:[white]hub[/white] (0.0.1)[/bold blue]")
+    configure_root_logger()
+    logger = setup_root("dfetch-hub")
+
+    try:
+        pkg_version = _pkg_version("dfetch_hub")
+    except Exception:  # pylint: disable=broad-exception-caught
+        pkg_version = "unknown"
+
+    logger.info("[bold blue]Dfetch:[white]hub[/white] (%s)[/bold blue]", pkg_version)
 
     parser = argparse.ArgumentParser(
         prog="dfetch-hub",
