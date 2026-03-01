@@ -43,6 +43,7 @@ def create_manifest(source: SourceConfig, dest_dir: Path) -> Path:
         remotes=[],
         projects=[project],
     )
+    dest_dir.mkdir(parents=True, exist_ok=True)
     manifest_path = dest_dir / "dfetch.yaml"
     Manifest(manifest_dict).dump(str(manifest_path))
     logger.debug("Wrote manifest to %s", manifest_path)
