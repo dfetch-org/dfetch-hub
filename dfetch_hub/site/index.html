@@ -738,7 +738,7 @@ function sortRes(){
   const v=document.getElementById('sortSel')?.value||'relevance';
   if(v==='relevance'&&curQ)curRes.sort((a,b)=>score(b,curQ)-score(a,curQ)||(b.stars||0)-(a.stars||0));
   else if(v==='stars')curRes.sort((a,b)=>(b.stars||0)-(a.stars||0));
-  else if(v==='updated')curRes.sort((a,b)=>(b.last_updated||'').localeCompare(a.last_updated||''));
+  else if(v==='updated')curRes.sort((a,b)=>(Date.parse(b.last_updated)||0)-(Date.parse(a.last_updated)||0));
   else if(v==='name')curRes.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
 }
 function applySort(){curPage=0;sortRes();renderRes()}
