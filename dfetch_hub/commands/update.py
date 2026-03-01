@@ -10,12 +10,12 @@ from typing import TYPE_CHECKING
 
 from dfetch.log import get_logger
 
+from dfetch_hub.catalog.cloner import clone_source
 from dfetch_hub.catalog.sources import BaseManifest
 from dfetch_hub.catalog.sources.clib import CLibPackage, parse_packages_md
 from dfetch_hub.catalog.sources.conan import parse_conan_recipe
 from dfetch_hub.catalog.sources.vcpkg import parse_vcpkg_json
-from dfetch_hub.catalog.store.fetcher import fetch_source
-from dfetch_hub.catalog.store.updater import update_catalog
+from dfetch_hub.catalog.writer import write_catalog
 from dfetch_hub.config import HubConfig, SourceConfig, load_config
 
 if TYPE_CHECKING:
@@ -59,7 +59,7 @@ def _process_subfolders_source(
     )
     with tempfile.TemporaryDirectory(prefix="dfetch-hub-") as tmp:
         tmp_path = Path(tmp)
-        fetched_dir = fetch_source(source, tmp_path)
+        fetched_dir = clone_source(source, tmp_path)
 
         port_dirs = sorted(d for d in fetched_dir.iterdir() if d.is_dir())
         if limit is not None:
@@ -80,7 +80,7 @@ def _process_subfolders_source(
                 f"{source.name}: Skipped {skipped} port(s) with no manifest"
             )
 
-        _added, _updated = update_catalog(
+        _added, _updated = write_catalog(
             manifests,
             data_dir,
             source_name=source.name,
@@ -112,7 +112,7 @@ def _process_git_wiki_source(
     logger.print_info_line(source.name, f"Fetching wiki {source.url} ...")
     with tempfile.TemporaryDirectory(prefix="dfetch-hub-") as tmp:
         tmp_path = Path(tmp)
-        fetched_dir = fetch_source(source, tmp_path)
+        fetched_dir = clone_source(source, tmp_path)
 
         index_file = fetched_dir / source.manifest
         if not index_file.exists():
@@ -128,7 +128,7 @@ def _process_git_wiki_source(
         logger.print_info_line(
             source.name, f"Fetched metadata for {len(packages)} package(s)"
         )
-        _added, _updated = update_catalog(
+        _added, _updated = write_catalog(
             packages,  # type: ignore[arg-type]
             data_dir,
             source_name=source.name,

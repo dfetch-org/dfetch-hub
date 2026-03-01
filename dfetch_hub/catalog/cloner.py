@@ -1,4 +1,4 @@
-"""Create a dfetch manifest and fetch remote sources into a local directory."""
+"""Clone a remote source registry into a local directory via the dfetch API."""
 
 from pathlib import Path
 
@@ -49,25 +49,25 @@ def create_manifest(source: SourceConfig, dest_dir: Path) -> Path:
     return manifest_path
 
 
-def fetch_source(source: SourceConfig, dest_dir: Path) -> Path:
-    """Fetch *source* into *dest_dir* using the dfetch Python API.
+def clone_source(source: SourceConfig, dest_dir: Path) -> Path:
+    """Clone *source* into *dest_dir* using the dfetch Python API.
 
     Creates a temporary ``dfetch.yaml`` in *dest_dir*, then runs
     :func:`dfetch.project.create_sub_project` + ``update`` for every project
     declared in that manifest (in practice exactly one).
 
-    The fetched content ends up at ``<dest_dir>/<source.name>/``.
+    The cloned content ends up at ``<dest_dir>/<source.name>/``.
 
     Args:
-        source:   Source configuration describing what to fetch.
-        dest_dir: Directory that will receive the manifest and fetched files.
+        source:   Source configuration describing what to clone.
+        dest_dir: Directory that will receive the manifest and cloned files.
 
     Returns:
-        Path to the directory containing the fetched sub-path.
+        Path to the directory containing the cloned sub-path.
 
     Raises:
         RuntimeError: If the expected output directory is absent after the
-            fetch, which indicates a dfetch-level failure.
+            clone, which indicates a dfetch-level failure.
 
     """
     manifest_path = create_manifest(source, dest_dir)
@@ -77,10 +77,10 @@ def fetch_source(source: SourceConfig, dest_dir: Path) -> Path:
         for project in manifest.projects:
             create_sub_project(project).update(force=True)
 
-    fetched = Path(dest_dir / source.name)
-    if not fetched.is_dir():
+    cloned = Path(dest_dir / source.name)
+    if not cloned.is_dir():
         raise RuntimeError(
-            f"Expected dfetch output directory {fetched} not found after update"
+            f"Expected dfetch output directory {cloned} not found after update"
         )
-    logger.debug("Fetch complete: %s", fetched)
-    return fetched
+    logger.debug("Clone complete: %s", cloned)
+    return cloned

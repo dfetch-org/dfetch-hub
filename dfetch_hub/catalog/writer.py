@@ -1,4 +1,4 @@
-"""Update catalog.json and per-project detail JSONs with package manifest data."""
+"""Write parsed package manifests to catalog.json and per-project detail JSONs."""
 
 from __future__ import annotations
 
@@ -252,16 +252,25 @@ def _generate_readme(manifest: BaseManifest, org: str, repo: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-def update_catalog(  # pylint: disable=too-many-locals
+def write_catalog(  # pylint: disable=too-many-locals
     manifests: list[BaseManifest],
     data_dir: Path,
     source_name: str,
     label: str,
     ports_path: str,
 ) -> tuple[int, int]:
-    """Update catalog.json and per-project detail JSONs.
+    """Write *manifests* into catalog.json and per-project detail JSONs under *data_dir*.
 
-    Returns (added, updated) counts.
+    Args:
+        manifests:   Parsed package manifests from any source strategy.
+        data_dir:    Root of the catalog data directory.
+        source_name: Internal name of the source (e.g. ``"vcpkg"``).
+        label:       Human-readable label added to each entry's ``source_labels``.
+        ports_path:  Sub-path used to build the ``index_path`` in the detail JSON.
+
+    Returns:
+        A ``(added, updated)`` tuple with the count of new and existing entries written.
+
     """
     catalog_path = data_dir / "catalog.json"
     catalog: dict[str, Any] = _load_json(catalog_path) or {}

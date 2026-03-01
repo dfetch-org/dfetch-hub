@@ -18,7 +18,8 @@ from dfetch_hub.catalog.sources.clib import (
 # Fixtures / shared data
 # ---------------------------------------------------------------------------
 
-_PACKAGES_MD = textwrap.dedent("""\
+_PACKAGES_MD = textwrap.dedent(
+    """\
     List of available packages.
 
     ## String manipulation
@@ -31,7 +32,8 @@ _PACKAGES_MD = textwrap.dedent("""\
 
     ## Networking
      - [nicowillis/http-parser](https://github.com/nicowillis/http-parser) - HTTP request/response parser
-    """)
+    """
+)
 
 _PACKAGE_JSON_BUFFER = {
     "name": "buffer",
