@@ -53,7 +53,9 @@ def _process_subfolders_source(
             )
         return
 
-    logger.info("%s: Fetching %s (src: %r) ...", source.name, source.url, source.path)
+    logger.print_info_line(
+        source.name, f"Fetching {source.url} (src: {source.path}) ..."
+    )
     with tempfile.TemporaryDirectory(prefix="dfetch-hub-") as tmp:
         tmp_path = Path(tmp)
         fetched_dir = fetch_source(source, tmp_path)
@@ -62,7 +64,7 @@ def _process_subfolders_source(
         if limit is not None:
             port_dirs = port_dirs[:limit]
 
-        logger.info("%s: Parsing %d port(s) ...", source.name, len(port_dirs))
+        logger.print_info_line(source.name, f"Parsing {len(port_dirs)} port(s) ...")
         manifests: list[ComponentManifest] = []
         skipped = 0
         for port_dir in port_dirs:
@@ -73,8 +75,8 @@ def _process_subfolders_source(
                 manifests.append(m)
 
         if skipped:
-            logger.warning(
-                "%s: Skipped %d port(s) with no manifest", source.name, skipped
+            logger.print_warning_line(
+                f"{source.name}: Skipped {skipped} port(s) with no manifest"
             )
 
         _added, _updated = update_catalog(
@@ -84,12 +86,9 @@ def _process_subfolders_source(
             label=source.label or source.name,
             ports_path=source.path or source.name,
         )
-        logger.info(
-            "%s: Done — %d added, %d updated (%d skipped/no-github-url)",
+        logger.print_info_line(
             source.name,
-            _added,
-            _updated,
-            len(manifests) - _added - _updated,
+            f"Done — {_added} added, {_updated} updated ({len(manifests) - _added - _updated} skipped/no-github-url)",
         )
 
 
@@ -106,28 +105,27 @@ def _process_git_wiki_source(
     collect richer metadata.
     """
     if not source.manifest:
-        logger.warning("%s: no 'manifest' configured — skipped", source.name)
+        logger.print_warning_line(source.name, "no 'manifest' configured — skipped")
         return
 
-    logger.info("%s: Fetching wiki %s ...", source.name, source.url)
+    logger.print_info_line(source.name, f"Fetching wiki {source.url} ...")
     with tempfile.TemporaryDirectory(prefix="dfetch-hub-") as tmp:
         tmp_path = Path(tmp)
         fetched_dir = fetch_source(source, tmp_path)
 
         index_file = fetched_dir / source.manifest
         if not index_file.exists():
-            logger.warning(
-                "%s: '%s' not found in fetched wiki — skipped",
+            logger.print_warning_line(
                 source.name,
-                source.manifest,
+                f"'{source.manifest}' not found in fetched wiki — skipped",
             )
             return
 
-        logger.info("%s: Parsing %s ...", source.name, source.manifest)
+        logger.print_info_line(source.name, f"Parsing {source.manifest} ...")
         packages: list[CLibPackage] = parse_packages_md(index_file, limit=limit)
 
-        logger.info(
-            "%s: Fetched metadata for %d package(s)", source.name, len(packages)
+        logger.print_info_line(
+            source.name, f"Fetched metadata for {len(packages)} package(s)"
         )
         _added, _updated = update_catalog(
             packages,  # type: ignore[arg-type]
@@ -136,12 +134,9 @@ def _process_git_wiki_source(
             label=source.label or source.name,
             ports_path=source.label or source.name,
         )
-        logger.info(
-            "%s: Done — %d added, %d updated (%d skipped/no-github-url)",
+        logger.print_info_line(
             source.name,
-            _added,
-            _updated,
-            len(packages) - _added - _updated,
+            f"Done — {_added} added, {_updated} updated ({len(packages) - _added - _updated} skipped/no-github-url)",
         )
 
 

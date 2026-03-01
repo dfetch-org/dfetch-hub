@@ -32,13 +32,13 @@ def _cmd_publish(parsed: argparse.Namespace) -> None:
     data_dir = Path(parsed.data_dir)
 
     if output.exists():
-        logger.info("publish: Removing existing '%s' ...", output)
+        logger.print_info_line("publish", "Removing existing '%s' ...", output)
         shutil.rmtree(output)
     output.mkdir(parents=True)
 
     # Copy site assets; rewrite the two fetch() paths in index.html so that
     # data/ is relative to the output root instead of ../data/ (the dev layout).
-    logger.info("publish: Copying site assets ...")
+    logger.print_info_line("publish", "Copying site assets ...")
     for src in _SITE_DIR.rglob("*"):
         if not src.is_file():
             continue
@@ -55,13 +55,14 @@ def _cmd_publish(parsed: argparse.Namespace) -> None:
 
     # Copy and minify all JSON from the data directory.
     json_files = sorted(data_dir.rglob("*.json"))
-    logger.info("publish: Minifying %d JSON file(s) ...", len(json_files))
+    logger.print_info_line("publish", "Minifying %d JSON file(s) ...", len(json_files))
     for src in json_files:
         dst = output / "data" / src.relative_to(data_dir)
         _minify_json(src, dst)
 
-    logger.info(
-        "publish: Done — static site written to '%s' (%d JSON file(s) minified)",
+    logger.print_info_line(
+        "publish",
+        "Done — static site written to '%s' (%d JSON file(s) minified)",
         output,
         len(json_files),
     )
