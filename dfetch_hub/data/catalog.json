@@ -494,7 +494,7 @@
     "url": "https://github.com/rvarago/absent",
     "source_type": "github",
     "default_branch": "main",
-    "license": null,
+    "license": "MIT",
     "topics": [
       "nullable-types",
       "composition",
