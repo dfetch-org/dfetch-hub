@@ -970,7 +970,9 @@ async function copyMf(){try{await cpTxt(buildFullMf([...MFS].map(id=>RAW[id]).fi
 function dlMf(){
   const items=[...MFS].map(id=>RAW[id]).filter(Boolean);if(!items.length)return;
   const blob=new Blob([buildFullMf(items)],{type:'text/yaml'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='dfetch.yaml';a.click();
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='dfetch.yaml';document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),10000);
 }
 
 
