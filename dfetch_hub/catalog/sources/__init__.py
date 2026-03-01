@@ -22,7 +22,7 @@ _GITHUB_RE = re.compile(
 )
 
 
-def _parse_github_slug(url: str) -> tuple[str, str] | None:
+def parse_github_slug(url: str) -> tuple[str, str] | None:
     """Return ``(owner, repo)`` extracted from a GitHub URL, normalised to lowercase.
 
     GitHub URLs are case-insensitive; lowercasing ensures the catalog ID, the
@@ -96,7 +96,7 @@ def fetch_readme_for_homepage(homepage: str | None) -> str | None:
     """
     if not homepage:
         return None
-    parsed = _parse_github_slug(homepage)
+    parsed = parse_github_slug(homepage)
     return fetch_readme(*parsed) if parsed else None
 
 

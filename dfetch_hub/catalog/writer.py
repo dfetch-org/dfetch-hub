@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any
 from dfetch.log import get_logger
 from dfetch.vcs.git import GitRemote
 
-from dfetch_hub.catalog.sources import BaseManifest, _parse_github_slug
+from dfetch_hub.catalog.sources import BaseManifest, parse_github_slug
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -278,7 +278,7 @@ def write_catalog(  # pylint: disable=too-many-locals
             )
             continue
 
-        parsed = _parse_github_slug(manifest.homepage)
+        parsed = parse_github_slug(manifest.homepage)
         if not parsed:
             logger.warning("skipping non-GitHub URL: %s", manifest.homepage)
             continue

@@ -13,9 +13,9 @@ from dfetch_hub.catalog.sources import (
     _RAW_BRANCHES,
     BaseManifest,
     _fetch_raw,
-    _parse_github_slug,
     _raw_url,
     fetch_readme,
+    parse_github_slug,
 )
 
 if TYPE_CHECKING:
@@ -154,7 +154,7 @@ def parse_packages_md(
             continue
 
         _link_text, url, tagline = bullet_match.groups()
-        parsed = _parse_github_slug(url)
+        parsed = parse_github_slug(url)
         if not parsed:
             logger.debug("Skipping non-GitHub URL in Packages.md: %s", url)
             continue
