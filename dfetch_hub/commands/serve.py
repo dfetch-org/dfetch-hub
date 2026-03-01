@@ -30,7 +30,7 @@ def _cmd_serve(parsed: argparse.Namespace) -> None:
     url = f"http://localhost:{port}/site/index.html"
     print(f"Serving {serve_dir} on {url}  (Ctrl-C to stop)")
 
-    server = http.server.HTTPServer(("", port), _Handler)
+    server = http.server.ThreadingHTTPServer(("127.0.0.1", port), _Handler)
 
     threading.Timer(0.3, webbrowser.open, args=(url,)).start()
 
@@ -38,6 +38,8 @@ def _cmd_serve(parsed: argparse.Namespace) -> None:
         server.serve_forever()
     except KeyboardInterrupt:
         print("\nStopped.")
+    finally:
+        server.server_close()
 
 
 def register(subparsers: argparse._SubParsersAction) -> None:  # type: ignore[type-arg]
