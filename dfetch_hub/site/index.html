@@ -13,6 +13,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;0,900;1,400&family=Nunito:wght@700;800;900&family=Roboto+Mono:wght@400;500&family=Poiret+One&display=swap" rel="stylesheet" />
 
+  <!-- Markdown rendering + sanitisation -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@15/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+  <script>marked.use({gfm:true,breaks:false});</script>
+
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -786,7 +791,7 @@ function renderDetail(c){
   document.getElementById('dMeta').innerHTML=parts.join('');
   // README
   const rb=document.getElementById('readmeBody');
-  rb.innerHTML=c.readme&&c.readme.trim()?parseMD(c.readme):'<div class="readme-empty">No README available.</div>';
+  rb.innerHTML=c.readme&&c.readme.trim()?DOMPurify.sanitize(marked.parse(c.readme)):'<div class="readme-empty">No README available.</div>';
   // Versions — init curVersion to first tag or default branch
   const allRefs=[...(c.tags||[]).map(t=>({...t,kind:'tag'})),...(c.branches||[]).map(b=>({...b,kind:'branch'}))];
   allRefsCache=allRefs.slice(0,50);
@@ -903,25 +908,6 @@ function dlMf(){
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='dfetch.yaml';a.click();
 }
 
-function parseMD(md){
-  let h=esc(md);
-  h=h.replace(/```[^\n]*\n([\s\S]*?)```/g,(_,c)=>`<pre><code>${c}</code></pre>`);
-  h=h.replace(/`([^`]+)`/g,'<code>$1</code>');
-  h=h.replace(/^######\s(.+)$/gm,'<h6>$1</h6>');h=h.replace(/^#####\s(.+)$/gm,'<h5>$1</h5>');
-  h=h.replace(/^####\s(.+)$/gm,'<h4>$1</h4>');h=h.replace(/^###\s(.+)$/gm,'<h3>$1</h3>');
-  h=h.replace(/^##\s(.+)$/gm,'<h2>$1</h2>');h=h.replace(/^#\s(.+)$/gm,'<h1>$1</h1>');
-  h=h.replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>');
-  h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');h=h.replace(/\*(.+?)\*/g,'<em>$1</em>');
-  h=h.replace(/\[([^\]]+)\]\((https?[^)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
-  h=h.replace(/!\[([^\]]*)\]\([^)]*\)/g,'<em>[image]</em>');
-  h=h.replace(/^---+$/gm,'<hr>');
-  h=h.replace(/^[\*\-]\s(.+)$/gm,'<li>$1</li>');h=h.replace(/(<li>.*<\/li>\n?)+/g,'<ul>$&</ul>');
-  h=h.replace(/^\d+\.\s(.+)$/gm,'<li>$1</li>');
-  h=h.replace(/\n\n+/g,'\n</p><p>');h=`<p>${h}</p>`;
-  h=h.replace(/<p>\s*<\/p>/g,'');
-  ['h[1-6]','ul','pre','hr'].forEach(t=>{h=h.replace(new RegExp(`<p>(<${t}>)`,'g'),'$1');h=h.replace(new RegExp(`(<\\/${t}>)<\\/p>`,'g'),'$1')});
-  return h;
-}
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
 function slug(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'')}
