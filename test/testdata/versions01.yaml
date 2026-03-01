@@ -1,0 +1,41 @@
+projects:
+- name: CppUTest
+  repo-path: cpputest.git
+  url: https://github.com/cpputest/
+  vcs: git
+  versions:
+    branches:
+    - revision: aabbccddaabb
+      name: dev
+    - revision: bbccddeeffaa
+      name: master
+    - revision: ccddeeffaabb
+      name: some_old_forgotten_branch
+    default: master
+    tags:
+    - revision: aabbccddeeff
+      name: 1.0.0
+    - revision: aaaaaaaaaaaa
+      name: 1.1.1
+    - revision: bbbbbbbbbbbb
+      name: best_tag_ever
+- name: project_2
+  repo-path: cpputest.git
+  url: https://github.com/cpputest/
+  vcs: git
+  versions:
+    branches:
+    - revision: aabbccddaabb
+      name: dev
+    - revision: bbccddeeffaa
+      name: master
+    - revision: ccddeeffaabb
+      name: some_old_forgotten_branch
+    default: master
+    tags:
+    - revision: aabbccddeeff
+      name: 2.0.0
+    - revision: bbddeeffaacc
+      name: 2.1.1
+    - revision: 0123456789a
+      name: worst_tag_ever

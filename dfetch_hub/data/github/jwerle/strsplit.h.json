@@ -1,0 +1,40 @@
+{
+  "canonical_url": "https://github.com/jwerle/strsplit.h",
+  "org": "jwerle",
+  "repo": "strsplit.h",
+  "subfolder_path": null,
+  "catalog_sources": [
+    {
+      "source_name": "clib-source",
+      "label": "clib",
+      "index_path": "clib/jwerle/strsplit.h",
+      "registry_version": "0.1.1"
+    }
+  ],
+  "manifests": [],
+  "readme": "strsplit.c\n==========\n\nSplit a string into a char array by a given delimiter\n\n## install\n\n```sh\n$ clib install jwerle/strsplit.c\n```\n\n## usage\n\n```c\nsize_t size = strsplit(char *str, char **parts, char *delimiter);\n```\n\n## example\n\n```c\n\n#include \"strsplit.h\"\n\nint\nmain (void) {\n\tchar str[] = \"hello\\nworld\";\n\tchar *parts[2];\n\tsize_t size = strsplit(str, parts, \"\\n\");\n\tint i = 0;\n\tfor (; i < size; ++i) {\n\t\tprintf(\"%s\\n\", parts[i]);\n\t}\n\n\treturn 0;\n}\n```\n\n## license\n\nMIT\n",
+  "tags": [
+    {
+      "name": "0.1.0",
+      "is_tag": true,
+      "commit_sha": "3a608519ae6b4d",
+      "date": null
+    },
+    {
+      "name": "0.1.1",
+      "is_tag": true,
+      "commit_sha": "d83ec2e5d8c75f",
+      "date": null
+    }
+  ],
+  "branches": [
+    {
+      "name": "main",
+      "is_tag": false,
+      "commit_sha": null,
+      "date": null
+    }
+  ],
+  "license_text": null,
+  "fetched_at": "2026-03-01T08:43:33.142497+00:00"
+}

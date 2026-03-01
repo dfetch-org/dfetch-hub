@@ -1,0 +1,40 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install .[development]
+
+      # - run: codespell                                                 # Check for typo's
+      - run: isort --diff dfetch_hub                                       # Checks import order
+      - run: black --check dfetch_hub                                      # Checks code style
+      # - run: flake8 dfetch_hub                                           # Checks pep8 conformance
+      - run: pylint dfetch_hub                                             # Checks pep8 conformance
+      # - run: ruff check dfetch                                         # Check using ruff
+      - run: mypy --strict dfetch_hub                                      # Check types
+      # - run: pyright .                                                 # Check types
+      # - run: doc8 doc                                                  # Checks documentation
+      # - run: pydocstyle dfetch                                         # Checks doc strings
+      # - run: bandit -r dfetch                                          # Checks security issues
+      # - run: xenon -b B -m A -a A dfetch                               # Check code quality
+      - run: pytest --cov=dfetch_hub  test                                # Run tests
+      # - run: coverage run --source=dfetch --append -m behave features  # Run features tests
+      # - run: coverage xml -o coverage.xml                              # Create XML report
+      # - run: pyroma --directory --min=10 .                             # Check pyproject

@@ -1,0 +1,52 @@
+{
+  "canonical_url": "https://github.com/nlohmann/json",
+  "org": "nlohmann",
+  "repo": "json",
+  "subfolder_path": "ports/nlohmann-json",
+  "catalog_sources": [
+    {
+      "source_name": "vcpkg-source",
+      "label": "vcpkg",
+      "index_path": "ports/nlohmann-json",
+      "registry_version": "v3.11.3"
+    },
+    {
+      "source_name": "conan-source",
+      "label": "conan",
+      "index_path": "recipes/nlohmann-json",
+      "registry_version": "v3.11.3"
+    }
+  ],
+  "manifests": [],
+  "readme": "# nlohmann-json\n\nJSON for Modern C++\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/nlohmann-json\n    url: https://github.com/nlohmann/json\n    tag: v3.11.3\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/nlohmann-json/`.\n",
+  "tags": [
+    {
+      "name": "v3.11.3",
+      "is_tag": true,
+      "commit_sha": "a894f13bb7169f",
+      "date": null
+    },
+    {
+      "name": "v3.11.2",
+      "is_tag": true,
+      "commit_sha": "ad50cb1bb7169f",
+      "date": null
+    },
+    {
+      "name": "v3.10.5",
+      "is_tag": true,
+      "commit_sha": "af08cf8bb7169f",
+      "date": null
+    }
+  ],
+  "branches": [
+    {
+      "name": "main",
+      "is_tag": false,
+      "commit_sha": null,
+      "date": null
+    }
+  ],
+  "license_text": null,
+  "fetched_at": "2026-02-28T13:23:36.966744"
+}

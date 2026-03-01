@@ -1,0 +1,15 @@
+manifest:
+  version: '0.0'
+
+  projects:
+  - name: test
+    revision: 0123456789abcdef
+    src: /src
+    url: http://test.test
+    vcs: git
+
+  - name: test2
+    revision: 0123456789abcdef2
+    src: /src2
+    url: http://test.test2
+    vcs: git

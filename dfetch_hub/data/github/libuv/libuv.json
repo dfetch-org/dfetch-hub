@@ -1,0 +1,52 @@
+{
+  "canonical_url": "https://github.com/libuv/libuv",
+  "org": "libuv",
+  "repo": "libuv",
+  "subfolder_path": "ports/libuv",
+  "catalog_sources": [
+    {
+      "source_name": "vcpkg-source",
+      "label": "vcpkg",
+      "index_path": "ports/libuv",
+      "registry_version": "v1.48.0"
+    },
+    {
+      "source_name": "clib-source",
+      "label": "clib",
+      "index_path": null,
+      "registry_version": "v1.48.0"
+    }
+  ],
+  "manifests": [],
+  "readme": "# libuv\n\nCross-platform asynchronous I/O\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/libuv\n    url: https://github.com/libuv/libuv\n    tag: v1.48.0\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/libuv/`.\n",
+  "tags": [
+    {
+      "name": "v1.48.0",
+      "is_tag": true,
+      "commit_sha": "a951601b140fc8",
+      "date": null
+    },
+    {
+      "name": "v1.47.0",
+      "is_tag": true,
+      "commit_sha": "ace30c8b140fc8",
+      "date": null
+    },
+    {
+      "name": "v1.46.0",
+      "is_tag": true,
+      "commit_sha": "a2b9426b140fc8",
+      "date": null
+    }
+  ],
+  "branches": [
+    {
+      "name": "main",
+      "is_tag": false,
+      "commit_sha": null,
+      "date": null
+    }
+  ],
+  "license_text": null,
+  "fetched_at": "2026-02-28T13:23:36.966810"
+}

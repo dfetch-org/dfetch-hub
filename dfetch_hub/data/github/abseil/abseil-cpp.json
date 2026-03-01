@@ -1,0 +1,70 @@
+{
+  "canonical_url": "https://github.com/abseil/abseil-cpp",
+  "org": "abseil",
+  "repo": "abseil-cpp",
+  "subfolder_path": null,
+  "catalog_sources": [
+    {
+      "source_name": "vcpkg-source",
+      "label": "vcpkg",
+      "index_path": "ports/abseil-cpp",
+      "registry_version": "20240116.2"
+    },
+    {
+      "source_name": "conan-source",
+      "label": "conan",
+      "index_path": "recipes/abseil-cpp",
+      "registry_version": "20240116.2"
+    },
+    {
+      "source_name": "vcpkg-source",
+      "label": "vcpkg",
+      "index_path": "ports/abseil",
+      "registry_version": "20250814.1"
+    },
+    {
+      "source_name": "conan-source",
+      "label": "conan",
+      "index_path": "recipes/abseil",
+      "registry_version": "20230125.3"
+    }
+  ],
+  "manifests": [],
+  "readme": "# Abseil - C++ Common Libraries\n\nThe repository contains the Abseil C++ library code. Abseil is an open-source\ncollection of C++ code (compliant to C++17) designed to augment the C++\nstandard library.\n\n## Table of Contents\n\n- [About Abseil](#about)\n- [Quickstart](#quickstart)\n- [Building Abseil](#build)\n- [Support](#support)\n- [Codemap](#codemap)\n- [Releases](#releases)\n- [License](#license)\n- [Links](#links)\n\n<a name=\"about\"></a>\n## About Abseil\n\nAbseil is an open-source collection of C++ library code designed to augment\nthe C++ standard library. The Abseil library code is collected from Google's\nown C++ code base, has been extensively tested and used in production, and\nis the same code we depend on in our daily coding lives.\n\nIn some cases, Abseil provides pieces missing from the C++ standard; in\nothers, Abseil provides alternatives to the standard for special needs\nwe've found through usage in the Google code base. We denote those cases\nclearly within the library code we provide you.\n\nAbseil is not meant to be a competitor to the standard library; we've\njust found that many of these utilities serve a purpose within our code\nbase, and we now want to provide those resources to the C++ community as\na whole.\n\n<a name=\"quickstart\"></a>\n## Quickstart\n\nIf you want to just get started, make sure you at least run through the\n[Abseil Quickstart](https://abseil.io/docs/cpp/quickstart). The Quickstart\ncontains information about setting up your development environment, downloading\nthe Abseil code, running tests, and getting a simple binary working.\n\n<a name=\"build\"></a>\n## Building Abseil\n\n[Bazel](https://bazel.build) and [CMake](https://cmake.org/) are the official\nbuild systems for Abseil.\nSee the [quickstart](https://abseil.io/docs/cpp/quickstart) for more information\non building Abseil using the Bazel build system.\nIf you require CMake support, please check the [CMake build\ninstructions](CMake/README.md) and [CMake\nQuickstart](https://abseil.io/docs/cpp/quickstart-cmake).\n\n<a name=\"support\"></a>\n## Support\n\nAbseil follows Google's [Foundational C++ Support\nPolicy](https://opensource.google/documentation/policies/cplusplus-support). See\n[this\ntable](https://github.com/google/oss-policies-info/blob/main/foundational-cxx-support-matrix.md)\nfor a list of currently supported versions compilers, platforms, and build\ntools.\n\n<a name=\"codemap\"></a>\n## Codemap\n\nAbseil contains the following C++ library components:\n\n* [`base`](absl/base/)\n  <br /> The `base` library contains initialization code and other code which\n  all other Abseil code depends on. Code within `base` may not depend on any\n  other code (other than the C++ standard library).\n* [`algorithm`](absl/algorithm/)\n  <br /> The `algorithm` library contains additions to the C++ `<algorithm>`\n  library and container-based versions of such algorithms.\n* [`cleanup`](absl/cleanup/)\n  <br /> The `cleanup` library contains the control-flow-construct-like type\n  `absl::Cleanup` which is used for executing a callback on scope exit.\n* [`container`](absl/container/)\n  <br /> The `container` library contains additional STL-style containers,\n  including Abseil's unordered \"Swiss table\" containers.\n* [`crc`](absl/crc/) The `crc` library contains code for\n  computing error-detecting cyclic redundancy checks on data.\n* [`debugging`](absl/debugging/)\n  <br /> The `debugging` library contains code useful for enabling leak\n  checks, and stacktrace and symbolization utilities.\n* [`flags`](absl/flags/)\n  <br /> The `flags` library contains code for handling command line flags for\n  libraries and binaries built with Abseil.\n* [`hash`](absl/hash/)\n  <br /> The `hash` library contains the hashing framework and default hash\n  functor implementations for hashable types in Abseil.\n* [`log`](absl/log/)\n  <br /> The `log` library contains `LOG` and `CHECK` macros and facilities\n  for writing logged messages out to disk, `stderr`, or user-extensible\n  destinations.\n* [`memory`](absl/memory/)\n  <br /> The `memory` library contains memory management facilities that augment\n  C++'s `<memory>` library.\n* [`meta`](absl/meta/)\n  <br /> The `meta` library contains type checks\n  similar to those available in the C++ `<type_traits>` library.\n* [`numeric`](absl/numeric/)\n  <br /> The `numeric` library contains 128-bit integer types as well as\n  implementations of C++20's bitwise math functions.\n* [`profiling`](absl/profiling/)\n  <br /> The `profiling` library contains utility code for profiling C++\n  entities.  It is currently a private dependency of other Abseil libraries.\n* [`random`](absl/random/)\n  <br /> The `random` library contains functions for generating pseudorandom\n  values.\n* [`status`](absl/status/)\n  <br /> The `status` library contains abstractions for error handling,\n  specifically `absl::Status` and `absl::StatusOr<T>`.\n* [`strings`](absl/strings/)\n  <br /> The `strings` library contains a variety of strings routines and\n  utilities.\n* [`synchronization`](absl/synchronization/)\n  <br /> The `synchronization` library contains concurrency primitives (Abseil's\n  `absl::Mutex` class, an alternative to `std::mutex`) and a variety of\n  synchronization abstractions.\n* [`time`](absl/time/)\n  <br /> The `time` library contains abstractions for computing with absolute\n  points in time, durations of time, and formatting and parsing time within\n  time zones.\n* [`types`](absl/types/)\n  <br /> The `types` library contains non-container utility types.\n* [`utility`](absl/utility/)\n  <br /> The `utility` library contains utility and helper code.\n\n<a name=\"releases\"></a>\n## Releases\n\nAbseil recommends users \"live-at-head\" (update to the latest commit from the\nmaster branch as often as possible). However, we realize this philosophy doesn't\nwork for every project, so we also provide [Long Term Support\nReleases](https://github.com/abseil/abseil-cpp/releases) to which we backport\nfixes for severe bugs. See our [release\nmanagement](https://abseil.io/about/releases) document for more details.\n\n<a name=\"license\"></a>\n## License\n\nThe Abseil C++ library is licensed under the terms of the Apache\nlicense. See [LICENSE](LICENSE) for more information.\n\n<a name=\"links\"></a>\n## Links\n\nFor more information about Abseil:\n\n* Consult our [Abseil Introduction](https://abseil.io/about/intro)\n* Read [Why Adopt Abseil](https://abseil.io/about/philosophy) to understand our\n  design philosophy.\n* Peruse our\n  [Abseil Compatibility Guarantees](https://abseil.io/about/compatibility) to\n  understand both what we promise to you, and what we expect of you in return.\n",
+  "tags": [
+    {
+      "name": "20230125.3",
+      "is_tag": true,
+      "commit_sha": null,
+      "date": null
+    },
+    {
+      "name": "20250814.1",
+      "is_tag": true,
+      "commit_sha": null,
+      "date": null
+    },
+    {
+      "name": "20240116.2",
+      "is_tag": true,
+      "commit_sha": "a2a15f3b187bb6",
+      "date": null
+    },
+    {
+      "name": "20240116.1",
+      "is_tag": true,
+      "commit_sha": "a56d884b187bb6",
+      "date": null
+    }
+  ],
+  "branches": [
+    {
+      "name": "main",
+      "is_tag": false,
+      "commit_sha": null,
+      "date": null
+    }
+  ],
+  "license_text": null,
+  "fetched_at": "2026-02-28T13:23:36.966785"
+}

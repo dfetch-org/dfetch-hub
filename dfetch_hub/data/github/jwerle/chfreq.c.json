@@ -1,0 +1,34 @@
+{
+  "canonical_url": "https://github.com/jwerle/chfreq.c",
+  "org": "jwerle",
+  "repo": "chfreq.c",
+  "subfolder_path": null,
+  "catalog_sources": [
+    {
+      "source_name": "clib-source",
+      "label": "clib",
+      "index_path": "clib/jwerle/chfreq.c",
+      "registry_version": "0.0.1"
+    }
+  ],
+  "manifests": [],
+  "readme": "chfreq.c\n========\n\nCompute character frequency in a string\n\n## install\n\n[clib](https://github.com/clibs/clib):\n\n```sh\n$ clib install jwerle/chfreq.c\n```\n\nsource:\n\n```sh\n$ git clone git@github.com:jwerle/chfreq.c.git\n$ cd chfreq.c\n$ make\n$ make install\n```\n\n## example\n\n```c\n#include <stdlib.h>\n#include <stdint.h>\n#include <stdio.h>\n#include \"chfreq.h\"\n\nint\nmain (void) {\n  char *str = \"aabbcc\";\n  uint32_t freq** = chfreq(str);\n  printf(\"%c %d\\n\", freq[0][0], freq[0][1]);\n  printf(\"%c %d\\n\", freq[1][0], freq[1][1]);\n  printf(\"%c %d\\n\", freq[2][0], freq[2][1]);\n  return 0;\n}\n```\n\n...yields:\n\n```\na 2\nb 2\nc 2\n```\n\nWith the command line utility:\n\n```sh\n$ echo -n aabbcc | chfreq\na | 2\nb | 2\nc | 2\n```\n\n```sh\n$ echo -n 'kinkajous are awesome !'| chfreq\nk | 2\ni | 1\nn | 1\na | 3\nj | 1\no | 2\nu | 1\ns | 2\n  | 3\nr | 1\ne | 3\nw | 1\nm | 1\n! | 1\n```\n\n```sh\n$ echo -n werle | chfreq -f '%c(%d)'\nw(1)\ne(2)\nr(1)\nl(1)\n```\n\n## api\n\n```c\nuint32_t **\nchfreq (const char *src);\n```\n\nReturns an array of `uint32_t' type arrays who's character is the first index\nand the occurence is the second index.\n\n**example structure:**\n\n```c\nuint32_t mat[2][2] = {\n  {'a', 2},\n  NULL\n}\n```\n\n## license\n\nMIT\n",
+  "tags": [
+    {
+      "name": "0.0.1",
+      "is_tag": true,
+      "commit_sha": "4626bccfa0fa38",
+      "date": null
+    }
+  ],
+  "branches": [
+    {
+      "name": "main",
+      "is_tag": false,
+      "commit_sha": null,
+      "date": null
+    }
+  ],
+  "license_text": null,
+  "fetched_at": "2026-03-01T08:43:33.514818+00:00"
+}

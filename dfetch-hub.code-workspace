@@ -1,0 +1,142 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"[windows]": {
+			"python.defaultInterpreterPath": "${workspaceFolder}/venv/Scripts/python",
+		},
+		"editor.trimAutoWhitespace": true,
+		"editor.codeActionsOnSave": {
+			"source.organizeImports": "explicit"
+		},
+		"isort.check": true,
+		"restructuredtext.linter.run": "onType",
+		"restructuredtext.linter.doc8.extraArgs": [
+			"--config",
+			"${workspaceFolder}/pyproject.toml"
+		],
+		"python.testing.pytestArgs": [
+			"tests"
+		],
+		"python.testing.unittestEnabled": false,
+		"python.testing.pytestEnabled": true,
+		"python.testing.autoTestDiscoverOnSaveEnabled": true,
+		"cucumberautocomplete.steps": [
+			"features/steps/*.py"
+		],
+		"[python]": {
+			"editor.defaultFormatter": "ms-python.black-formatter",
+			"editor.formatOnSave": true,
+		},
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "DFetch hub gui",
+				"type": "debugpy",
+				"request": "launch",
+				"module": "dfetch_hub.example_gui.gui",
+				"justMyCode": false,
+				"args": [
+				]
+			},
+			{
+				"name": "DFetch hub cli",
+				"type": "debugpy",
+				"request": "launch",
+				"module": "dfetch_hub.project.cli",
+				"justMyCode": false,
+				"args": ["-u", "https://github.com/dfetch-org/dfetch.git"
+				]
+			}
+		]
+	},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "Build Docs",
+				"type": "shell",
+				"linux": {
+					"command": "make"
+				},
+				"windows": {
+					"command": "make.bat"
+				},
+				"args": [
+					"html"
+				],
+				"options": {
+					"cwd": "${workspaceFolder}/doc"
+				},
+				"group": {
+					"kind": "build",
+					"isDefault": true
+				},
+				"presentation": {
+					"reveal": "always",
+					"panel": "shared"
+				}
+			},
+			{
+				"label": "Check quality (pre-commit)",
+				"type": "shell",
+				"command": "pre-commit",
+				"args": [
+					"run",
+					"--all-files"
+				],
+				"options": {
+					"cwd": "${workspaceFolder}"
+				},
+				"group": {
+					"kind": "test",
+					"isDefault": false
+				},
+				"presentation": {
+					"reveal": "always",
+					"panel": "shared"
+				}
+			},
+			{
+				"label": "Run All Unit Tests",
+				"type": "shell",
+				"command": "python",
+				"args": [
+					"-m",
+					"pytest",
+					"test"
+				],
+				"options": {
+					"cwd": "${workspaceFolder}"
+				},
+				"group": {
+					"kind": "test",
+					"isDefault": false
+				},
+				"presentation": {
+					"reveal": "always",
+					"panel": "shared"
+				}
+			},
+		]
+	},
+	"extensions": {
+		"recommendations": [
+			"bungcip.better-toml",
+			"jebbs.plantuml",
+			"lextudio.restructuredtext",
+			"ms-python.black-formatter",
+			"ms-python.debugpy",
+			"ms-python.isort",
+			"ms-python.pylint",
+			"ms-python.python",
+			"trond-snekvik.simple-rst",
+			"jimasp.behave-vsc"
+		]
+	}
+}
