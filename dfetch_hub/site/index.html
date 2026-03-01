@@ -207,6 +207,8 @@
       display:grid;grid-template-columns:1fr auto;gap:.2rem;
     }
     .pkg:hover{border-color:var(--accent);border-left:3px solid var(--accent);box-shadow:0 1px 6px rgba(0,0,0,.08)}
+    .pkg.in-manifest{border-left:3px solid var(--green);background:#fafffe}
+    .pkg.in-manifest:hover{border-left:3px solid var(--green);border-color:var(--green)}
     .pkg-name{font-family:var(--logo);font-size:1rem;font-weight:800;color:var(--nav)}
     .pkg-ver{font-family:var(--mono);font-size:.77rem;color:var(--muted);padding-top:2px}
     .pkg-desc{grid-column:1/-1;font-size:.865rem;color:var(--muted);margin-top:.12rem;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
@@ -726,7 +728,7 @@ function renderRes(){
     const added=MFS.has(c.id)?`<span class="added-ind">✓ In manifest</span>`:'';
     const stars=c.stars!=null?`<span class="pstat">⭐ ${fmt(c.stars)}</span>`:'';
     const upd=c.last_updated?`<span class="padded">${relt(c.last_updated)}</span>`:'';
-    return `<div class="pkg" onclick="showDetail('${esc(c.id)}')">
+    return `<div class="pkg${MFS.has(c.id)?' in-manifest':''}" onclick="showDetail('${esc(c.id)}')">
       <div class="pkg-name">${esc(c.name)}</div>
       <div class="pkg-ver">${esc(ver)}</div>
       <div class="pkg-desc">${esc(c.description||'')}</div>
@@ -854,7 +856,7 @@ function toggleMf(){
   if(!curPkg)return;
   if(MFS.has(curPkg)){MFS.delete(curPkg);delete MFS_VERSIONS[curPkg];showToast('Removed from manifest')}
   else{MFS.add(curPkg);if(curVersion)MFS_VERSIONS[curPkg]=curVersion;showToast('Added to manifest ✓')}
-  updAddBtn();updMfCnt();
+  updAddBtn();updMfCnt();renderRes();
 }
 function updAddBtn(){
   const btn=document.getElementById('btnAdd');if(!btn)return;
@@ -874,7 +876,7 @@ function renderModal(){
   code.textContent=buildFullMf(items);code.style.display='';
   info.textContent=`${items.length} project${items.length!==1?'s':''} selected`;
 }
-function rmMf(id){MFS.delete(id);updMfCnt();renderModal();if(id===curPkg)updAddBtn()}
+function rmMf(id){MFS.delete(id);updMfCnt();renderModal();renderRes();if(id===curPkg)updAddBtn()}
 function buildFullMf(items){let y="manifest:\n  version: '0.0'\n\nprojects:\n";items.forEach(c=>{y+=buildEntry(c)});return y}
 function buildEntry(c,version){
   const v=version||MFS_VERSIONS[c.id];const br=c.default_branch||'main';const sn=(c.name||'comp').replace(/\s+/g,'-').toLowerCase();
