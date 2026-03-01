@@ -555,6 +555,9 @@ let MFS_VERSIONS = {};  // id → {name, kind}
 let curVersion = null;  // version selected in current detail view
 let allRefsCache = [];  // refs for the current detail's version table
 let acIdx = -1;
+let _skipNav = false;
+function _pushURL(p){if(_skipNav)return;const qs=new URLSearchParams(p).toString();history.pushState(p,'',qs?'?'+qs:location.pathname)}
+function _replaceURL(p){if(_skipNav)return;const qs=new URLSearchParams(p).toString();history.replaceState(p,'',qs?'?'+qs:location.pathname)}
 let hacIdx = -1;
 let pageSize = 50;
 let curPage = 0;
@@ -573,6 +576,16 @@ async function loadCatalog() {
     initPageStats();
     renderRes();
     buildSide();
+    // restore view from URL params
+    _skipNav=true;
+    const _sp=new URLSearchParams(location.search);
+    const _pkg=_sp.get('pkg'),_q=_sp.get('q');
+    if(_pkg&&RAW[_pkg]){
+      await showDetail(_pkg);
+      const _v=_sp.get('v'),_vk=_sp.get('vk');
+      if(_v&&_vk){const _i=allRefsCache.findIndex(r=>r.name===_v&&r.kind===_vk);if(_i>=0)selectVersion(_i);}
+    } else if(_q){doSearch(_q);}
+    _skipNav=false;
   } catch (err) {
     console.error('Error loading catalog:', err);
   }
@@ -590,12 +603,25 @@ function initPageStats() {
 // Call on page load
 loadCatalog();
 
+window.addEventListener('popstate', async ()=>{
+  _skipNav=true;
+  const sp=new URLSearchParams(location.search);
+  const pkg=sp.get('pkg'),q=sp.get('q');
+  if(pkg&&RAW[pkg]){
+    await showDetail(pkg);
+    const v=sp.get('v'),vk=sp.get('vk');
+    if(v&&vk){const i=allRefsCache.findIndex(r=>r.name===v&&r.kind===vk);if(i>=0)selectVersion(i);}
+  } else if(q){doSearch(q);}
+  else{showHome();}
+  _skipNav=false;
+});
+
 function showPage(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active')}
-function showHome(){showPage('page-home');document.getElementById('hInput').value='';document.getElementById('nInput').value='';curQ=''}
+function showHome(){_pushURL({});showPage('page-home');document.getElementById('hInput').value='';document.getElementById('nInput').value='';curQ=''}
 function showResults(){showPage('page-results')}
 async function showDetail(id){
   const c=RAW[id];if(!c)return;
-  curPkg=id;showPage('page-detail');window.scrollTo(0,0);
+  _pushURL({pkg:id});curPkg=id;showPage('page-detail');window.scrollTo(0,0);
   if(!c._detailLoaded){
     document.getElementById('readmeBody').innerHTML='<div class="readme-empty">Loading…</div>';
     document.getElementById('vtbody').innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--subtle)">Loading…</td></tr>';
@@ -624,7 +650,7 @@ function doFilter(q){
     return score(c,lq)>0;
   });
 }
-function doSearch(q){curQ=q;curPage=0;curRes=doFilter(q);sortRes();renderRes();buildSide();showResults();document.getElementById('nInput').value=q;}
+function doSearch(q){_pushURL(q?{q}:{});curQ=q;curPage=0;curRes=doFilter(q);sortRes();renderRes();buildSide();showResults();document.getElementById('nInput').value=q;}
 function onHInput(v){updHAC(v)}
 function onHKey(e){
   const dd=document.getElementById('hacdrop');
@@ -832,6 +858,7 @@ function renderDetail(c){
 function selectVersion(i){
   const r=allRefsCache[i];if(!r)return;
   curVersion={name:r.name,kind:r.kind};
+  _replaceURL({pkg:curPkg,v:r.name,vk:r.kind});
   document.querySelectorAll('#vtbody tr').forEach((tr,idx)=>tr.classList.toggle('ver-selected',idx===i));
   const c=curPkg?RAW[curPkg]:null;
   if(c)document.getElementById('dSnip').innerHTML=buildSnipHtml(c,curVersion);
