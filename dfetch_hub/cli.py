@@ -11,7 +11,7 @@ from dfetch_hub.commands import publish, serve, update
 
 
 def main(args: list[str] | None = None) -> None:
-    """Main entry point for the dfetch-hub CLI."""
+    """Run the dfetch-hub CLI."""
     configure_root_logger()
     logger = setup_root("dfetch-hub")
 

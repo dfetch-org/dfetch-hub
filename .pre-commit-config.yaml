@@ -57,3 +57,14 @@ repos:
       language: python
       pass_filenames: false
       args: [.]
+  -   id: pydocstyle
+      name: docstring style
+      entry: pydocstyle --convention=google
+      language: python
+      files: ^dfetch_hub/
+      types: [file, python]
+  -   id: doc8
+      name: documentation style
+      entry: doc8 --max-line-length 120 --extension .md
+      language: python
+      types_or: [rst, markdown]

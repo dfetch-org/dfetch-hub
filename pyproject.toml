@@ -34,9 +34,11 @@ dependencies = [
 development = [
     "bandit[toml]==1.9.4",
     "black==25.1.0",
+    "doc8==2.0.0",
     "isort==6.0.0",
     "mypy==1.14.1",
     "pre-commit==4.1.0",
+    "pydocstyle==6.3.0",
     "pylint==3.3.4",
     "pyright==1.1.408",
     "pyroma==5.0.1",
@@ -103,6 +105,13 @@ ignore = [
 
 [tool.ruff.lint.isort]
 known-first-party = ["dfetch_hub"]
+
+[tool.doc8]
+max-line-length = 120
+extension = [".md", ".rst"]
+
+[tool.pydocstyle]
+convention = "google"
 
 [tool.bandit]
 targets = ["dfetch_hub"]
