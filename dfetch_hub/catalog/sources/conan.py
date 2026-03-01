@@ -139,10 +139,23 @@ def _find_conanfile(recipe_dir: Path, preferred_folder: str) -> Path | None:
     """Return the path to ``conanfile.py`` inside *recipe_dir*.
 
     Tries *preferred_folder* first, then falls back to any subdirectory.
+    Both candidate paths are resolved and verified to be strictly contained
+    within *recipe_dir* before being returned, preventing path traversal via
+    crafted folder names or symlinks.
     """
+    base = recipe_dir.resolve()
+
     preferred = recipe_dir / preferred_folder / "conanfile.py"
-    if preferred.exists():
-        return preferred
+    try:
+        preferred_resolved = preferred.resolve()
+    except OSError:
+        preferred_resolved = None
+    if (
+        preferred_resolved is not None
+        and preferred_resolved.is_relative_to(base)
+        and preferred_resolved.is_file()
+    ):
+        return preferred_resolved
 
     if not recipe_dir.exists() or not recipe_dir.is_dir():
         return None
@@ -155,8 +168,12 @@ def _find_conanfile(recipe_dir: Path, preferred_folder: str) -> Path | None:
     for sub in entries:
         if sub.is_dir():
             candidate = sub / "conanfile.py"
-            if candidate.exists():
-                return candidate
+            try:
+                candidate_resolved = candidate.resolve()
+            except OSError:
+                continue
+            if candidate_resolved.is_relative_to(base) and candidate_resolved.is_file():
+                return candidate_resolved
 
     return None
 
