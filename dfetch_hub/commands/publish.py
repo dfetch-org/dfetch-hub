@@ -10,6 +10,8 @@ from pathlib import Path
 
 from dfetch.log import get_logger
 
+from dfetch_hub.commands import load_config_with_data_dir
+
 logger = get_logger(__name__)
 
 _PACKAGE_DIR = Path(__file__).parent.parent
@@ -30,7 +32,9 @@ def _minify_json(src: Path, dst: Path) -> None:
 def _cmd_publish(parsed: argparse.Namespace) -> None:
     """Build a deployable static site for GitHub Pages / GitLab Pages."""
     output = Path(parsed.output)
-    data_dir = Path(parsed.data_dir)
+    _config, data_dir = load_config_with_data_dir(
+        parsed.config, parsed.data_dir, _DEFAULT_DATA_DIR
+    )
 
     if output.exists():
         logger.print_info_line("publish", f"Removing existing '{output}' ...")
@@ -73,6 +77,11 @@ def register(subparsers: argparse._SubParsersAction) -> None:  # type: ignore[ty
         help="Build a deployable static site for GitHub Pages / GitLab Pages.",
     )
     publish_p.add_argument(
+        "--config",
+        default="dfetch-hub.toml",
+        help="Path to dfetch-hub.toml (default: %(default)s)",
+    )
+    publish_p.add_argument(
         "--output",
         "-o",
         default=str(_DEFAULT_OUTPUT),
@@ -81,7 +90,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:  # type: ignore[ty
     )
     publish_p.add_argument(
         "--data-dir",
-        default=str(_DEFAULT_DATA_DIR),
-        help="Catalog data directory (default: %(default)s)",
+        default=None,
+        help=f"Catalog data directory (default: catalog_path from config, else {_DEFAULT_DATA_DIR})",
     )
     publish_p.set_defaults(func=_cmd_publish)

@@ -42,7 +42,7 @@ class Settings:
     """
 
     concurrency: int = 8
-    catalog_path: str = ".dfetch-hub/catalog.json"
+    catalog_path: str = ""
     output_dir: str = "site"
 
 

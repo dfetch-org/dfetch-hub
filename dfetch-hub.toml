@@ -29,7 +29,7 @@
 # Optional global settings
 [settings]
 concurrency = 8          # parallel HTTP / git fetches
-catalog_path = ".dfetch-hub/catalog.json"
+catalog_path = "dfetch_hub/data/catalog.json"
 output_dir   = "site"
 
 # Authentication (values are env-var NAMES, not the tokens themselves)

@@ -6,7 +6,6 @@ import argparse
 import sys
 import tempfile
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 from dfetch.log import get_logger
 
@@ -16,10 +15,8 @@ from dfetch_hub.catalog.sources.clib import CLibPackage, parse_packages_md
 from dfetch_hub.catalog.sources.conan import parse_conan_recipe
 from dfetch_hub.catalog.sources.vcpkg import parse_vcpkg_json
 from dfetch_hub.catalog.writer import write_catalog
-from dfetch_hub.config import HubConfig, SourceConfig, load_config
-
-if TYPE_CHECKING:
-    pass
+from dfetch_hub.commands import load_config_with_data_dir
+from dfetch_hub.config import SourceConfig
 
 logger = get_logger(__name__)
 
@@ -161,13 +158,9 @@ def _process_source(
 
 def _cmd_update(parsed: argparse.Namespace) -> None:
     """Run the catalog update pipeline."""
-    data_dir = Path(parsed.data_dir)
-
-    try:
-        config: HubConfig = load_config(parsed.config)
-    except FileNotFoundError:
-        logger.error("Config file '%s' not found", parsed.config)
-        sys.exit(1)
+    config, data_dir = load_config_with_data_dir(
+        parsed.config, parsed.data_dir, _DEFAULT_DATA_DIR
+    )
 
     sources = config.sources
     if parsed.source:
@@ -201,8 +194,8 @@ def register(subparsers: argparse._SubParsersAction) -> None:  # type: ignore[ty
     )
     update_p.add_argument(
         "--data-dir",
-        default=str(_DEFAULT_DATA_DIR),
-        help="Catalog data directory (default: %(default)s)",
+        default=None,
+        help=f"Catalog data directory (default: catalog_path from config, else {_DEFAULT_DATA_DIR})",
     )
     update_p.add_argument(
         "--limit",
