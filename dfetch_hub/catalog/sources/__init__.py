@@ -51,7 +51,7 @@ def _fetch_raw(url: str) -> str | None:
     """GET *url* and return the response body as a string, or ``None`` on failure."""
     try:
         req = Request(url, headers=_HEADERS)
-        with urlopen(req, timeout=10) as resp:
+        with urlopen(req, timeout=10) as resp:  # nosec B310
             return str(resp.read().decode(errors="replace"))
     except (URLError, OSError) as exc:
         logger.debug("GET %s failed: %s", url, exc)

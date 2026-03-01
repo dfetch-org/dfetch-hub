@@ -22,19 +22,16 @@ jobs:
         run: |
           pip install .[development]
 
-      # - run: codespell                                                 # Check for typo's
-      - run: isort --diff dfetch_hub                                       # Checks import order
-      - run: black --check dfetch_hub                                      # Checks code style
-      # - run: flake8 dfetch_hub                                           # Checks pep8 conformance
-      - run: pylint dfetch_hub                                             # Checks pep8 conformance
-      # - run: ruff check dfetch                                         # Check using ruff
-      - run: mypy --strict dfetch_hub                                      # Check types
-      # - run: pyright .                                                 # Check types
-      # - run: doc8 doc                                                  # Checks documentation
-      # - run: pydocstyle dfetch                                         # Checks doc strings
-      # - run: bandit -r dfetch                                          # Checks security issues
-      # - run: xenon -b B -m A -a A dfetch                               # Check code quality
-      - run: pytest --cov=dfetch_hub  test                                # Run tests
-      # - run: coverage run --source=dfetch --append -m behave features  # Run features tests
-      # - run: coverage xml -o coverage.xml                              # Create XML report
-      # - run: pyroma --directory --min=10 .                             # Check pyproject
+      - run: isort --diff dfetch_hub                                                      # Checks import order
+      - run: black --check dfetch_hub                                                     # Checks code style
+      - run: ruff check dfetch_hub                                                        # Fast linter (bugbear, comprehensions, naming, …)
+      - run: pylint dfetch_hub                                                            # Deep static analysis
+      - run: mypy --strict dfetch_hub                                                     # mypy type check (strict)
+      - run: pyright dfetch_hub                                                           # pyright type check (standard)
+      - run: bandit -c pyproject.toml -r dfetch_hub                                      # Security linting
+      - run: xenon --max-absolute C --max-modules B --max-average A dfetch_hub           # Cyclomatic complexity
+      - run: pyroma --directory --min 9 .                                                 # Package metadata quality
+      - run: djlint --lint dfetch_hub                                                     # HTML linting
+      - run: pydocstyle --convention=google dfetch_hub                                    # Docstring style (Google convention)
+      - run: doc8 --extension .md --max-line-length 120 README.md                          # Documentation prose style
+      - run: pytest --cov=dfetch_hub test                                                 # Run tests with coverage

@@ -9,12 +9,21 @@ authors = [
   { name="p sacharias", email="p.sacharias@gmail.com" },
   { name="ben spoor", email="b.spoor@edna.eu" },
 ]
-description = "Dfetch Hub"
+description = "Catalog browser and static-site generator for dfetch package registries"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+keywords = ["dfetch", "catalog", "package-registry", "vcpkg", "conan", "clib"]
 classifiers = [
+    "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Utilities",
 ]
 dependencies = [
     "dfetch==0.12.1",
@@ -23,14 +32,22 @@ dependencies = [
 
 [project.optional-dependencies] # https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#writing-pyproject-toml
 development = [
+    "bandit[toml]==1.9.4",
     "black==25.1.0",
+    "djlint==1.36.4",
+    "doc8==2.0.0",
     "isort==6.0.0",
     "mypy==1.14.1",
     "pre-commit==4.1.0",
+    "pydocstyle==6.3.0",
     "pylint==3.3.4",
+    "pyright==1.1.408",
+    "pyroma==5.0.1",
     "pytest==8.3.4",
     "pytest-cov==6.0.0",
+    "ruff==0.15.4",
     "vcrpy==7.0.0",
+    "xenon==0.9.3",
     "types-PyYaml==6.0.12"
 ]
 [project.urls]
@@ -61,4 +78,67 @@ max-line-length = "120"
 files = "dfetch_hub"
 ignore_missing_imports = true
 strict = true
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "A",    # flake8-builtins: shadowing built-ins
+    "B",    # flake8-bugbear: likely bugs and design issues
+    "C4",   # flake8-comprehensions: unnecessary comprehension forms
+    "E",    # pycodestyle errors
+    "F",    # pyflakes: undefined names, unused imports
+    "N",    # pep8-naming
+    "PIE",  # flake8-pie: misc lint improvements
+    "RUF",  # ruff-specific rules
+    "SIM",  # flake8-simplify
+    "TCH",  # flake8-type-checking: move imports to TYPE_CHECKING
+    "UP",   # pyupgrade: use modern Python syntax
+    "W",    # pycodestyle warnings
+]
+ignore = [
+    "E501",   # line length: enforced by pylint at 120 chars
+    "UP037",  # remove `from __future__ import annotations`: kept per project convention
+    "SIM108", # ternary operator: readability preference
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["dfetch_hub"]
+
+[tool.djlint]
+ignore = "H021,H031"  # H021: inline styles intentional in single-file app; H031: meta keywords are obsolete
+
+[tool.doc8]
+max-line-length = 120
+extension = [".md", ".rst"]
+
+[tool.pydocstyle]
+convention = "google"
+
+[tool.bandit]
+targets = ["dfetch_hub"]
+
+[tool.pyright]
+pythonVersion = "3.11"
+typeCheckingMode = "standard"
+venvPath = "."
+venv = ".venv"
+
+[tool.pytest.ini_options]
+testpaths = ["test"]
+addopts = "--cov=dfetch_hub --cov-report=term-missing"
+
+[tool.coverage.run]
+source = ["dfetch_hub"]
+omit = ["dfetch_hub/site/*"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]
 

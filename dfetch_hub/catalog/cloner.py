@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from dfetch.log import get_logger
 from dfetch.manifest.manifest import Manifest, ManifestDict
@@ -11,7 +12,8 @@ from dfetch.manifest.project import ProjectEntryDict
 from dfetch.project import create_sub_project
 from dfetch.util.util import in_directory
 
-from dfetch_hub.config import SourceConfig
+if TYPE_CHECKING:
+    from dfetch_hub.config import SourceConfig
 
 logger = get_logger(__name__)
 
@@ -55,7 +57,7 @@ def create_manifest(source: SourceConfig, dest_dir: Path) -> Path:
 
     """
     _validate_source_name(source.name)
-    project = ProjectEntryDict(
+    project = ProjectEntryDict(  # pyright: ignore[reportCallIssue]
         name=source.name,
         url=source.url,
         src=source.path,
