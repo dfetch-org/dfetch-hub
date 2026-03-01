@@ -12,7 +12,7 @@ _PACKAGE_DIR = Path(__file__).parent.parent
 
 
 def _port_type(value: str) -> int:
-    """Parse *value* as a TCP port number (1–65535)."""
+    """Parse *value* as a TCP port number (1-65535)."""
     port = int(value)
     if not 1 <= port <= 65535:
         raise argparse.ArgumentTypeError("--port must be between 1 and 65535")
@@ -30,7 +30,7 @@ def _cmd_serve(parsed: argparse.Namespace) -> None:
 
         def log_message(
             self,
-            format: str,  # pylint: disable=redefined-builtin
+            format: str,  # pylint: disable=redefined-builtin  # noqa: A002
             *args: object,
         ) -> None:
             pass  # suppress per-request noise
@@ -60,6 +60,6 @@ def register(subparsers: argparse._SubParsersAction) -> None:  # type: ignore[ty
         "--port",
         type=_port_type,
         default=8000,
-        help="TCP port to listen on (1–65535, default: %(default)s)",
+        help="TCP port to listen on (1-65535, default: %(default)s)",
     )
     serve_p.set_defaults(func=_cmd_serve)

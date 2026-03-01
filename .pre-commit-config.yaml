@@ -10,6 +10,12 @@ repos:
       entry: black
       language: python
       types: [file, python]
+  -   id: ruff
+      name: ruff linter
+      entry: ruff check --no-fix
+      language: python
+      files: ^dfetch_hub/
+      types: [file, python]
   -   id: pylint
       name: lint python files
       entry: pylint
@@ -22,3 +28,32 @@ repos:
       language: python
       files: ^dfetch_hub/
       types: [file, python]
+  -   id: pyright
+      name: pyright type check
+      entry: pyright --pythonpath .venv/bin/python
+      language: python
+      files: ^dfetch_hub/
+      types: [file, python]
+      pass_filenames: false
+  -   id: bandit
+      name: security linting
+      entry: bandit -c pyproject.toml -r
+      language: python
+      files: ^dfetch_hub/
+      types: [file, python]
+      pass_filenames: false
+      args: [dfetch_hub]
+  -   id: xenon
+      name: cyclomatic complexity
+      entry: xenon --max-absolute C --max-modules B --max-average A
+      language: python
+      files: ^dfetch_hub/
+      types: [file, python]
+      pass_filenames: false
+      args: [dfetch_hub]
+  -   id: pyroma
+      name: package metadata quality
+      entry: pyroma --directory --min 9
+      language: python
+      pass_filenames: false
+      args: [.]

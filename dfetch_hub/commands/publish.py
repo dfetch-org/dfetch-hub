@@ -2,16 +2,19 @@
 
 from __future__ import annotations
 
-import argparse
 import json
 import re
 import shutil
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from dfetch.log import get_logger
 
 from dfetch_hub.commands import load_config_with_data_dir
+
+if TYPE_CHECKING:
+    import argparse
 
 logger = get_logger(__name__)
 

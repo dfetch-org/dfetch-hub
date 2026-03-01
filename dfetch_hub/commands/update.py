@@ -6,17 +6,20 @@ import argparse
 import sys
 import tempfile
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from dfetch.log import get_logger
 
 from dfetch_hub.catalog.cloner import clone_source
-from dfetch_hub.catalog.sources import BaseManifest
 from dfetch_hub.catalog.sources.clib import CLibPackage, parse_packages_md
 from dfetch_hub.catalog.sources.conan import parse_conan_recipe
 from dfetch_hub.catalog.sources.vcpkg import parse_vcpkg_json
 from dfetch_hub.catalog.writer import write_catalog
 from dfetch_hub.commands import load_config_with_data_dir
-from dfetch_hub.config import SourceConfig
+
+if TYPE_CHECKING:
+    from dfetch_hub.catalog.sources import BaseManifest
+    from dfetch_hub.config import SourceConfig
 
 logger = get_logger(__name__)
 
