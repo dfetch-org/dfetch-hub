@@ -607,6 +607,9 @@ function initPageStats() {
 // Call on page load
 loadCatalog();
 
+document.getElementById('hacdrop').addEventListener('mousedown',e=>{const el=e.target.closest('.acitem');if(el)selHAC(el.dataset.id);});
+document.getElementById('acdrop').addEventListener('mousedown',e=>{const el=e.target.closest('.acitem');if(el)selAC(el.dataset.id);});
+
 document.addEventListener('keydown',e=>{
   if(e.key!=='/'||['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName))return;
   e.preventDefault();
@@ -692,7 +695,7 @@ function updHAC(q){
     const ini=(c.name||'?').slice(0,2).toUpperCase();
     const lbls=(c.source_labels||[]).slice(0,2).map(l=>`<span class="lbl lbl-${slug(l)}">${esc(l)}</span>`).join('');
     const st=c.stars!=null?`<span style="font-size:.74rem;color:var(--subtle);flex-shrink:0">⭐ ${fmt(c.stars)}</span>`:'';
-    return `<div class="acitem" onmousedown="selHAC('${esc(c.id)}')">
+    return `<div class="acitem" data-id="${esc(c.id)}">
       <div class="acico">${ini}</div>
       <div class="acinfo"><div class="acname">${hl(esc(c.name),q)}</div><div class="acdesc">${esc((c.description||'').slice(0,80))}</div></div>
       <div class="aclabels">${lbls}</div>${st}
@@ -724,7 +727,7 @@ function updAC(q){
     const ini=(c.name||'?').slice(0,2).toUpperCase();
     const lbls=(c.source_labels||[]).slice(0,2).map(l=>`<span class="lbl lbl-${slug(l)}">${esc(l)}</span>`).join('');
     const st=c.stars!=null?`<span style="font-size:.74rem;color:var(--subtle);flex-shrink:0">⭐ ${fmt(c.stars)}</span>`:'';
-    return `<div class="acitem" onmousedown="selAC('${esc(c.id)}')">
+    return `<div class="acitem" data-id="${esc(c.id)}">
       <div class="acico">${ini}</div>
       <div class="acinfo"><div class="acname">${hl(esc(c.name),q)}</div><div class="acdesc">${esc((c.description||'').slice(0,80))}</div></div>
       <div class="aclabels">${lbls}</div>${st}
