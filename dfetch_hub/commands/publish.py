@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 from pathlib import Path
 
@@ -47,8 +48,7 @@ def _cmd_publish(parsed: argparse.Namespace) -> None:
         dst.parent.mkdir(parents=True, exist_ok=True)
         if src.name == "index.html":
             text = src.read_text(encoding="utf-8")
-            text = text.replace("'../data/", "'data/")
-            text = text.replace("`../data/", "`data/")
+            text = re.sub(r"(['\"`])\.\.\/data\/", r"\1data/", text)
             dst.write_text(text, encoding="utf-8")
         else:
             shutil.copy2(src, dst)
