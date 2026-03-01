@@ -1,1 +1,1 @@
-# This __init__ is required by nicegui to run the example gui from project path
+"""dfetch-hub: catalog and CLI tools for dfetch package registries."""

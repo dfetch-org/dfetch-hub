@@ -17,8 +17,8 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "dfetch==0.10.0",
-    "PyYAML==6.0.2"
+    "dfetch==0.12.1",
+    "PyYAML>=6.0.2"
 ]
 
 [project.optional-dependencies] # https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#writing-pyproject-toml
@@ -33,16 +33,16 @@ development = [
     "vcrpy==7.0.0",
     "types-PyYaml==6.0.12"
 ]
-gui = [
-    "thefuzz==0.22.1",
-    "nicegui==2.11.1"
-]
 [project.urls]
 Homepage = "https://github.com/dfetch-org/dfetch-hub"
 Issues = "https://github.com/dfetch-org/dfetch-hub/issues"
 
 [project.scripts]
-DfetchHub-cli = "dfetch_hub.project.cli:main_cli"
+dfetch-hub = "dfetch_hub.cli:main"
+
+[tool.isort]
+profile = "black"
+line_length = 120
 
 [tool.pylint.format]
 max-line-length = "120"
@@ -52,6 +52,3 @@ files = "dfetch_hub"
 ignore_missing_imports = true
 strict = true
 
-[[tool.mypy.overrides]]
-module = "dfetch_hub.example_gui.gui"
-disable_error_code = ["attr-defined"]

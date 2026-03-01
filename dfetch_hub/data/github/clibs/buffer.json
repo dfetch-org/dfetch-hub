@@ -1,0 +1,58 @@
+{
+  "canonical_url": "https://github.com/clibs/buffer",
+  "org": "clibs",
+  "repo": "buffer",
+  "subfolder_path": null,
+  "catalog_sources": [
+    {
+      "source_name": "clib-source",
+      "label": "clib",
+      "index_path": "clib/clibs/buffer",
+      "registry_version": "0.4.0"
+    }
+  ],
+  "manifests": [],
+  "readme": "\n# buffer\n\n  Tiny C string manipulation library.\n\n## Installation\n\n  Install with [clib](https://github.com/clibs/clib):\n\n```\n$ clib install clibs/buffer\n```\n\n## API\n\n```c\nbuffer_t *\nbuffer_new();\n\nbuffer_t *\nbuffer_new_with_size(size_t n);\n\nbuffer_t *\nbuffer_new_with_string(char *str);\n\nbuffer_t *\nbuffer_new_with_string_length(char *str, size_t len);\n\nbuffer_t *\nbuffer_new_with_copy(char *str);\n\nsize_t\nbuffer_size(buffer_t *self);\n\nsize_t\nbuffer_length(buffer_t *self);\n\nvoid\nbuffer_free(buffer_t *self);\n\nint\nbuffer_prepend(buffer_t *self, char *str);\n\nint\nbuffer_append(buffer_t *self, char *str);\n\nint\nbuffer_equals(buffer_t *self, buffer_t *other);\n\nssize_t\nbuffer_indexof(buffer_t *self, char *str);\n\nbuffer_t *\nbuffer_slice(buffer_t *self, size_t from, ssize_t to);\n\nssize_t\nbuffer_compact(buffer_t *self);\n\nvoid\nbuffer_fill(buffer_t *self, int c);\n\nvoid\nbuffer_clear(buffer_t *self);\n\nvoid\nbuffer_trim_left(buffer_t *self);\n\nvoid\nbuffer_trim_right(buffer_t *self);\n\nvoid\nbuffer_trim(buffer_t *self);\n\nvoid\nbuffer_print(buffer_t *self);\n\n#define buffer_string(self) (self->data)\n```\n\n## License\n\n  MIT\n",
+  "tags": [
+    {
+      "name": "0.1.0",
+      "is_tag": true,
+      "commit_sha": "03b6dd58b325f8",
+      "date": null
+    },
+    {
+      "name": "0.2.0",
+      "is_tag": true,
+      "commit_sha": "c0804a1caba9a2",
+      "date": null
+    },
+    {
+      "name": "0.2.1",
+      "is_tag": true,
+      "commit_sha": "9ae7b37e5354a9",
+      "date": null
+    },
+    {
+      "name": "0.3.0",
+      "is_tag": true,
+      "commit_sha": "d3012fac27cfde",
+      "date": null
+    },
+    {
+      "name": "0.4.0",
+      "is_tag": true,
+      "commit_sha": "f09c11886ae067",
+      "date": null
+    }
+  ],
+  "branches": [
+    {
+      "name": "main",
+      "is_tag": false,
+      "commit_sha": null,
+      "date": null
+    }
+  ],
+  "license_text": null,
+  "fetched_at": "2026-03-01T07:03:49.405128+00:00"
+}

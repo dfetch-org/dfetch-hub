@@ -1,0 +1,34 @@
+{
+  "canonical_url": "https://github.com/Nami-Doc/strlen.c",
+  "org": "Nami-Doc",
+  "repo": "strlen.c",
+  "subfolder_path": null,
+  "catalog_sources": [
+    {
+      "source_name": "clib-source",
+      "label": "clib",
+      "index_path": "clib/nami-doc/strlen.c",
+      "registry_version": "0.0.1"
+    }
+  ],
+  "manifests": [],
+  "readme": "# Strlen\r\n\r\n  Returns the string length.\r\n\r\n# Installation\r\n\r\n`$ clib install nami-doc/strlen.c`\r\n\r\n## Example\r\n\r\n```c\r\nchar *str = \"hello world \";\r\nstrlen(str);\r\n``` \r\n",
+  "tags": [
+    {
+      "name": "0.0.1",
+      "is_tag": true,
+      "commit_sha": null,
+      "date": null
+    }
+  ],
+  "branches": [
+    {
+      "name": "main",
+      "is_tag": false,
+      "commit_sha": null,
+      "date": null
+    }
+  ],
+  "license_text": null,
+  "fetched_at": "2026-03-01T07:03:50.152613+00:00"
+}

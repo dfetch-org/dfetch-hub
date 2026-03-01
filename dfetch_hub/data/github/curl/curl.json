@@ -1,0 +1,52 @@
+{
+  "canonical_url": "https://github.com/curl/curl",
+  "org": "curl",
+  "repo": "curl",
+  "subfolder_path": "ports/curl",
+  "catalog_sources": [
+    {
+      "source_name": "vcpkg-source",
+      "label": "vcpkg",
+      "index_path": "ports/curl",
+      "registry_version": "curl-8_6_0"
+    },
+    {
+      "source_name": "conan-source",
+      "label": "conan",
+      "index_path": "recipes/curl",
+      "registry_version": "curl-8_6_0"
+    }
+  ],
+  "manifests": [],
+  "readme": "# curl\n\nA command line tool and library for transferring data with URL syntax\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/curl\n    url: https://github.com/curl/curl\n    tag: curl-8_6_0\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/curl/`.\n",
+  "tags": [
+    {
+      "name": "curl-8_6_0",
+      "is_tag": true,
+      "commit_sha": "a5c9d0fb7841e1",
+      "date": null
+    },
+    {
+      "name": "curl-8_5_0",
+      "is_tag": true,
+      "commit_sha": "a9bee01b7841e1",
+      "date": null
+    },
+    {
+      "name": "curl-8_4_0",
+      "is_tag": true,
+      "commit_sha": "a554719b7841e1",
+      "date": null
+    }
+  ],
+  "branches": [
+    {
+      "name": "main",
+      "is_tag": false,
+      "commit_sha": null,
+      "date": null
+    }
+  ],
+  "license_text": null,
+  "fetched_at": "2026-02-28T13:23:36.966856"
+}

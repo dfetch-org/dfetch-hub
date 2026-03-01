@@ -1,0 +1,40 @@
+{
+  "canonical_url": "https://github.com/sqlite/sqlite",
+  "org": "sqlite",
+  "repo": "sqlite",
+  "subfolder_path": "ports/sqlite3",
+  "catalog_sources": [
+    {
+      "source_name": "vcpkg-source",
+      "label": "vcpkg",
+      "index_path": "ports/sqlite3",
+      "registry_version": "version-3.45.1"
+    }
+  ],
+  "manifests": [],
+  "readme": "# sqlite\n\nOfficial Git mirror of the SQLite source tree\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/sqlite\n    url: https://github.com/sqlite/sqlite\n    tag: version-3.45.1\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/sqlite/`.\n",
+  "tags": [
+    {
+      "name": "version-3.45.1",
+      "is_tag": true,
+      "commit_sha": "a82f489b2bd384",
+      "date": null
+    },
+    {
+      "name": "version-3.44.2",
+      "is_tag": true,
+      "commit_sha": "afa08a0b2bd384",
+      "date": null
+    }
+  ],
+  "branches": [
+    {
+      "name": "main",
+      "is_tag": false,
+      "commit_sha": null,
+      "date": null
+    }
+  ],
+  "license_text": null,
+  "fetched_at": "2026-02-28T13:23:36.966844"
+}

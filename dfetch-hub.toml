@@ -1,0 +1,125 @@
+# dfetch-hub.toml — source definitions for dfetch-hub
+#
+# This file tells dfetch-hub WHERE to look for reusable components.
+# It is plain TOML; one or more [[source]] blocks, each with a different
+# discovery strategy.
+#
+# ── STRATEGY TYPES ────────────────────────────────────────────────────────────
+#
+#   single        A single git/svn repo treated as one component.
+#   subfolders    One repo whose immediate subfolders are each a component
+#                 (e.g. vcpkg ports/, conan recipes/).
+#   registry      A well-known package registry whose index is scraped to
+#                 yield a list of upstream repos.
+#   git-regex     Clone (or ls-remote) one repo and collect all sub-repos
+#                 found by following URLs that match a regex inside its files.
+#   webpage-list  Scrape a web page for git/svn URLs via CSS selector or regex.
+#
+# ── AUTHENTICATION ─────────────────────────────────────────────────────────────
+# Tokens are read from environment variables (see [auth] section below).
+# Never put tokens in this file.
+#
+# ── CANONICAL-URL DEDUPLICATION ───────────────────────────────────────────────
+# If two sources resolve to the same upstream repo URL (normalised: lowercase,
+# .git suffix stripped, trailing slash stripped) dfetch-hub merges them into
+# one Component and records both origins in component.catalog_sources[].
+#
+# ══════════════════════════════════════════════════════════════════════════════
+
+# Optional global settings
+[settings]
+concurrency = 8          # parallel HTTP / git fetches
+catalog_path = "dfetch_hub/data/catalog.json"
+output_dir   = "site"
+
+# Authentication (values are env-var NAMES, not the tokens themselves)
+[auth]
+github_token = "DFETCH_HUB_GITHUB_TOKEN"
+gitlab_token = "DFETCH_HUB_GITLAB_TOKEN"
+svn_username = "DFETCH_HUB_SVN_USER"
+svn_password = "DFETCH_HUB_SVN_PASS"
+
+# ── EXAMPLE: single repo ──────────────────────────────────────────────────────
+# [[source]]
+# name     = "dfetch"
+# strategy = "single"
+# url      = "https://github.com/dfetch-org/dfetch"
+# label    = "github"
+
+# ── EXAMPLE: subfolders — vcpkg ports ─────────────────────────────────────────
+# Each subdirectory of `ports/` is treated as a separate component.
+# dfetch-hub reads portfile.cmake and vcpkg.json to discover the upstream URL,
+# then fetches metadata from that upstream repo.
+[[source]]
+name        = "vcpkg"
+strategy    = "subfolders"
+url         = "https://github.com/microsoft/vcpkg"
+path        = "ports"          # which subfolder to enumerate (default: repo root)
+manifest    = "vcpkg.json"     # which file inside each subfolder holds metadata
+label       = "vcpkg"          # tag added to every component found here
+
+# # ── EXAMPLE: subfolders — conan-center-index ──────────────────────────────────
+[[source]]
+name        = "conan-center"
+strategy    = "subfolders"
+url         = "https://github.com/conan-io/conan-center-index"
+path        = "recipes"
+manifest    = "conandata.yml"
+label       = "conan"
+
+[[source]]
+name     = "clib"
+strategy = "git-wiki"
+# The GitHub wiki is a regular git repo at <repo>.wiki.git
+url      = "https://github.com/clibs/clib.wiki.git"
+# Which file in the wiki root holds the package index
+manifest = "Packages.md"
+label    = "clib"
+
+# # ── EXAMPLE: registry — ESP-IDF component manager ─────────────────────────────
+# # A known registry type; dfetch-hub knows how to talk to its API.
+# [[source]]
+# name        = "esp-idf-components"
+# strategy    = "registry"
+# registry    = "idf-component-manager"   # built-in scraper id
+# # API endpoint override (optional; dfetch-hub has the default baked in):
+# # endpoint  = "https://components.espressif.com/api/..."
+# label       = "esp-idf"
+
+# ── EXAMPLE: registry — npm ───────────────────────────────────────────────────
+# [[source]]
+# name     = "my-npm-scope"
+# strategy = "registry"
+# registry = "npm"
+# # Filter by scope, keyword, or author:
+# filter   = "scope:@my-org"
+# label    = "npm"
+
+# # ── EXAMPLE: git-regex — find all repos referenced in a config file ───────────
+# # Clone (shallow) one "index repo" and extract all git URLs from files
+# # matching `file_glob`. Useful for Awesome-lists, PlatformIO registries, etc.
+# [[source]]
+# name       = "awesome-embedded"
+# strategy   = "git-regex"
+# url        = "https://github.com/nhivp/Awesome-Embedded"
+# file_glob  = "README.md"
+# url_regex  = "https://github\\.com/[\\w.-]+/[\\w.-]+"
+# label      = "awesome-embedded"
+# # Optionally restrict to repos whose path matches:
+# # path_filter = ".*"
+
+# # ── EXAMPLE: SVN — single repo ────────────────────────────────────────────────
+# [[source]]
+# name     = "my-svn-lib"
+# strategy = "single"
+# url      = "svn+ssh://svn.example.com/repos/mylib"
+# vcs      = "svn"    # explicit; otherwise inferred from URL scheme
+
+# # ── EXAMPLE: SVN — subfolders (classic SVN layout with tags/trunk/branches) ───
+# [[source]]
+# name     = "svn-monorepo"
+# strategy = "subfolders"
+# url      = "https://svn.example.com/repos/components"
+# vcs      = "svn"
+# path     = "trunk/libs"
+# label    = "internal-svn"
