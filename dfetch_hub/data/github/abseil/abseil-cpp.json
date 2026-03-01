@@ -21,11 +21,23 @@
       "label": "vcpkg",
       "index_path": "ports/abseil",
       "registry_version": "20250814.1"
+    },
+    {
+      "source_name": "conan-center",
+      "label": "conan",
+      "index_path": "recipes/abseil",
+      "registry_version": "20230125.3"
     }
   ],
   "manifests": [],
   "readme": "# abseil-cpp\n\nAbseil Common Libraries (C++), with CMake build instructions\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/abseil-cpp\n    url: https://github.com/abseil/abseil-cpp\n    tag: 20240116.2\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/abseil-cpp/`.\n",
   "tags": [
+    {
+      "name": "20230125.3",
+      "is_tag": true,
+      "commit_sha": null,
+      "date": null
+    },
     {
       "name": "20250814.1",
       "is_tag": true,

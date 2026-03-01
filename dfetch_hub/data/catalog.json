@@ -263,7 +263,11 @@
     "topics": [
       "c++",
       "utilities",
-      "google"
+      "google",
+      "algorithm",
+      "container",
+      "common",
+      "utility"
     ],
     "stars": 14000,
     "last_updated": "2026-02-28T13:23:36.966782",
@@ -272,6 +276,12 @@
       "conan"
     ],
     "tags": [
+      {
+        "name": "20230125.3",
+        "is_tag": true,
+        "commit_sha": null,
+        "date": null
+      },
       {
         "name": "20250814.1",
         "is_tag": true,
@@ -665,6 +675,75 @@
     "tags": [
       {
         "name": "1.0.0",
+        "is_tag": true,
+        "commit_sha": null,
+        "date": null
+      }
+    ]
+  },
+  "github/jwerle/strsplit.h": {
+    "id": "github/jwerle/strsplit.h",
+    "name": "strsplit",
+    "description": "Split a string into a char array by a given delimiter",
+    "url": "https://github.com/jwerle/strsplit.h",
+    "source_type": "github",
+    "default_branch": "main",
+    "license": "MIT",
+    "topics": [],
+    "stars": 0,
+    "last_updated": "2026-03-01T08:43:33.142404+00:00",
+    "source_labels": [
+      "clib"
+    ],
+    "tags": [
+      {
+        "name": "0.1.1",
+        "is_tag": true,
+        "commit_sha": null,
+        "date": null
+      }
+    ]
+  },
+  "github/jwerle/chfreq.c": {
+    "id": "github/jwerle/chfreq.c",
+    "name": "chfreq",
+    "description": "Compute character frequency in a string",
+    "url": "https://github.com/jwerle/chfreq.c",
+    "source_type": "github",
+    "default_branch": "main",
+    "license": "MIT",
+    "topics": [],
+    "stars": 0,
+    "last_updated": "2026-03-01T08:43:33.514732+00:00",
+    "source_labels": [
+      "clib"
+    ],
+    "tags": [
+      {
+        "name": "0.0.1",
+        "is_tag": true,
+        "commit_sha": null,
+        "date": null
+      }
+    ]
+  },
+  "github/hkjels/slug.c": {
+    "id": "github/hkjels/slug.c",
+    "name": "slug",
+    "description": "Create slug from a given string.",
+    "url": "https://github.com/hkjels/slug.c",
+    "source_type": "github",
+    "default_branch": "main",
+    "license": "MIT",
+    "topics": [],
+    "stars": 0,
+    "last_updated": "2026-03-01T08:43:33.827088+00:00",
+    "source_labels": [
+      "clib"
+    ],
+    "tags": [
+      {
+        "name": "0.0.1",
         "is_tag": true,
         "commit_sha": null,
         "date": null

@@ -189,6 +189,12 @@
     .added-ind{display:inline-flex;align-items:center;gap:.22rem;font-size:.75rem;color:var(--green);font-weight:700}
     .no-res{text-align:center;padding:3rem 1rem;color:var(--muted)}
     .no-res-ico{font-size:2.2rem;margin-bottom:.6rem}
+    .pagination{display:flex;align-items:center;gap:.35rem;justify-content:center;padding:.9rem 0 .4rem;flex-wrap:wrap}
+    .ppage{font-size:.82rem;padding:.22rem .58rem;border:1px solid var(--border2);border-radius:var(--rm);background:var(--surface);color:var(--text);cursor:pointer;transition:.15s;min-width:2rem;text-align:center;font-family:var(--sans)}
+    .ppage:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+    .ppage.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+    .ppage:disabled{opacity:.4;cursor:default}
+    .ppage-ellipsis{font-size:.82rem;color:var(--subtle);padding:0 .15rem}
 
     /* ── DETAIL ─────────────────────────────────────────────────── */
     .pkg-hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:1.4rem 1.5rem}
@@ -369,6 +375,12 @@
   <div class="res-header">
     <span class="res-count" id="rcount">Showing <strong>0</strong> packages</span>
     <div class="fchips" id="fchips"></div>
+    <select class="sort-sel" id="pageSzSel" onchange="onPageSizeChange(this.value)">
+      <option value="25">25 / page</option>
+      <option value="50" selected>50 / page</option>
+      <option value="100">100 / page</option>
+      <option value="200">200 / page</option>
+    </select>
     <select class="sort-sel" id="sortSel" onchange="applySort()">
       <option value="relevance">Relevance</option>
       <option value="stars">Most stars</option>
@@ -385,6 +397,7 @@
     <main class="res-main">
       <div id="rlist"></div>
       <div class="no-res" id="noRes" style="display:none"><div class="no-res-ico">🔍</div><p><strong>No packages found</strong></p><p style="font-size:.86rem">Try different keywords or clear filters.</p></div>
+      <div class="pagination" id="pagination"></div>
     </main>
   </div>
 </div>
@@ -477,6 +490,8 @@ let curVersion = null;  // version selected in current detail view
 let allRefsCache = [];  // refs for the current detail's version table
 let acIdx = -1;
 let hacIdx = -1;
+let pageSize = 50;
+let curPage = 0;
 
 async function loadCatalog() {
   try {
@@ -543,7 +558,7 @@ function doFilter(q){
     return score(c,lq)>0;
   });
 }
-function doSearch(q){curQ=q;curRes=doFilter(q);sortRes();renderRes();buildSide();showResults()}
+function doSearch(q){curQ=q;curPage=0;curRes=doFilter(q);sortRes();renderRes();buildSide();showResults()}
 function onHInput(v){updHAC(v)}
 function onHKey(e){
   const dd=document.getElementById('hacdrop');
@@ -615,7 +630,7 @@ function sortRes(){
   else if(v==='updated')curRes.sort((a,b)=>(b.last_updated||'').localeCompare(a.last_updated||''));
   else if(v==='name')curRes.sort((a,b)=>(a.name||'').localeCompare(b.name||''));
 }
-function applySort(){sortRes();renderRes()}
+function applySort(){curPage=0;sortRes();renderRes()}
 
 function buildSide(){
   function cnt(dim,val){return doFilter(curQ).filter(c=>{if(dim==='label')return(c.source_labels||[]).includes(val);if(dim==='source')return c.source_type===val;if(dim==='license')return c.license===val;return false}).length}
@@ -632,14 +647,21 @@ function buildSide(){
   const chips=document.getElementById('fchips');
   if(chips){const active=Object.entries(AF).filter(([,v])=>v);chips.innerHTML=active.map(([k,v])=>`<span class="chip active" onclick="setF('${k}','')">✕ ${esc(k)}: ${esc(v)}</span>`).join('')}
 }
-function setF(dim,val){AF[dim]=val;curRes=doFilter(curQ);sortRes();renderRes();buildSide();showResults()}
+function setF(dim,val){AF[dim]=val;curPage=0;curRes=doFilter(curQ);sortRes();renderRes();buildSide();showResults()}
 
 function renderRes(){
-  const list=document.getElementById('rlist');const none=document.getElementById('noRes');
-  document.getElementById('rcount').innerHTML=`Showing <strong>${curRes.length}</strong> package${curRes.length!==1?'s':''}`;
-  if(!curRes.length){list.innerHTML='';none.style.display='';return}
+  const list=document.getElementById('rlist');const none=document.getElementById('noRes');const pg=document.getElementById('pagination');
+  if(!curRes.length){
+    list.innerHTML='';none.style.display='';if(pg)pg.innerHTML='';
+    document.getElementById('rcount').innerHTML=`Showing <strong>0</strong> packages`;
+    return;
+  }
   none.style.display='none';
-  list.innerHTML=curRes.slice(0,200).map(c=>{
+  const totalPages=Math.ceil(curRes.length/pageSize);
+  if(curPage>=totalPages)curPage=totalPages-1;
+  const start=curPage*pageSize;const end=Math.min(start+pageSize,curRes.length);
+  document.getElementById('rcount').innerHTML=`Showing <strong>${start+1}–${end}</strong> of <strong>${curRes.length}</strong> package${curRes.length!==1?'s':''}`;
+  list.innerHTML=curRes.slice(start,end).map(c=>{
     const ver=ltag(c);
     const lbls=(c.source_labels||[]).map(l=>`<span class="lbl lbl-${slug(l)}">${esc(l)}</span>`).join('');
     const added=MFS.has(c.id)?`<span class="added-ind">✓ In manifest</span>`:'';
@@ -652,6 +674,40 @@ function renderRes(){
       <div class="pkg-meta"><div style="display:flex;gap:.25rem">${lbls}</div>${stars}${added}${upd}</div>
     </div>`;
   }).join('');
+  renderPagination();
+}
+
+function renderPagination(){
+  const el=document.getElementById('pagination');if(!el)return;
+  const pages=Math.ceil(curRes.length/pageSize);
+  if(pages<=1){el.innerHTML='';return}
+  const p=curPage;
+  // Build page index list with ellipsis
+  const idxs=[];
+  for(let i=0;i<pages;i++){
+    if(i===0||i===pages-1||Math.abs(i-p)<=1)idxs.push(i);
+    else if(idxs[idxs.length-1]!=='…')idxs.push('…');
+  }
+  let h=`<button class="ppage" onclick="goPage(${p-1})" ${p===0?'disabled':''}>‹ Prev</button>`;
+  idxs.forEach(i=>{
+    if(i==='…')h+=`<span class="ppage-ellipsis">…</span>`;
+    else h+=`<button class="ppage${i===p?' active':''}" onclick="goPage(${i})">${i+1}</button>`;
+  });
+  h+=`<button class="ppage" onclick="goPage(${p+1})" ${p===pages-1?'disabled':''}>Next ›</button>`;
+  el.innerHTML=h;
+}
+
+function goPage(n){
+  const pages=Math.ceil(curRes.length/pageSize);
+  curPage=Math.max(0,Math.min(n,pages-1));
+  renderRes();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function onPageSizeChange(val){
+  pageSize=parseInt(val,10);
+  curPage=0;
+  renderRes();
 }
 
 function renderDetail(c){
