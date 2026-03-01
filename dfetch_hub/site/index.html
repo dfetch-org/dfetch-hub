@@ -252,21 +252,25 @@
     .vbadge-branch{background:#e8f4f8;color:#1a5276;border:1px solid #aed6f1}
     .vtable tbody tr{cursor:pointer}
     .vtable tbody tr.ver-selected td{background:rgba(0,113,188,.1)!important}
-    .ver-sel-info{font-size:.78rem;color:var(--muted);text-align:center;margin-top:.45rem;padding:.28rem .55rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--rm)}
-    .ver-sel-info .vsn{font-family:var(--mono);font-weight:600;color:var(--text)}
+    /* Version pill */
+    .action-card{margin-bottom:.65rem}
+    .ver-pill{display:flex;align-items:center;gap:.4rem;margin-top:.45rem;padding:.3rem .7rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--rm)}
+    .ver-pill-lbl{font-size:.72rem;color:var(--muted);font-weight:600;letter-spacing:.03em}
+    .ver-pill .vsn{font-family:var(--mono);font-size:.82rem;font-weight:600;color:var(--text);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ver-pill-kind{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:.1rem .38rem;border-radius:3px;background:var(--tag-bg);color:var(--tag-fg);border:1px solid var(--tag-border);flex-shrink:0}
 
-    /* Snippet */
-    .snip-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
-    .snip-toolbar{display:flex;align-items:center;justify-content:space-between;background:var(--nav);padding:.42rem .85rem}
-    .snip-label{font-size:.76rem;color:rgba(255,255,255,.5);font-family:var(--mono)}
-    .snip-copy{font-size:.75rem;background:var(--accent);color:#fff;border:none;border-radius:var(--rm);padding:.17rem .58rem;cursor:pointer;transition:.15s;font-weight:700}
-    .snip-copy:hover{background:var(--accent2)}
-    .snip-code{padding:.8rem 1rem;background:#2b2b2b;color:#f8f8f2;font-family:var(--mono);font-size:.78rem;line-height:1.6;overflow-x:auto;white-space:pre}
+    /* Snippet card */
+    .snip-card{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:.65rem}
+    .snip-card-hdr{width:100%;display:flex;align-items:center;gap:.48rem;padding:.52rem .78rem;background:var(--nav);cursor:pointer;border:none;text-align:left;transition:background .15s}
+    .snip-card-hdr:hover{background:var(--nav-deep)}
+    .snip-card-ico{font-family:var(--mono);font-size:.74rem;color:rgba(255,255,255,.38);letter-spacing:-.02em;flex-shrink:0}
+    .snip-card-title{font-size:.81rem;font-weight:700;color:rgba(255,255,255,.85);flex:1}
+    .snip-chevron{font-size:.68rem;color:rgba(255,255,255,.38);transition:transform .2s;flex-shrink:0;display:block}
+    .snip-card.open .snip-chevron{transform:rotate(180deg)}
+    .snip-hdr-copy{display:flex;align-items:center;justify-content:center;width:22px;height:22px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.12);border-radius:var(--rm);cursor:pointer;transition:.15s;flex-shrink:0;padding:0}
+    .snip-hdr-copy:hover{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.25)}
+    .snip-code{padding:.85rem 1rem;background:#2b2b2b;color:#f8f8f2;font-family:var(--mono);font-size:.78rem;line-height:1.65;overflow-x:auto;white-space:pre}
     .sk{color:#66d9e8}.sv{color:#a6e22e}.su{color:#e6db74}.sc{color:#75715e}
-    .snip-toggle-btn{width:100%;margin-top:.45rem;padding:.3rem .6rem;font-size:.79rem;color:var(--muted);border:1px solid var(--border2);border-radius:var(--rm);background:var(--surface);text-align:left;cursor:pointer;transition:.15s;font-family:var(--sans)}
-    .snip-toggle-btn:hover{border-color:var(--accent);color:var(--accent)}
-    .snip-toggle-btn.open{color:var(--accent);border-color:var(--accent)}
-    .snip-panel{margin-top:.42rem}
 
     /* Aside */
     .aside-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:.85rem .95rem;margin-bottom:.8rem}
@@ -439,19 +443,27 @@
       </div>
     </div>
     <aside>
-      <button class="btn-add add" id="btnAdd" onclick="toggleMf()">＋ Add to manifest</button>
-      <div id="selVerInfo" class="ver-sel-info" style="display:none">Version: <span class="vsn" id="selVerName"></span> <span id="selVerKind" style="font-size:.67rem;text-transform:uppercase;color:var(--subtle)"></span></div>
-      <button class="snip-toggle-btn" id="snipToggleBtn" onclick="toggleSnip()">‹› dfetch snippet ▾</button>
-      <div class="snip-panel" id="snipPanel" style="display:none">
-        <div class="snip-wrap">
-          <div class="snip-toolbar">
-            <span class="snip-label">dfetch.yaml</span>
-            <button class="snip-copy" onclick="copySnip()">Copy</button>
-          </div>
+      <div class="action-card">
+        <button class="btn-add add" id="btnAdd" onclick="toggleMf()">＋ Add to manifest</button>
+        <div id="selVerInfo" class="ver-pill" style="display:none">
+          <span class="ver-pill-lbl">Version</span>
+          <span class="vsn" id="selVerName"></span>
+          <span class="ver-pill-kind" id="selVerKind"></span>
+        </div>
+      </div>
+      <div class="snip-card" id="snipCard">
+        <div class="snip-card-hdr" onclick="toggleSnip()">
+          <span class="snip-card-ico">{ }</span>
+          <span class="snip-card-title">dfetch.yaml snippet</span>
+          <button class="snip-hdr-copy" onclick="event.stopPropagation();copySnip()" title="Copy snippet">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="4" width="9" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M3 11.5H2.5A1.5 1.5 0 0 1 1 10V3A1.5 1.5 0 0 1 2.5 1.5h7A1.5 1.5 0 0 1 11 3v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <span class="snip-chevron">▾</span>
+        </div>
+        <div class="snip-panel" id="snipPanel" style="display:none">
           <div class="snip-code" id="dSnip"></div>
         </div>
       </div>
-      <div style="height:.9rem"></div>
       <div class="aside-card"><div class="aside-t">Links</div><div id="aLinks"></div></div>
       <div class="aside-card"><div class="aside-t">Details</div><div id="aDets"></div></div>
       <div class="aside-card"><div class="aside-t">Found in</div><div class="aside-sources" id="aSrcs"></div></div>
@@ -762,9 +774,9 @@ function renderDetail(c){
     return `<div class="aside-src-row">${lbl}<span>${esc(cs.source_name)}${p}</span></div>`;
   }).join(''):'<span style="font-size:.82rem;color:var(--subtle)">No registry info</span>';
   // Reset snippet panel to collapsed
-  const snipPanel=document.getElementById('snipPanel');const snipBtn=document.getElementById('snipToggleBtn');
+  const snipPanel=document.getElementById('snipPanel');const snipCard=document.getElementById('snipCard');
   if(snipPanel)snipPanel.style.display='none';
-  if(snipBtn){snipBtn.textContent='‹› dfetch snippet ▾';snipBtn.classList.remove('open');}
+  if(snipCard)snipCard.classList.remove('open');
   updAddBtn();updSelVerInfo();switchTab('readme');
 }
 function selectVersion(i){
@@ -788,12 +800,11 @@ function switchTab(name){
   document.getElementById('tab-'+name).classList.add('active');
 }
 function toggleSnip(){
-  const panel=document.getElementById('snipPanel');const btn=document.getElementById('snipToggleBtn');
-  if(!panel||!btn)return;
+  const panel=document.getElementById('snipPanel');const card=document.getElementById('snipCard');
+  if(!panel||!card)return;
   const open=panel.style.display!=='none';
   panel.style.display=open?'none':'';
-  btn.textContent=open?'‹› dfetch snippet ▾':'‹› dfetch snippet ▴';
-  btn.classList.toggle('open',!open);
+  card.classList.toggle('open',!open);
 }
 
 function toggleMf(){

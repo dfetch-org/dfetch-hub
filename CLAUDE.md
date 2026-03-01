@@ -65,6 +65,12 @@
 - Test data lives in module-level `_UPPER_CASE` constants.
 - Tests must not hit the network or filesystem beyond `tmp_path`.
 
+## Site / frontend
+
+- The site source lives in `dfetch_hub/site/index.html` (single-file app).
+- **Never edit `public/`** — that directory contains published build artifacts and is overwritten on deploy.
+- Always make HTML/CSS/JS changes in `dfetch_hub/site/index.html`.
+
 ## Tooling
 
 ```
