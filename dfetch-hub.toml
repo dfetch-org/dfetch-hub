@@ -59,13 +59,13 @@ manifest    = "vcpkg.json"     # which file inside each subfolder holds metadata
 label       = "vcpkg"          # tag added to every component found here
 
 # # ── EXAMPLE: subfolders — conan-center-index ──────────────────────────────────
-# [[source]]
-# name        = "conan-center"
-# strategy    = "subfolders"
-# url         = "https://github.com/conan-io/conan-center-index"
-# path        = "recipes"
-# manifest    = "conandata.yml"
-# label       = "conan"
+[[source]]
+name        = "conan-center"
+strategy    = "subfolders"
+url         = "https://github.com/conan-io/conan-center-index"
+path        = "recipes"
+manifest    = "conandata.yml"
+label       = "conan"
 
 [[source]]
 name     = "clib"

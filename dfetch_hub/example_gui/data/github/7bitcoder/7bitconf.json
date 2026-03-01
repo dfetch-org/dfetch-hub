@@ -1,0 +1,46 @@
+{
+  "canonical_url": "https://github.com/7bitCoder/7bitConf",
+  "org": "7bitcoder",
+  "repo": "7bitconf",
+  "subfolder_path": null,
+  "catalog_sources": [
+    {
+      "source_name": "conan-center",
+      "label": "conan",
+      "index_path": "recipes/7bitconf",
+      "registry_version": "1.0.0"
+    }
+  ],
+  "manifests": [],
+  "readme": "# 7bitconf\n\n7bitConf is a simple C++17 centralized configuration provider library.\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/7bitconf\n    url: https://github.com/7bitcoder/7bitconf\n    tag: 1.0.0\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/7bitconf/`.\n",
+  "tags": [
+    {
+      "name": "v1.0.0",
+      "is_tag": true,
+      "commit_sha": "5bfb672f0e4d30",
+      "date": null
+    },
+    {
+      "name": "v1.1.0",
+      "is_tag": true,
+      "commit_sha": "d487e32f253ad6",
+      "date": null
+    },
+    {
+      "name": "v1.2.0",
+      "is_tag": true,
+      "commit_sha": "88d4ccdf0ecdf5",
+      "date": null
+    }
+  ],
+  "branches": [
+    {
+      "name": "main",
+      "is_tag": false,
+      "commit_sha": null,
+      "date": null
+    }
+  ],
+  "license_text": null,
+  "fetched_at": "2026-03-01T07:36:32.126164+00:00"
+}

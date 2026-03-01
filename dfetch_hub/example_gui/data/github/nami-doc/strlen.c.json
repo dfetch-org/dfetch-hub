@@ -7,7 +7,7 @@
     {
       "source_name": "clib",
       "label": "clib",
-      "index_path": "clib/Nami-Doc/strlen.c",
+      "index_path": "clib/nami-doc/strlen.c",
       "registry_version": "0.0.1"
     }
   ],

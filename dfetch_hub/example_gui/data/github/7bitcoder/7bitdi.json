@@ -1,0 +1,88 @@
+{
+  "canonical_url": "https://github.com/7bitcoder/7bitDI",
+  "org": "7bitcoder",
+  "repo": "7bitdi",
+  "subfolder_path": null,
+  "catalog_sources": [
+    {
+      "source_name": "conan-center",
+      "label": "conan",
+      "index_path": "recipes/7bitdi",
+      "registry_version": "1.0.0"
+    }
+  ],
+  "manifests": [],
+  "readme": "# 7bitdi\n\na simple C++ dependency injection library.\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/7bitdi\n    url: https://github.com/7bitcoder/7bitdi\n    tag: 1.0.0\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/7bitdi/`.\n",
+  "tags": [
+    {
+      "name": "v1.0.0",
+      "is_tag": true,
+      "commit_sha": "86228173f14f44",
+      "date": null
+    },
+    {
+      "name": "v1.0.0-b",
+      "is_tag": true,
+      "commit_sha": "1ba55b8e1ff437",
+      "date": null
+    },
+    {
+      "name": "v2.0.0",
+      "is_tag": true,
+      "commit_sha": "defbeb195e1136",
+      "date": null
+    },
+    {
+      "name": "v2.0.0-rc",
+      "is_tag": true,
+      "commit_sha": "cb7d025acde0a6",
+      "date": null
+    },
+    {
+      "name": "v2.1.0",
+      "is_tag": true,
+      "commit_sha": "d13c02d81dc4e9",
+      "date": null
+    },
+    {
+      "name": "v3.0.0",
+      "is_tag": true,
+      "commit_sha": "866983c928ba6d",
+      "date": null
+    },
+    {
+      "name": "v3.1.0",
+      "is_tag": true,
+      "commit_sha": "9a4583a6ba394a",
+      "date": null
+    },
+    {
+      "name": "v3.2.0",
+      "is_tag": true,
+      "commit_sha": "5ab287b2de542c",
+      "date": null
+    },
+    {
+      "name": "v3.3.0",
+      "is_tag": true,
+      "commit_sha": "d29b3c3a7a8aea",
+      "date": null
+    },
+    {
+      "name": "v3.4.0",
+      "is_tag": true,
+      "commit_sha": "93116b2afa714d",
+      "date": null
+    }
+  ],
+  "branches": [
+    {
+      "name": "main",
+      "is_tag": false,
+      "commit_sha": null,
+      "date": null
+    }
+  ],
+  "license_text": null,
+  "fetched_at": "2026-03-01T07:36:32.585122+00:00"
+}

@@ -7,7 +7,7 @@
     {
       "source_name": "clib",
       "label": "clib",
-      "index_path": "clib/Nami-Doc/trim.c",
+      "index_path": "clib/nami-doc/trim.c",
       "registry_version": "0.0.1"
     }
   ],

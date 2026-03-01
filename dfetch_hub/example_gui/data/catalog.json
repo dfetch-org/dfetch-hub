@@ -614,5 +614,61 @@
         "date": null
       }
     ]
+  },
+  "github/7bitcoder/7bitconf": {
+    "id": "github/7bitcoder/7bitconf",
+    "name": "7bitconf",
+    "description": "7bitConf is a simple C++17 centralized configuration provider library.",
+    "url": "https://github.com/7bitCoder/7bitConf",
+    "source_type": "github",
+    "default_branch": "main",
+    "license": "MIT",
+    "topics": [
+      "cpp17",
+      "configuration",
+      "provider",
+      "configuration-files"
+    ],
+    "stars": 0,
+    "last_updated": "2026-03-01T07:36:32.126127+00:00",
+    "source_labels": [
+      "conan"
+    ],
+    "tags": [
+      {
+        "name": "1.0.0",
+        "is_tag": true,
+        "commit_sha": null,
+        "date": null
+      }
+    ]
+  },
+  "github/7bitcoder/7bitdi": {
+    "id": "github/7bitcoder/7bitdi",
+    "name": "7bitdi",
+    "description": "a simple C++ dependency injection library.",
+    "url": "https://github.com/7bitcoder/7bitDI",
+    "source_type": "github",
+    "default_branch": "main",
+    "license": "MIT",
+    "topics": [
+      "cpp17",
+      "dependency-injector",
+      "injector",
+      "header-only"
+    ],
+    "stars": 0,
+    "last_updated": "2026-03-01T07:36:32.585039+00:00",
+    "source_labels": [
+      "conan"
+    ],
+    "tags": [
+      {
+        "name": "1.0.0",
+        "is_tag": true,
+        "commit_sha": null,
+        "date": null
+      }
+    ]
   }
 }

@@ -10,6 +10,7 @@ from pathlib import Path
 from dfetch.log import configure_root_logger, setup_root
 
 from dfetch_hub.catalog.clib import CLibPackage, parse_packages_md
+from dfetch_hub.catalog.conan import parse_conan_recipe
 from dfetch_hub.catalog.config import HubConfig, SourceConfig, load_config
 from dfetch_hub.catalog.fetcher import fetch_source
 from dfetch_hub.catalog.updater import ComponentManifest, update_catalog
@@ -22,14 +23,31 @@ configure_root_logger()
 logger = setup_root("dfetch-hub")
 
 
+_SUBFOLDER_PARSERS = {
+    "vcpkg.json": parse_vcpkg_json,
+    "conandata.yml": parse_conan_recipe,
+}
+
+
 def _process_subfolders_source(
     source: SourceConfig,
     data_dir: Path,
     limit: int | None,
 ) -> None:
-    """Handle strategy='subfolders' (e.g. vcpkg ports)."""
-    if not source.manifest:
-        logger.print_warning_line(source.name, "no 'manifest' configured — skipped")
+    """Handle strategy='subfolders' (vcpkg, conan-center, …).
+
+    Dispatches to the appropriate per-directory parser based on
+    ``source.manifest`` (e.g. ``vcpkg.json`` → vcpkg, ``conandata.yml`` → conan).
+    """
+    parse_fn = _SUBFOLDER_PARSERS.get(source.manifest)
+    if parse_fn is None:
+        if not source.manifest:
+            logger.print_warning_line(source.name, "no 'manifest' configured — skipped")
+        else:
+            logger.print_warning_line(
+                source.name,
+                f"manifest type '{source.manifest}' not supported — skipped",
+            )
         return
 
     logger.print_info_line(
@@ -47,11 +65,11 @@ def _process_subfolders_source(
         manifests: list[ComponentManifest] = []
         skipped = 0
         for port_dir in port_dirs:
-            m = parse_vcpkg_json(port_dir)
+            m = parse_fn(port_dir)
             if m is None:
                 skipped += 1
             else:
-                manifests.append(m)
+                manifests.append(m)  # type: ignore[arg-type]
 
         if skipped:
             logger.print_warning_line(

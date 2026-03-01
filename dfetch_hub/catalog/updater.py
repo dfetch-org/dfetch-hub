@@ -104,6 +104,7 @@ def _merge_catalog_entry(
     label: str,
 ) -> dict[str, Any]:
     """Create or update a catalog.json entry for this package."""
+    topics: list[str] = list(getattr(manifest, "topics", []))
     entry: dict[str, Any] = existing or {
         "id": _catalog_id(org, repo),
         "name": manifest.package_name,
@@ -112,12 +113,17 @@ def _merge_catalog_entry(
         "source_type": "github",
         "default_branch": "main",
         "license": manifest.license,
-        "topics": [],
+        "topics": topics,
         "stars": 0,
         "last_updated": _now_iso(),
         "source_labels": [],
         "tags": [],
     }
+
+    # Merge in topics from the current source if the entry already existed
+    if existing and topics:
+        existing_topics: list[str] = entry.setdefault("topics", [])
+        existing_topics.extend(t for t in topics if t not in existing_topics)
 
     # Update fields that the manifest knows about and the catalog may be stale on
     if manifest.description and not existing:
