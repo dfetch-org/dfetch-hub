@@ -261,8 +261,12 @@
     .snip-label{font-size:.76rem;color:rgba(255,255,255,.5);font-family:var(--mono)}
     .snip-copy{font-size:.75rem;background:var(--accent);color:#fff;border:none;border-radius:var(--rm);padding:.17rem .58rem;cursor:pointer;transition:.15s;font-weight:700}
     .snip-copy:hover{background:var(--accent2)}
-    .snip-code{padding:1.1rem 1.3rem;background:#2b2b2b;color:#f8f8f2;font-family:var(--mono);font-size:.84rem;line-height:1.7;overflow-x:auto;white-space:pre}
+    .snip-code{padding:.8rem 1rem;background:#2b2b2b;color:#f8f8f2;font-family:var(--mono);font-size:.78rem;line-height:1.6;overflow-x:auto;white-space:pre}
     .sk{color:#66d9e8}.sv{color:#a6e22e}.su{color:#e6db74}.sc{color:#75715e}
+    .snip-toggle-btn{width:100%;margin-top:.45rem;padding:.3rem .6rem;font-size:.79rem;color:var(--muted);border:1px solid var(--border2);border-radius:var(--rm);background:var(--surface);text-align:left;cursor:pointer;transition:.15s;font-family:var(--sans)}
+    .snip-toggle-btn:hover{border-color:var(--accent);color:var(--accent)}
+    .snip-toggle-btn.open{color:var(--accent);border-color:var(--accent)}
+    .snip-panel{margin-top:.42rem}
 
     /* Aside */
     .aside-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:.85rem .95rem;margin-bottom:.8rem}
@@ -422,7 +426,6 @@
     <div class="tabs-inner">
       <button class="tabbtn active" onclick="switchTab('readme')">README</button>
       <button class="tabbtn" onclick="switchTab('versions')">Versions</button>
-      <button class="tabbtn" onclick="switchTab('manifest')">dfetch snippet</button>
     </div>
   </div>
   <div class="pkg-body">
@@ -434,19 +437,20 @@
         <table class="vtable"><thead><tr><th>Ref</th><th>Type</th><th>SHA</th><th>Date</th></tr></thead>
         <tbody id="vtbody"></tbody></table>
       </div>
-      <div class="tabcontent" id="tab-manifest">
+    </div>
+    <aside>
+      <button class="btn-add add" id="btnAdd" onclick="toggleMf()">＋ Add to manifest</button>
+      <div id="selVerInfo" class="ver-sel-info" style="display:none">Version: <span class="vsn" id="selVerName"></span> <span id="selVerKind" style="font-size:.67rem;text-transform:uppercase;color:var(--subtle)"></span></div>
+      <button class="snip-toggle-btn" id="snipToggleBtn" onclick="toggleSnip()">‹› dfetch snippet ▾</button>
+      <div class="snip-panel" id="snipPanel" style="display:none">
         <div class="snip-wrap">
           <div class="snip-toolbar">
-            <span class="snip-label">dfetch.yaml — project entry</span>
+            <span class="snip-label">dfetch.yaml</span>
             <button class="snip-copy" onclick="copySnip()">Copy</button>
           </div>
           <div class="snip-code" id="dSnip"></div>
         </div>
       </div>
-    </div>
-    <aside>
-      <button class="btn-add add" id="btnAdd" onclick="toggleMf()">＋ Add to manifest</button>
-      <div id="selVerInfo" class="ver-sel-info" style="display:none">Version: <span class="vsn" id="selVerName"></span> <span id="selVerKind" style="font-size:.67rem;text-transform:uppercase;color:var(--subtle)"></span></div>
       <div style="height:.9rem"></div>
       <div class="aside-card"><div class="aside-t">Links</div><div id="aLinks"></div></div>
       <div class="aside-card"><div class="aside-t">Details</div><div id="aDets"></div></div>
@@ -757,6 +761,10 @@ function renderDetail(c){
     const p=cs.index_path?`<span style="font-size:.76rem;color:var(--subtle)"> ${esc(cs.index_path)}</span>`:'';
     return `<div class="aside-src-row">${lbl}<span>${esc(cs.source_name)}${p}</span></div>`;
   }).join(''):'<span style="font-size:.82rem;color:var(--subtle)">No registry info</span>';
+  // Reset snippet panel to collapsed
+  const snipPanel=document.getElementById('snipPanel');const snipBtn=document.getElementById('snipToggleBtn');
+  if(snipPanel)snipPanel.style.display='none';
+  if(snipBtn){snipBtn.textContent='‹› dfetch snippet ▾';snipBtn.classList.remove('open');}
   updAddBtn();updSelVerInfo();switchTab('readme');
 }
 function selectVersion(i){
@@ -775,9 +783,17 @@ function updSelVerInfo(){
   el.style.display='';
 }
 function switchTab(name){
-  document.querySelectorAll('.tabbtn').forEach((b,i)=>{const ns=['readme','versions','manifest'];b.classList.toggle('active',ns[i]===name)});
+  document.querySelectorAll('.tabbtn').forEach((b,i)=>{const ns=['readme','versions'];b.classList.toggle('active',ns[i]===name)});
   document.querySelectorAll('.tabcontent').forEach(el=>el.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
+}
+function toggleSnip(){
+  const panel=document.getElementById('snipPanel');const btn=document.getElementById('snipToggleBtn');
+  if(!panel||!btn)return;
+  const open=panel.style.display!=='none';
+  panel.style.display=open?'none':'';
+  btn.textContent=open?'‹› dfetch snippet ▾':'‹› dfetch snippet ▴';
+  btn.classList.toggle('open',!open);
 }
 
 function toggleMf(){
