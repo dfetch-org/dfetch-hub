@@ -878,7 +878,7 @@ function renderModal(){
   if(!items.length){empty.style.display='';list.innerHTML='';code.style.display='none';info.textContent='';return}
   empty.style.display='none';
   list.innerHTML=items.map(c=>{const v=MFS_VERSIONS[c.id];const vn=v?v.name:(ltag(c)||c.default_branch||'main');return`<div class="msel-row"><span class="msel-name">${esc(c.name)}</span><span style="font-size:.77rem;color:var(--subtle)">${esc(vn)}</span><span class="msel-rm" onclick="rmMf('${esc(c.id)}')">✕</span></div>`}).join('');
-  code.textContent=buildFullMf(items);code.style.display='';
+  code.innerHTML=buildFullMfHtml(items);code.style.display='';
   info.textContent=`${items.length} project${items.length!==1?'s':''} selected`;
 }
 function rmMf(id){MFS.delete(id);updMfCnt();renderModal();renderRes();if(id===curPkg)updAddBtn()}
@@ -899,6 +899,20 @@ function buildSnipHtml(c,version){
   if(v){if(v.kind==='branch')h+=`  ${k('branch')}: ${sv(esc(v.name))}\n`;else h+=`  ${k('tag')}: ${sv(esc(v.name))}\n`;}
   else{const t=ltag(c);if(t)h+=`  ${k('tag')}: ${sv(esc(t))}\n`;else h+=`  ${k('branch')}: ${sv(esc(br))}\n`;}
   h+=`  ${k('dst')}: ${sv('ext/'+sn)}\n`;return h;
+}
+function buildEntryHtml(c,version){
+  const v=version||MFS_VERSIONS[c.id];const br=c.default_branch||'main';const sn=(c.name||'comp').replace(/\s+/g,'-').toLowerCase();
+  const k=s=>`<span class="sk">${s}</span>`,sv=s=>`<span class="sv">${s}</span>`,u=s=>`<span class="su">${s}</span>`;
+  let h=`  ${k('- name')}: ${sv('ext/'+sn)}\n    ${k('url')}: ${u(esc(c.url))}\n`;
+  if(c.subfolder_path)h+=`    ${k('src')}: ${sv(esc(c.subfolder_path))}\n`;
+  if(v){if(v.kind==='branch')h+=`    ${k('branch')}: ${sv(esc(v.name))}\n`;else h+=`    ${k('tag')}: ${sv(esc(v.name))}\n`;}
+  else{const t=ltag(c);if(t)h+=`    ${k('tag')}: ${sv(esc(t))}\n`;else h+=`    ${k('branch')}: ${sv(esc(br))}\n`;}
+  h+=`    ${k('dst')}: ${sv('ext/'+sn)}\n`;return h;
+}
+function buildFullMfHtml(items){
+  const k=s=>`<span class="sk">${s}</span>`,sv=s=>`<span class="sv">${s}</span>`;
+  let h=`${k('manifest')}:\n  ${k('version')}: ${sv("'0.0'")}\n\n${k('projects')}:\n`;
+  items.forEach(c=>{h+=buildEntryHtml(c)});return h;
 }
 function copySnip(){const c=curPkg?RAW[curPkg]:null;if(!c)return;cpTxt(buildEntry(c,curVersion));showToast('Snippet copied!')}
 function copyMf(){cpTxt(buildFullMf([...MFS].map(id=>RAW[id]).filter(Boolean)));showToast('Manifest copied!')}
