@@ -1,5 +1,7 @@
 """Clone a remote source registry into a local directory via the dfetch API."""
 
+from __future__ import annotations
+
 from pathlib import Path
 
 from dfetch.log import get_logger
@@ -12,6 +14,29 @@ from dfetch.util.util import in_directory
 from dfetch_hub.config import SourceConfig
 
 logger = get_logger(__name__)
+
+
+def _validate_source_name(name: str) -> None:
+    """Reject source names that could escape *dest_dir* via path traversal.
+
+    A valid source name must be a single path component — no separators,
+    no absolute paths, no ``..`` or ``.`` traversal segments.
+
+    Args:
+        name: The source name to validate.
+
+    Raises:
+        ValueError: If *name* contains path separators, traversal segments,
+            or is otherwise unsafe to use as a directory name inside a
+            controlled destination directory.
+
+    """
+    parts = Path(name).parts
+    if Path(name).is_absolute() or len(parts) != 1 or parts[0] in (".", ".."):
+        raise ValueError(
+            f"Source name {name!r} is not a safe single path component "
+            "(must contain no separators, no leading slash, and no traversal segments)"
+        )
 
 
 def create_manifest(source: SourceConfig, dest_dir: Path) -> Path:
@@ -29,6 +54,7 @@ def create_manifest(source: SourceConfig, dest_dir: Path) -> Path:
         Path to the written ``dfetch.yaml``.
 
     """
+    _validate_source_name(source.name)
     project = ProjectEntryDict(
         name=source.name,
         url=source.url,
@@ -78,7 +104,11 @@ def clone_source(source: SourceConfig, dest_dir: Path) -> Path:
         for project in manifest.projects:
             create_sub_project(project).update(force=True)
 
-    cloned = Path(dest_dir / source.name)
+    cloned = dest_dir / source.name
+    if not cloned.resolve().is_relative_to(dest_dir.resolve()):
+        raise RuntimeError(
+            f"Source name {source.name!r} resolves outside dest_dir {dest_dir}"
+        )
     if not cloned.is_dir():
         raise RuntimeError(
             f"Expected dfetch output directory {cloned} not found after update"
