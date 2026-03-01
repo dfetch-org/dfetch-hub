@@ -180,6 +180,14 @@ def _cmd_update(parsed: argparse.Namespace) -> None:
         _process_source(source, data_dir, parsed.limit)
 
 
+def _non_negative_int(value: str) -> int:
+    """Parse *value* as a non-negative integer for ``--limit``."""
+    parsed = int(value)
+    if parsed < 0:
+        raise argparse.ArgumentTypeError("--limit must be >= 0")
+    return parsed
+
+
 def register(subparsers: argparse._SubParsersAction) -> None:  # type: ignore[type-arg]
     """Register the ``update`` subcommand onto *subparsers*."""
     update_p = subparsers.add_parser(
@@ -198,7 +206,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:  # type: ignore[ty
     )
     update_p.add_argument(
         "--limit",
-        type=int,
+        type=_non_negative_int,
         default=None,
         metavar="N",
         help="Process only the first N ports per source (useful for testing)",
