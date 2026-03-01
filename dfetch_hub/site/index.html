@@ -92,7 +92,7 @@
     .brand:hover{color:#fff;opacity:.92}
     .nsearch{flex:1;max-width:560px;position:relative}
     .nsearch input{
-      width:100%;padding:.4rem .9rem .4rem 2.2rem;
+      width:100%;padding:.4rem 2.2rem .4rem 2.2rem;
       border-radius:var(--rm);
       border:1px solid rgba(255,255,255,.18);
       background:rgba(255,255,255,.08);
@@ -112,6 +112,8 @@
     }
     .nsearch input::-webkit-search-cancel-button:hover{background-color:#fff}
     .nsearch-ico{position:absolute;left:.65rem;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.4);font-size:.85rem;pointer-events:none}
+    .nsearch-kbd{position:absolute;right:.52rem;top:50%;transform:translateY(-50%);font-size:.67rem;color:rgba(255,255,255,.28);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);border-radius:3px;padding:.05rem .32rem;pointer-events:none;font-family:var(--mono);line-height:1.3;transition:opacity .15s}
+    #nInput:focus~.nsearch-kbd{opacity:0}
     .acdrop{
       position:absolute;top:calc(100% + 6px);left:0;right:0;
       background:var(--surface);border:1px solid var(--border2);
@@ -390,6 +392,7 @@
     <input id="nInput" type="search" placeholder="Search components…" autocomplete="off"
       oninput="onNInput(this.value)" onkeydown="onNKey(event)"
       onfocus="openAC()" onblur="setTimeout(closeAC,180)" />
+    <span class="nsearch-kbd">/</span>
     <div class="acdrop" id="acdrop"></div>
   </div>
   <div class="nav-actions">
@@ -602,6 +605,15 @@ function initPageStats() {
 
 // Call on page load
 loadCatalog();
+
+document.addEventListener('keydown',e=>{
+  if(e.key!=='/'||['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName))return;
+  e.preventDefault();
+  const inp=document.getElementById('page-home').classList.contains('active')
+    ?document.getElementById('hInput')
+    :document.getElementById('nInput');
+  inp.focus();inp.select();
+});
 
 window.addEventListener('popstate', async ()=>{
   _skipNav=true;
