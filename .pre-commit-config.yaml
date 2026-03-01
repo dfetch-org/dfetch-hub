@@ -8,11 +8,17 @@ repos:
   -   id: black
       name: black formatter
       entry: black
-      language: system
+      language: python
       types: [file, python]
   -   id: pylint
       name: lint python files
       entry: pylint
-      language: system
+      language: python
+      files: ^dfetch_hub/
+      types: [file, python]
+  -   id: mypy
+      name: type check python files
+      entry: mypy
+      language: python
       files: ^dfetch_hub/
       types: [file, python]
