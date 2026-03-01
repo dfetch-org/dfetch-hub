@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import tomllib
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 
 
 @dataclass
@@ -60,8 +60,8 @@ class HubConfig:
     sources: list[SourceConfig] = field(default_factory=list)
 
 
-_SOURCE_FIELDS: frozenset[str] = frozenset(SourceConfig.__dataclass_fields__)
-_SETTINGS_FIELDS: frozenset[str] = frozenset(Settings.__dataclass_fields__)
+_SOURCE_FIELDS: frozenset[str] = frozenset(f.name for f in fields(SourceConfig))
+_SETTINGS_FIELDS: frozenset[str] = frozenset(f.name for f in fields(Settings))
 
 
 def load_config(path: str = "dfetch-hub.toml") -> HubConfig:

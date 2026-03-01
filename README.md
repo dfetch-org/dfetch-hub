@@ -15,11 +15,11 @@ pip install -e .
 ### CLI
 
 ```console
-dfetch-hub-update --limit 3
+dfetch-hub update --limit=3
 ```
 
 ### Gui
 
 ```console
-python -m http.server -d dfetch_hub/example_gui
+dfetch-hub serve
 ```

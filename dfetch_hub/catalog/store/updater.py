@@ -17,7 +17,7 @@ logger = get_logger(__name__)
 
 
 @runtime_checkable
-class ComponentManifest(Protocol):
+class ComponentManifest(Protocol):  # pylint: disable=too-few-public-methods
     """Common interface for package manifests (vcpkg, clib, …)."""
 
     port_name: str
@@ -26,6 +26,7 @@ class ComponentManifest(Protocol):
     homepage: str | None
     license: str | None
     version: str | None
+
 
 # ---------------------------------------------------------------------------
 # GitHub URL helpers
@@ -173,7 +174,7 @@ def _catalog_source_entry(
     }
 
 
-def _merge_detail(
+def _merge_detail(  # pylint: disable=too-many-arguments,too-many-positional-arguments
     existing: dict[str, Any] | None,
     manifest: ComponentManifest,
     org: str,
@@ -261,7 +262,7 @@ def _generate_readme(manifest: ComponentManifest, org: str, repo: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-def update_catalog(
+def update_catalog(  # pylint: disable=too-many-locals
     manifests: list[ComponentManifest],
     data_dir: Path,
     source_name: str,

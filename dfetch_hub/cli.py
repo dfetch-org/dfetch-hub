@@ -1,10 +1,13 @@
-"""CLI entry point: fetch sources and update the catalog from dfetch-hub.toml."""
+"""dfetch-hub command-line interface."""
 
 from __future__ import annotations
 
 import argparse
+import http.server
 import sys
 import tempfile
+import threading
+import webbrowser
 from pathlib import Path
 
 from dfetch.log import configure_root_logger, setup_root
@@ -16,12 +19,17 @@ from dfetch_hub.catalog.store.fetcher import fetch_source
 from dfetch_hub.catalog.store.updater import ComponentManifest, update_catalog
 from dfetch_hub.config import HubConfig, SourceConfig, load_config
 
-_DEFAULT_DATA_DIR = Path(__file__).parent / "example_gui" / "data"
-
+_PACKAGE_DIR = Path(__file__).parent
+_DEFAULT_DATA_DIR = _PACKAGE_DIR / "data"
+_SITE_DIR = _PACKAGE_DIR / "site"
 
 configure_root_logger()
 logger = setup_root("dfetch-hub")
 
+
+# ---------------------------------------------------------------------------
+# update subcommand helpers
+# ---------------------------------------------------------------------------
 
 _SUBFOLDER_PARSERS = {
     "vcpkg.json": parse_vcpkg_json,
@@ -153,39 +161,13 @@ def _process_source(
         )
 
 
-def main(args: list[str] | None = None) -> None:
-    """Main entry point for the dfetch-hub CLI."""
+# ---------------------------------------------------------------------------
+# Subcommand implementations
+# ---------------------------------------------------------------------------
 
-    logger.info("[bold blue]Dfetch:[white]hub[/white] (0.0.1)[/bold blue]")
 
-    parser = argparse.ArgumentParser(
-        description="Fetch sources configured in dfetch-hub.toml and update the catalog.",
-    )
-    parser.add_argument(
-        "--config",
-        default="dfetch-hub.toml",
-        help="Path to dfetch-hub.toml (default: %(default)s)",
-    )
-    parser.add_argument(
-        "--data-dir",
-        default=str(_DEFAULT_DATA_DIR),
-        help="Path to the catalog data directory (default: %(default)s)",
-    )
-    parser.add_argument(
-        "--limit",
-        type=int,
-        default=None,
-        metavar="N",
-        help="Process only the first N ports (useful for testing)",
-    )
-    parser.add_argument(
-        "--source",
-        default=None,
-        metavar="NAME",
-        help="Only process the source with this name",
-    )
-
-    parsed = parser.parse_args(args)
+def _cmd_update(parsed: argparse.Namespace) -> None:
+    """Run the catalog update pipeline."""
     data_dir = Path(parsed.data_dir)
 
     try:
@@ -203,6 +185,101 @@ def main(args: list[str] | None = None) -> None:
 
     for source in sources:
         _process_source(source, data_dir, parsed.limit)
+
+
+def _cmd_serve(parsed: argparse.Namespace) -> None:
+    """Serve the site from the package directory and open the browser."""
+    port: int = parsed.port
+    serve_dir = _PACKAGE_DIR
+
+    # SimpleHTTPRequestHandler serves files relative to the process cwd,
+    # so we subclass it to always serve from the package directory.
+    class _Handler(http.server.SimpleHTTPRequestHandler):
+        def __init__(self, *args: object, **kwargs: object) -> None:
+            super().__init__(*args, directory=str(serve_dir), **kwargs)  # type: ignore[arg-type]
+
+        def log_message(
+            self,
+            format: str,  # pylint: disable=redefined-builtin
+            *args: object,
+        ) -> None:
+            pass  # suppress per-request noise
+
+    url = f"http://localhost:{port}/site/index.html"
+    print(f"Serving {serve_dir} on {url}  (Ctrl-C to stop)")
+
+    server = http.server.HTTPServer(("", port), _Handler)
+
+    # Open the browser slightly after the server starts
+    threading.Timer(0.3, webbrowser.open, args=(url,)).start()
+
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nStopped.")
+
+
+# ---------------------------------------------------------------------------
+# Top-level parser
+# ---------------------------------------------------------------------------
+
+
+def main(args: list[str] | None = None) -> None:
+    """Main entry point for the dfetch-hub CLI."""
+    logger.info("[bold blue]Dfetch:[white]hub[/white] (0.0.1)[/bold blue]")
+
+    parser = argparse.ArgumentParser(
+        prog="dfetch-hub",
+        description="dfetch-hub: catalog builder and viewer for dfetch package registries.",
+    )
+    subparsers = parser.add_subparsers(dest="command", metavar="<command>")
+    subparsers.required = True
+
+    # ── update ────────────────────────────────────────────────────────────
+    update_p = subparsers.add_parser(
+        "update",
+        help="Fetch sources from dfetch-hub.toml and update the catalog.",
+    )
+    update_p.add_argument(
+        "--config",
+        default="dfetch-hub.toml",
+        help="Path to dfetch-hub.toml (default: %(default)s)",
+    )
+    update_p.add_argument(
+        "--data-dir",
+        default=str(_DEFAULT_DATA_DIR),
+        help="Catalog data directory (default: %(default)s)",
+    )
+    update_p.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        metavar="N",
+        help="Process only the first N ports per source (useful for testing)",
+    )
+    update_p.add_argument(
+        "--source",
+        default=None,
+        metavar="NAME",
+        help="Only process the source with this name",
+    )
+    update_p.set_defaults(func=_cmd_update)
+
+    # ── serve ─────────────────────────────────────────────────────────────
+    serve_p = subparsers.add_parser(
+        "serve",
+        help="Start a local HTTP server and open the catalog UI in the browser.",
+    )
+    serve_p.add_argument(
+        "--port",
+        type=int,
+        default=8000,
+        help="TCP port to listen on (default: %(default)s)",
+    )
+    serve_p.set_defaults(func=_cmd_serve)
+
+    parsed = parser.parse_args(args)
+    parsed.func(parsed)
 
 
 if __name__ == "__main__":

@@ -38,7 +38,7 @@ Homepage = "https://github.com/dfetch-org/dfetch-hub"
 Issues = "https://github.com/dfetch-org/dfetch-hub/issues"
 
 [project.scripts]
-dfetch-hub-update = "dfetch_hub.cli:main"
+dfetch-hub = "dfetch_hub.cli:main"
 
 [tool.isort]
 profile = "black"

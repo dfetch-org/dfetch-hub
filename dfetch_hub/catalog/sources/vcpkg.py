@@ -1,3 +1,4 @@
+# pylint: disable=duplicate-code
 """Parse vcpkg.json port manifest files."""
 
 from __future__ import annotations

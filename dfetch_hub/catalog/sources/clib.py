@@ -28,9 +28,7 @@ _GITHUB_RE = re.compile(
 
 # Matches a Markdown bullet with a link: " - [text](url) - tagline"
 # The clib wiki uses " - " as the bullet character.
-_BULLET_RE = re.compile(
-    r"^\s*-\s+\[([^\]]+)\]\((https?://[^\)]+)\)\s*(?:-\s*(.+))?$"
-)
+_BULLET_RE = re.compile(r"^\s*-\s+\[([^\]]+)\]\((https?://[^\)]+)\)\s*(?:-\s*(.+))?$")
 
 # Category heading: "## Some Category"
 _HEADING_RE = re.compile(r"^#{1,4}\s+(.+)$")
@@ -40,7 +38,7 @@ _RAW_BRANCHES = ("main", "master")
 
 
 @dataclass
-class CLibPackage:
+class CLibPackage:  # pylint: disable=too-many-instance-attributes
     """Parsed representation of a single clib package entry.
 
     Attributes:
@@ -138,9 +136,7 @@ def _parse_github_slug(url: str) -> tuple[str, str] | None:
     return (m.group(1).lower(), m.group(2).lower()) if m else None
 
 
-def _build_package(
-    owner: str, repo: str, tagline: str, category: str
-) -> CLibPackage:
+def _build_package(owner: str, repo: str, tagline: str, category: str) -> CLibPackage:
     """Build a :class:`CLibPackage` from a bullet entry and its ``package.json``."""
     github_url = f"https://github.com/{owner}/{repo}"
     pkg_json = _fetch_package_json(owner, repo)
@@ -177,9 +173,7 @@ def _build_package(
     )
 
 
-def parse_packages_md(
-    packages_md: Path, limit: int | None = None
-) -> list[CLibPackage]:
+def parse_packages_md(packages_md: Path, limit: int | None = None) -> list[CLibPackage]:
     """Parse ``Packages.md`` from the clib wiki into a list of :class:`CLibPackage`.
 
     For each bullet-point entry the function:
@@ -215,7 +209,9 @@ def parse_packages_md(
             continue
 
         owner, repo = parsed
-        packages.append(_build_package(owner, repo, (tagline or "").strip(), current_category))
+        packages.append(
+            _build_package(owner, repo, (tagline or "").strip(), current_category)
+        )
 
         if limit is not None and len(packages) >= limit:
             break

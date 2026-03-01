@@ -480,7 +480,7 @@ let hacIdx = -1;
 
 async function loadCatalog() {
   try {
-    const resp = await fetch('data/catalog.json'); // summary catalog
+    const resp = await fetch('../data/catalog.json'); // summary catalog
     if (!resp.ok) throw new Error(`Failed to load catalog: ${resp.status}`);
     RAW = await resp.json();
 
@@ -518,7 +518,7 @@ async function showDetail(id){
   if(!c._detailLoaded){
     document.getElementById('readmeBody').innerHTML='<div class="readme-empty">Loading…</div>';
     document.getElementById('vtbody').innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--subtle)">Loading…</td></tr>';
-    try{const resp=await fetch(`data/${id}.json`);if(resp.ok){const d=await resp.json();Object.assign(RAW[id],d);}}catch(e){}
+    try{const resp=await fetch(`../data/${id}.json`);if(resp.ok){const d=await resp.json();Object.assign(RAW[id],d);}}catch(e){}
     RAW[id]._detailLoaded=true;
   }
   renderDetail(RAW[id]);
