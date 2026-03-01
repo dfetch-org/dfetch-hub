@@ -67,15 +67,14 @@ label       = "vcpkg"          # tag added to every component found here
 # manifest    = "conandata.yml"
 # label       = "conan"
 
-# # ── EXAMPLE: webpage-list — clib wiki ─────────────────────────────────────────
-# # Scrape a web page and collect all git URLs matching a pattern.
-# [[source]]
-# name      = "clib"
-# strategy  = "webpage-list"
-# url       = "https://github.com/clibs/clib/wiki/Packages"
-# # Regex applied to the raw HTML/text; every capture group 1 is treated as a URL.
-# url_regex = "https://github\\.com/[\\w.-]+/[\\w.-]+"
-# label     = "clib"
+[[source]]
+name     = "clib"
+strategy = "git-wiki"
+# The GitHub wiki is a regular git repo at <repo>.wiki.git
+url      = "https://github.com/clibs/clib.wiki.git"
+# Which file in the wiki root holds the package index
+manifest = "Packages.md"
+label    = "clib"
 
 # # ── EXAMPLE: registry — ESP-IDF component manager ─────────────────────────────
 # # A known registry type; dfetch-hub knows how to talk to its API.

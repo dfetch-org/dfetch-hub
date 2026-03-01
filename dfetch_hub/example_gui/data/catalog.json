@@ -545,5 +545,74 @@
         "date": null
       }
     ]
+  },
+  "github/clibs/buffer": {
+    "id": "github/clibs/buffer",
+    "name": "buffer",
+    "description": "tiny c-string library",
+    "url": "https://github.com/clibs/buffer",
+    "source_type": "github",
+    "default_branch": "main",
+    "license": "MIT",
+    "topics": [],
+    "stars": 0,
+    "last_updated": "2026-03-01T07:03:49.405010+00:00",
+    "source_labels": [
+      "clib"
+    ],
+    "tags": [
+      {
+        "name": "0.4.0",
+        "is_tag": true,
+        "commit_sha": null,
+        "date": null
+      }
+    ]
+  },
+  "github/nami-doc/trim.c": {
+    "id": "github/nami-doc/trim.c",
+    "name": "trim",
+    "description": "trim a string, in place",
+    "url": "https://github.com/Nami-Doc/trim.c",
+    "source_type": "github",
+    "default_branch": "main",
+    "license": "MIT",
+    "topics": [],
+    "stars": 0,
+    "last_updated": "2026-03-01T07:03:49.720723+00:00",
+    "source_labels": [
+      "clib"
+    ],
+    "tags": [
+      {
+        "name": "0.0.1",
+        "is_tag": true,
+        "commit_sha": null,
+        "date": null
+      }
+    ]
+  },
+  "github/nami-doc/strlen.c": {
+    "id": "github/nami-doc/strlen.c",
+    "name": "strlen",
+    "description": "get a string's length",
+    "url": "https://github.com/Nami-Doc/strlen.c",
+    "source_type": "github",
+    "default_branch": "main",
+    "license": "MIT",
+    "topics": [],
+    "stars": 0,
+    "last_updated": "2026-03-01T07:03:50.152528+00:00",
+    "source_labels": [
+      "clib"
+    ],
+    "tags": [
+      {
+        "name": "0.0.1",
+        "is_tag": true,
+        "commit_sha": null,
+        "date": null
+      }
+    ]
   }
 }

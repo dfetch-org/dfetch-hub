@@ -1,11 +1,11 @@
-"""Update catalog.json and per-project detail JSONs with data from vcpkg.json files."""
+"""Update catalog.json and per-project detail JSONs with package manifest data."""
 
 from __future__ import annotations
 
 import json
 import re
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 from dfetch.log import get_logger
 from dfetch.vcs.git import GitRemote
@@ -13,9 +13,19 @@ from dfetch.vcs.git import GitRemote
 if TYPE_CHECKING:
     from pathlib import Path
 
-    from dfetch_hub.catalog.vcpkg import VcpkgManifest
-
 logger = get_logger(__name__)
+
+
+@runtime_checkable
+class ComponentManifest(Protocol):
+    """Common interface for package manifests (vcpkg, clib, …)."""
+
+    port_name: str
+    package_name: str
+    description: str
+    homepage: str | None
+    license: str | None
+    version: str | None
 
 # ---------------------------------------------------------------------------
 # GitHub URL helpers
@@ -28,9 +38,14 @@ _GITHUB_RE = re.compile(
 
 
 def _parse_github_url(url: str) -> tuple[str, str] | None:
-    """Return (org, repo) extracted from a GitHub URL, or None."""
+    """Return (org, repo) extracted from a GitHub URL, normalised to lowercase.
+
+    GitHub URLs are case-insensitive; lowercasing ensures the catalog ID, the
+    detail-file path, and the ``org``/``repo`` fields in the detail JSON are
+    all consistent with each other so the frontend can derive paths from IDs.
+    """
     m = _GITHUB_RE.match(url.strip())
-    return (m.group(1), m.group(2)) if m else None
+    return (m.group(1).lower(), m.group(2).lower()) if m else None
 
 
 def _catalog_id(org: str, repo: str) -> str:
@@ -83,7 +98,7 @@ def _now_iso() -> str:
 
 def _merge_catalog_entry(
     existing: dict[str, Any] | None,
-    manifest: VcpkgManifest,
+    manifest: ComponentManifest,
     org: str,
     repo: str,
     label: str,
@@ -104,7 +119,7 @@ def _merge_catalog_entry(
         "tags": [],
     }
 
-    # Update fields that vcpkg knows about and the catalog may be stale on
+    # Update fields that the manifest knows about and the catalog may be stale on
     if manifest.description and not existing:
         entry["description"] = manifest.description
     if manifest.license and not existing:
@@ -139,7 +154,7 @@ def _merge_catalog_entry(
 
 
 def _catalog_source_entry(
-    manifest: VcpkgManifest,
+    manifest: ComponentManifest,
     source_name: str,
     label: str,
     ports_path: str,
@@ -154,7 +169,7 @@ def _catalog_source_entry(
 
 def _merge_detail(
     existing: dict[str, Any] | None,
-    manifest: VcpkgManifest,
+    manifest: ComponentManifest,
     org: str,
     repo: str,
     source_name: str,
@@ -162,6 +177,7 @@ def _merge_detail(
     ports_path: str,
 ) -> dict[str, Any]:
     """Create or update a per-project detail JSON."""
+    fetched_readme: str | None = getattr(manifest, "readme_content", None)
     detail: dict[str, Any] = existing or {
         "canonical_url": manifest.homepage or f"https://github.com/{org}/{repo}",
         "org": org,
@@ -169,7 +185,7 @@ def _merge_detail(
         "subfolder_path": None,
         "catalog_sources": [],
         "manifests": [],
-        "readme": _generate_readme(manifest, org, repo),
+        "readme": fetched_readme or _generate_readme(manifest, org, repo),
         "tags": [],
         "branches": [
             {"name": "main", "is_tag": False, "commit_sha": None, "date": None},
@@ -177,6 +193,10 @@ def _merge_detail(
         "license_text": None,
         "fetched_at": _now_iso(),
     }
+
+    # When we have a real upstream README, always overwrite the placeholder
+    if fetched_readme:
+        detail["readme"] = fetched_readme
 
     # Update or add the catalog source for this label
     sources: list[dict[str, Any]] = detail.setdefault("catalog_sources", [])
@@ -195,7 +215,7 @@ def _merge_detail(
     if not tags and manifest.homepage:
         tags.extend(_fetch_upstream_tags(manifest.homepage))
 
-    # Ensure the current vcpkg version appears in the tag list.
+    # Ensure the current version appears in the tag list.
     # Normalise by stripping a leading "v" so that "6.4.0" matches "v6.4.0".
     if manifest.version:
         tag_names_normalised = {t.get("name", "").lstrip("v") for t in tags}
@@ -213,7 +233,7 @@ def _merge_detail(
     return detail
 
 
-def _generate_readme(manifest: VcpkgManifest, org: str, repo: str) -> str:
+def _generate_readme(manifest: ComponentManifest, org: str, repo: str) -> str:
     version_line = f"\n    tag: {manifest.version}" if manifest.version else ""
     return (
         f"# {manifest.package_name}\n\n"
@@ -236,7 +256,7 @@ def _generate_readme(manifest: VcpkgManifest, org: str, repo: str) -> str:
 
 
 def update_catalog(
-    manifests: list[VcpkgManifest],
+    manifests: list[ComponentManifest],
     data_dir: Path,
     source_name: str,
     label: str,

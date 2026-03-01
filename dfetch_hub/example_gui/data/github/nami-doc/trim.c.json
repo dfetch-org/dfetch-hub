@@ -1,0 +1,34 @@
+{
+  "canonical_url": "https://github.com/Nami-Doc/trim.c",
+  "org": "Nami-Doc",
+  "repo": "trim.c",
+  "subfolder_path": null,
+  "catalog_sources": [
+    {
+      "source_name": "clib",
+      "label": "clib",
+      "index_path": "clib/Nami-Doc/trim.c",
+      "registry_version": "0.0.1"
+    }
+  ],
+  "manifests": [],
+  "readme": "# Trim\r\n\r\n  Trims a string in-place.\r\n\r\n# Installation\r\n\r\n`$ clib install vendethiel/trim.c`\r\n\r\n## Example\r\n\r\n```c\r\nchar[] str = \"hello world \";\r\nstr = trim(str);\r\n``` \r\n",
+  "tags": [
+    {
+      "name": "0.0.1",
+      "is_tag": true,
+      "commit_sha": "2bb4abf7842cf4",
+      "date": null
+    }
+  ],
+  "branches": [
+    {
+      "name": "main",
+      "is_tag": false,
+      "commit_sha": null,
+      "date": null
+    }
+  ],
+  "license_text": null,
+  "fetched_at": "2026-03-01T07:03:49.720825+00:00"
+}

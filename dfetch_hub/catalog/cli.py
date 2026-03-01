@@ -9,10 +9,11 @@ from pathlib import Path
 
 from dfetch.log import configure_root_logger, setup_root
 
+from dfetch_hub.catalog.clib import CLibPackage, parse_packages_md
 from dfetch_hub.catalog.config import HubConfig, SourceConfig, load_config
 from dfetch_hub.catalog.fetcher import fetch_source
-from dfetch_hub.catalog.updater import update_catalog
-from dfetch_hub.catalog.vcpkg import VcpkgManifest, parse_vcpkg_json
+from dfetch_hub.catalog.updater import ComponentManifest, update_catalog
+from dfetch_hub.catalog.vcpkg import parse_vcpkg_json
 
 _DEFAULT_DATA_DIR = Path(__file__).parent.parent / "example_gui" / "data"
 
@@ -21,17 +22,12 @@ configure_root_logger()
 logger = setup_root("dfetch-hub")
 
 
-def _process_source(
+def _process_subfolders_source(
     source: SourceConfig,
     data_dir: Path,
     limit: int | None,
 ) -> None:
-    if source.strategy != "subfolders":
-        logger.print_warning_line(
-            source.name, f"strategy '{source.strategy}' not yet supported — skipped"
-        )
-        return
-
+    """Handle strategy='subfolders' (e.g. vcpkg ports)."""
     if not source.manifest:
         logger.print_warning_line(source.name, "no 'manifest' configured — skipped")
         return
@@ -48,7 +44,7 @@ def _process_source(
             port_dirs = port_dirs[:limit]
 
         logger.print_info_line(source.name, f"Parsing {len(port_dirs)} port(s) ...")
-        manifests: list[VcpkgManifest] = []
+        manifests: list[ComponentManifest] = []
         skipped = 0
         for port_dir in port_dirs:
             m = parse_vcpkg_json(port_dir)
@@ -73,6 +69,69 @@ def _process_source(
             source.name,
             f"Done — {_added} added, {_updated} updated "
             f"({len(manifests) - _added - _updated} skipped/no-github-url)",
+        )
+
+
+def _process_git_wiki_source(
+    source: SourceConfig,
+    data_dir: Path,
+    limit: int | None,
+) -> None:
+    """Handle strategy='git-wiki': clone a git wiki repo and parse a markdown index.
+
+    The wiki is fetched via dfetch (shallow clone), then the file named by
+    ``source.manifest`` (e.g. ``Packages.md``) is parsed to discover packages.
+    For each package the upstream ``package.json`` is fetched from GitHub to
+    collect richer metadata.
+    """
+    if not source.manifest:
+        logger.print_warning_line(source.name, "no 'manifest' configured — skipped")
+        return
+
+    logger.print_info_line(source.name, f"Fetching wiki {source.url} ...")
+    with tempfile.TemporaryDirectory(prefix="dfetch-hub-") as tmp:
+        tmp_path = Path(tmp)
+        fetched_dir = fetch_source(source, tmp_path)
+
+        index_file = fetched_dir / source.manifest
+        if not index_file.exists():
+            logger.print_warning_line(
+                source.name, f"'{source.manifest}' not found in fetched wiki — skipped"
+            )
+            return
+
+        logger.print_info_line(source.name, f"Parsing {source.manifest} ...")
+        packages: list[CLibPackage] = parse_packages_md(index_file, limit=limit)
+
+        logger.print_info_line(
+            source.name, f"Fetched metadata for {len(packages)} package(s)"
+        )
+        _added, _updated = update_catalog(
+            packages,  # type: ignore[arg-type]
+            data_dir,
+            source_name=source.name,
+            label=source.label or source.name,
+            ports_path=source.label or source.name,
+        )
+        logger.print_info_line(
+            source.name,
+            f"Done — {_added} added, {_updated} updated "
+            f"({len(packages) - _added - _updated} skipped/no-github-url)",
+        )
+
+
+def _process_source(
+    source: SourceConfig,
+    data_dir: Path,
+    limit: int | None,
+) -> None:
+    if source.strategy == "subfolders":
+        _process_subfolders_source(source, data_dir, limit)
+    elif source.strategy == "git-wiki":
+        _process_git_wiki_source(source, data_dir, limit)
+    else:
+        logger.print_warning_line(
+            source.name, f"strategy '{source.strategy}' not yet supported — skipped"
         )
 
 
