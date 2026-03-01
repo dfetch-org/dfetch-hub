@@ -131,7 +131,7 @@ def _process_git_wiki_source(
             data_dir,
             source_name=source.name,
             label=source.label or source.name,
-            ports_path=source.label or source.name,
+            ports_path=source.path or source.name,
         )
         logger.print_info_line(
             source.name,
