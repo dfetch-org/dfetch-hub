@@ -114,11 +114,21 @@ class ConanManifest(BaseManifest):
 def _latest_version(config_path: Path) -> tuple[str | None, str]:
     """Return ``(version, subfolder)`` from ``config.yml``, or ``(None, 'all')``."""
     try:
-        data: Any = yaml.safe_load(config_path.read_text(encoding="utf-8"))
-        versions: dict[str, Any] = (data or {}).get("versions", {})
+        loaded: Any = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+        if not isinstance(loaded, dict):
+            return None, "all"
+        versions_obj = loaded.get("versions", {})
+        if not isinstance(versions_obj, dict):
+            return None, "all"
+        versions: dict[str, Any] = versions_obj
         if versions:
             latest = list(versions)[-1]
-            folder = str(versions[latest].get("folder", "all"))
+            latest_meta = versions.get(latest)
+            folder = (
+                str(latest_meta.get("folder", "all"))
+                if isinstance(latest_meta, dict)
+                else "all"
+            )
             return latest, folder
     except (OSError, yaml.YAMLError) as exc:
         logger.debug("Could not parse %s: %s", config_path, exc)
