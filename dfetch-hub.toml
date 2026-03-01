@@ -105,8 +105,8 @@ label    = "clib"
 # file_glob  = "README.md"
 # url_regex  = "https://github\\.com/[\\w.-]+/[\\w.-]+"
 # label      = "awesome-embedded"
-# Optionally restrict to repos whose path matches:
-# path_filter = ".*"
+# # Optionally restrict to repos whose path matches:
+# # path_filter = ".*"
 
 # # ── EXAMPLE: SVN — single repo ────────────────────────────────────────────────
 # [[source]]
