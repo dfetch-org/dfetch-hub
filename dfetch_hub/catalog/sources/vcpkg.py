@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 
 from dfetch.log import get_logger
 
-from dfetch_hub.catalog.sources import BaseManifest
+from dfetch_hub.catalog.sources import BaseManifest, fetch_readme_for_homepage
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -94,12 +94,15 @@ def parse_vcpkg_json(port_dir: Path) -> VcpkgManifest | None:
         logger.warning("Could not parse %s: %s", manifest_path, exc)
         return None
 
+    homepage: str | None = data.get("homepage") or None  # type: ignore[assignment]
+
     return VcpkgManifest(
         port_name=port_dir.name,
         package_name=data.get("name", port_dir.name),  # type: ignore[arg-type]
         description=_extract_description(data),
-        homepage=data.get("homepage") or None,  # type: ignore[arg-type]
+        homepage=homepage,
         license=data.get("license") or None,  # type: ignore[arg-type]
         version=_extract_version(data),
         dependencies=_extract_dependencies(data),
+        readme_content=fetch_readme_for_homepage(homepage),
     )

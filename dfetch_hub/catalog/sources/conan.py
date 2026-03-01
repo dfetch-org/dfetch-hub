@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any
 import yaml
 from dfetch.log import get_logger
 
-from dfetch_hub.catalog.sources import BaseManifest
+from dfetch_hub.catalog.sources import BaseManifest, fetch_readme_for_homepage
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -193,4 +193,5 @@ def parse_conan_recipe(recipe_dir: Path) -> ConanManifest | None:
         license=license_val,
         version=version,
         topics=topics,
+        readme_content=fetch_readme_for_homepage(homepage),
     )

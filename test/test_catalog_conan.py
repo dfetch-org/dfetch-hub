@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import textwrap
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -62,6 +63,15 @@ _CONFIG_YML = textwrap.dedent(
         folder: all
     """
 )
+
+
+@pytest.fixture(autouse=True)
+def _mock_fetch_readme() -> object:
+    """Prevent real network calls to fetch_readme in all conan tests."""
+    with patch(
+        "dfetch_hub.catalog.sources.conan.fetch_readme_for_homepage", return_value=None
+    ):
+        yield
 
 
 @pytest.fixture

@@ -82,7 +82,7 @@ def test_build_package_uses_github_url_when_no_homepage_in_json() -> None:
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
             return_value=_PACKAGE_JSON_BUFFER,
         ),
-        patch("dfetch_hub.catalog.sources.clib._fetch_readme", return_value=None),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
         pkg = _build_package(
             "clibs", "buffer", "tiny c-string library", "String manipulation"
@@ -97,7 +97,7 @@ def test_build_package_uses_json_homepage_as_canonical_url() -> None:
         patch(
             "dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=pkg_json
         ),
-        patch("dfetch_hub.catalog.sources.clib._fetch_readme", return_value=None),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
         pkg = _build_package("clibs", "buffer", "desc", "Strings")
 
@@ -107,7 +107,7 @@ def test_build_package_uses_json_homepage_as_canonical_url() -> None:
 def test_build_package_falls_back_to_github_url_when_no_package_json() -> None:
     with (
         patch("dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=None),
-        patch("dfetch_hub.catalog.sources.clib._fetch_readme", return_value=None),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
         pkg = _build_package("owner", "repo", "a tagline", "Cat")
 
@@ -126,7 +126,7 @@ def test_build_package_stores_fetched_readme() -> None:
             return_value=_PACKAGE_JSON_BUFFER,
         ),
         patch(
-            "dfetch_hub.catalog.sources.clib._fetch_readme", return_value=_SAMPLE_README
+            "dfetch_hub.catalog.sources.clib.fetch_readme", return_value=_SAMPLE_README
         ),
     ):
         pkg = _build_package("clibs", "buffer", "desc", "Strings")
@@ -137,7 +137,7 @@ def test_build_package_stores_fetched_readme() -> None:
 def test_build_package_readme_none_when_not_found() -> None:
     with (
         patch("dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=None),
-        patch("dfetch_hub.catalog.sources.clib._fetch_readme", return_value=None),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
         pkg = _build_package("owner", "repo", "desc", "Cat")
 
@@ -155,7 +155,7 @@ def test_build_package_basic_fields() -> None:
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
             return_value=_PACKAGE_JSON_BUFFER,
         ),
-        patch("dfetch_hub.catalog.sources.clib._fetch_readme", return_value=None),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
         pkg = _build_package(
             "clibs", "buffer", "tiny c-string library", "String manipulation"
@@ -175,7 +175,7 @@ def test_build_package_tagline_preferred_over_json_description() -> None:
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
             return_value=_PACKAGE_JSON_BUFFER,
         ),
-        patch("dfetch_hub.catalog.sources.clib._fetch_readme", return_value=None),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
         pkg = _build_package("clibs", "buffer", "my custom tagline", "")
 
@@ -188,7 +188,7 @@ def test_build_package_falls_back_to_json_description_when_no_tagline() -> None:
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
             return_value=_PACKAGE_JSON_BUFFER,
         ),
-        patch("dfetch_hub.catalog.sources.clib._fetch_readme", return_value=None),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
         pkg = _build_package("clibs", "buffer", "", "String manipulation")
 
@@ -198,7 +198,7 @@ def test_build_package_falls_back_to_json_description_when_no_tagline() -> None:
 def test_build_package_no_package_json() -> None:
     with (
         patch("dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=None),
-        patch("dfetch_hub.catalog.sources.clib._fetch_readme", return_value=None),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
         pkg = _build_package("owner", "repo", "a tagline", "Category")
 
@@ -214,7 +214,7 @@ def test_build_package_category_not_duplicated_in_keywords() -> None:
         patch(
             "dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=pkg_json
         ),
-        patch("dfetch_hub.catalog.sources.clib._fetch_readme", return_value=None),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
         pkg = _build_package("clibs", "buffer", "desc", "String manipulation")
 
@@ -232,7 +232,7 @@ def test_parse_packages_md_skips_non_github_urls(packages_md_file: Path) -> None
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
             side_effect=_mock_pkg_json,
         ),
-        patch("dfetch_hub.catalog.sources.clib._fetch_readme", return_value=None),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
         pkgs = parse_packages_md(packages_md_file)
 
@@ -248,7 +248,7 @@ def test_parse_packages_md_category_becomes_keyword(packages_md_file: Path) -> N
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
             side_effect=_mock_pkg_json,
         ),
-        patch("dfetch_hub.catalog.sources.clib._fetch_readme", return_value=None),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
         pkgs = parse_packages_md(packages_md_file)
 
@@ -266,7 +266,7 @@ def test_parse_packages_md_correct_package_count(packages_md_file: Path) -> None
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
             side_effect=_mock_pkg_json,
         ),
-        patch("dfetch_hub.catalog.sources.clib._fetch_readme", return_value=None),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
         pkgs = parse_packages_md(packages_md_file)
 
@@ -285,7 +285,7 @@ def test_parse_packages_md_limit(packages_md_file: Path, limit: int) -> None:
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
             side_effect=_mock_pkg_json,
         ),
-        patch("dfetch_hub.catalog.sources.clib._fetch_readme", return_value=None),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
         pkgs = parse_packages_md(packages_md_file, limit=limit)
 
@@ -298,7 +298,7 @@ def test_parse_packages_md_limit_none_returns_all(packages_md_file: Path) -> Non
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
             side_effect=_mock_pkg_json,
         ),
-        patch("dfetch_hub.catalog.sources.clib._fetch_readme", return_value=None),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
         pkgs = parse_packages_md(packages_md_file, limit=None)
 
@@ -311,7 +311,7 @@ def test_parse_packages_md_limit_larger_than_total(packages_md_file: Path) -> No
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
             side_effect=_mock_pkg_json,
         ),
-        patch("dfetch_hub.catalog.sources.clib._fetch_readme", return_value=None),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
         pkgs = parse_packages_md(packages_md_file, limit=100)
 
