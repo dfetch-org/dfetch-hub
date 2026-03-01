@@ -77,7 +77,8 @@ def _process_subfolders_source(
 
         if skipped:
             logger.print_warning_line(
-                f"{source.name}: Skipped {skipped} port(s) with no manifest"
+                source.name,
+                f"Skipped {skipped} port(s) with no manifest",
             )
 
         _added, _updated = write_catalog(
