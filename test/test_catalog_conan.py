@@ -179,10 +179,10 @@ def test_parse_conan_recipe_latest_version(recipe_dir: Path) -> None:
     assert m.version == "3.1.0"
 
 
-def test_parse_conan_recipe_port_name_is_dir_name(recipe_dir: Path) -> None:
+def test_parse_conan_recipe_entry_name_is_dir_name(recipe_dir: Path) -> None:
     m = parse_conan_recipe(recipe_dir)
     assert m is not None
-    assert m.port_name == recipe_dir.name
+    assert m.entry_name == recipe_dir.name
 
 
 def test_parse_conan_recipe_no_conanfile_returns_none(tmp_path: Path) -> None:
@@ -220,3 +220,89 @@ def test_parse_conan_recipe_multiline_description(tmp_path: Path) -> None:
     assert "Massively Spiffy" in m.description
     assert m.license == "Zlib"
     assert "compression" in m.topics
+
+
+# ---------------------------------------------------------------------------
+# Additional edge cases
+# ---------------------------------------------------------------------------
+
+
+def test_parse_conan_recipe_prevents_path_traversal(tmp_path: Path) -> None:
+    """parse_conan_recipe prevents path traversal via malicious folder names."""
+    (tmp_path / "config.yml").write_text(
+        'versions:\n  "1.0":\n    folder: "../../../etc"\n', encoding="utf-8"
+    )
+    # No conanfile.py at the traversal target
+    assert parse_conan_recipe(tmp_path) is None
+
+
+def test_parse_conan_recipe_no_config_yml(tmp_path: Path) -> None:
+    """parse_conan_recipe handles missing config.yml gracefully."""
+    all_dir = tmp_path / "all"
+    all_dir.mkdir()
+    (all_dir / "conanfile.py").write_text(_CONANFILE_SIMPLE, encoding="utf-8")
+
+    # Without config.yml, it should still find conanfile.py in "all" folder
+    m = parse_conan_recipe(tmp_path)
+    assert m is not None
+    assert m.package_name == "abseil"
+
+
+def test_extract_str_attr_with_empty_string() -> None:
+    """_extract_str_attr handles attributes set to empty strings."""
+    conanfile = textwrap.dedent(
+        """\
+        class Conan(ConanFile):
+            name = ""
+            description = ""
+        """
+    )
+    assert _extract_str_attr(conanfile, "name") == ""
+    assert _extract_str_attr(conanfile, "description") == ""
+
+
+def test_extract_tuple_attr_mixed_types() -> None:
+    """_extract_tuple_attr filters out non-string items."""
+    conanfile = textwrap.dedent(
+        """\
+        class Conan(ConanFile):
+            topics = ("valid", 123, None, "another")
+        """
+    )
+    topics = _extract_tuple_attr(conanfile, "topics")
+    assert topics == ["valid", "another"]
+
+
+def test_latest_version_malformed_yaml(tmp_path: Path) -> None:
+    """_latest_version handles malformed YAML gracefully."""
+    config = tmp_path / "config.yml"
+    config.write_text("versions: not valid yaml [", encoding="utf-8")
+
+    version, folder = _latest_version(config)
+    assert version is None
+    assert folder == "all"
+
+
+def test_parse_conan_recipe_symlink_conanfile(tmp_path: Path) -> None:
+    """parse_conan_recipe rejects symlinks pointing outside the recipe directory."""
+    import os
+
+    (tmp_path / "config.yml").write_text(
+        'versions:\n  "1.0":\n    folder: all\n', encoding="utf-8"
+    )
+    all_dir = tmp_path / "all"
+    all_dir.mkdir()
+
+    # Create a conanfile.py outside the recipe directory
+    external_file = tmp_path.parent / "external_conanfile.py"
+    external_file.write_text(_CONANFILE_SIMPLE, encoding="utf-8")
+
+    # Create a symlink inside the recipe directory pointing to the external file
+    symlink_path = all_dir / "conanfile.py"
+    try:
+        os.symlink(external_file, symlink_path)
+    except OSError:
+        pytest.skip("Symlinks not supported on this platform")
+
+    # parse_conan_recipe should reject the symlink since it points outside
+    assert parse_conan_recipe(tmp_path) is None
