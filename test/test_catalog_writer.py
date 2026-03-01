@@ -224,6 +224,48 @@ def test_merge_catalog_entry_no_version_no_tag_added() -> None:
     assert not entry["tags"]
 
 
+def test_merge_catalog_entry_backfills_missing_description() -> None:
+    """Existing entry with no description is backfilled from the manifest."""
+    existing = _existing_catalog_entry()
+    existing["description"] = None
+    entry = _merge_catalog_entry(existing, _manifest(), "abseil", "abseil-cpp", "vcpkg")
+    assert entry["description"] == "Abseil C++ libraries from Google"
+
+
+def test_merge_catalog_entry_does_not_overwrite_existing_description() -> None:
+    """An already-populated description must not be replaced by the manifest."""
+    existing = _existing_catalog_entry()  # description = "old description"
+    entry = _merge_catalog_entry(existing, _manifest(), "abseil", "abseil-cpp", "vcpkg")
+    assert entry["description"] == "old description"
+
+
+def test_merge_catalog_entry_backfills_missing_license() -> None:
+    """Existing entry with no license is backfilled from the manifest."""
+    existing = _existing_catalog_entry()  # license = None by default
+    entry = _merge_catalog_entry(existing, _manifest(), "abseil", "abseil-cpp", "vcpkg")
+    assert entry["license"] == "Apache-2.0"
+
+
+def test_merge_catalog_entry_does_not_overwrite_existing_license() -> None:
+    """An already-populated license must not be replaced by the manifest."""
+    existing = _existing_catalog_entry()
+    existing["license"] = "MIT"
+    entry = _merge_catalog_entry(existing, _manifest(), "abseil", "abseil-cpp", "vcpkg")
+    assert entry["license"] == "MIT"
+
+
+def test_merge_catalog_entry_v_prefix_tag_not_duplicated() -> None:
+    """Version '1.2.3' is not added if 'v1.2.3' already exists in the tag list."""
+    existing = _existing_catalog_entry()
+    existing["tags"] = [
+        {"name": "v1.2.3", "is_tag": True, "commit_sha": None, "date": None}
+    ]
+    entry = _merge_catalog_entry(
+        existing, _manifest(version="1.2.3"), "abseil", "abseil-cpp", "vcpkg"
+    )
+    assert sum(1 for t in entry["tags"] if t["name"].lstrip("v") == "1.2.3") == 1
+
+
 # ---------------------------------------------------------------------------
 # _generate_readme
 # ---------------------------------------------------------------------------

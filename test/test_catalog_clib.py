@@ -316,3 +316,17 @@ def test_parse_packages_md_limit_larger_than_total(packages_md_file: Path) -> No
         pkgs = parse_packages_md(packages_md_file, limit=100)
 
     assert len(pkgs) == 4
+
+
+def test_parse_packages_md_limit_zero_returns_empty(packages_md_file: Path) -> None:
+    """limit=0 must return an empty list, not one package (off-by-one guard)."""
+    with (
+        patch(
+            "dfetch_hub.catalog.sources.clib._fetch_package_json",
+            side_effect=_mock_pkg_json,
+        ),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
+    ):
+        pkgs = parse_packages_md(packages_md_file, limit=0)
+
+    assert pkgs == []
