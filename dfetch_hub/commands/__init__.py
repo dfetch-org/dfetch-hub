@@ -22,6 +22,8 @@ def load_config_with_data_dir(
     Resolution order:
     1. *data_dir_override* (``--data-dir`` CLI flag), if provided.
     2. Parent directory of ``settings.catalog_path`` from the config, if set.
+       A relative ``catalog_path`` is resolved against the directory that
+       contains the config file (not the process working directory).
     3. *default_data_dir* as the final fallback.
 
     Args:
@@ -46,7 +48,10 @@ def load_config_with_data_dir(
     if data_dir_override is not None:
         data_dir = Path(data_dir_override)
     elif config.settings.catalog_path:
-        data_dir = Path(config.settings.catalog_path).parent
+        p = Path(config.settings.catalog_path)
+        if not p.is_absolute():
+            p = Path(config_path).resolve().parent / p
+        data_dir = p.parent
     else:
         data_dir = default_data_dir
 
