@@ -44,7 +44,7 @@ def _extract_description(text: str) -> str:
     """
     in_code_block = False
     for line in text.splitlines():
-        if line.startswith("```"):
+        if line.startswith(("```", "~~~")):
             in_code_block = not in_code_block
             continue
         if in_code_block:

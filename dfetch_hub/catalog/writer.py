@@ -316,7 +316,8 @@ def write_catalog(  # pylint: disable=too-many-locals
     for manifest in manifests:
         if not manifest.homepage:
             logger.warning(
-                f"cannot determine upstream repo without a URL of {manifest.entry_name}"
+                "cannot determine upstream repo without a URL of %s",
+                manifest.entry_name,
             )
             continue
 

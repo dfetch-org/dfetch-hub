@@ -202,8 +202,8 @@ def _process_readme_only_source(
     one builds a :class:`~dfetch_hub.catalog.sources.BaseManifest` from the
     README file found there — no structured manifest file is required.
 
-    A homepage URL pointing to the subfolder on GitHub is derived from
-    *source.url* when possible and injected into each manifest.
+    A homepage URL pointing to the subfolder on the repository VCS host is
+    derived from *source.url* when possible and injected into each manifest.
 
     Sentinel filtering (``ignore_if_present``) is applied before the limit.
 
@@ -322,7 +322,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:  # type: ignore[ty
         type=_non_negative_int,
         default=None,
         metavar="N",
-        help="Process only the first N ports per source (useful for testing)",
+        help="Process only the first N entries per source (useful for testing)",
     )
     update_p.add_argument(
         "--source",
