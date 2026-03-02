@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from pathlib import Path
+from typing import TYPE_CHECKING
 
 from dfetch.log import get_logger
 
 from dfetch_hub.catalog.sources import BaseManifest, fetch_readme_for_homepage
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 logger = get_logger(__name__)
 
@@ -96,7 +99,7 @@ def parse_vcpkg_json(entry_dir: Path) -> VcpkgManifest | None:
         return None
 
     try:
-        with Path.open(manifest_path, encoding="utf-8") as fh:
+        with manifest_path.open(encoding="utf-8") as fh:
             loaded = json.load(fh)
     except (json.JSONDecodeError, OSError) as exc:
         logger.warning("Could not parse %s: %s", manifest_path, exc)

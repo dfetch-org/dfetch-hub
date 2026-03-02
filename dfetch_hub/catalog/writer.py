@@ -4,13 +4,15 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from dfetch.log import get_logger
 from dfetch.vcs.git import GitRemote
 
 from dfetch_hub.catalog.sources import BaseManifest, parse_vcs_slug
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 logger = get_logger(__name__)
 
@@ -74,14 +76,14 @@ def _fetch_upstream_tags(url: str) -> list[dict[str, Any]]:
 
 def _load_json(path: Path) -> Any:
     if path.exists():
-        with Path.open(path, encoding="utf-8") as fh:
+        with path.open(encoding="utf-8") as fh:
             return json.load(fh)
     return None
 
 
 def _save_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    with Path.open(path, "w", encoding="utf-8") as fh:
+    with path.open("w", encoding="utf-8") as fh:
         json.dump(data, fh, indent=2, ensure_ascii=False)
         fh.write("\n")
 

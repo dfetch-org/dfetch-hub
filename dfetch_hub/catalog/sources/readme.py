@@ -28,7 +28,7 @@ _DESCRIPTION_MAX = 120
 
 def _is_content_line(line: str, in_code_block: bool) -> bool:
     """Return ``True`` if *line* is a prose content line worth using as a description."""
-    return not in_code_block and not _SKIP_RE.match(line) and bool(line.strip())
+    return not in_code_block and not _SKIP_RE.match(line.lstrip()) and bool(line.strip())
 
 
 def _extract_description(text: str) -> str:

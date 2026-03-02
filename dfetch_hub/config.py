@@ -83,6 +83,8 @@ def load_config(path: str = "dfetch-hub.toml") -> HubConfig:
     Raises:
         FileNotFoundError: If *path* does not exist.
         tomllib.TOMLDecodeError: If the file is not valid TOML.
+        TypeError: If ``[settings]`` is not a TOML table, or if ``[[source]]``
+            is not an array of TOML tables.
 
     """
     with Path(path).open("rb") as fh:

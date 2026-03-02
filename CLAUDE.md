@@ -89,7 +89,7 @@
 
 All tools live in `.venv/`. Activate the virtual environment before running any tool:
 
-```
+```bash
 source .venv/bin/activate
 pre-commit run --all-files   # full hook suite (must all pass before committing)
 pytest                       # full test suite (206 tests, all mocked — no network)
