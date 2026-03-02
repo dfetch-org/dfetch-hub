@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import argparse
 import http.server
+import importlib.resources
 import threading
 import webbrowser
 from pathlib import Path
 
 from dfetch.log import get_logger
 
-_PACKAGE_DIR = Path(__file__).parent.parent
 logger = get_logger(__name__)
 
 
@@ -25,7 +25,7 @@ def _port_type(value: str) -> int:
 def _cmd_serve(parsed: argparse.Namespace) -> None:
     """Serve the site from the package directory and open the browser."""
     port: int = parsed.port
-    serve_dir = _PACKAGE_DIR
+    serve_dir = Path(str(importlib.resources.files("dfetch_hub")))
 
     class _Handler(http.server.SimpleHTTPRequestHandler):
         def __init__(self, *args: object, **kwargs: object) -> None:

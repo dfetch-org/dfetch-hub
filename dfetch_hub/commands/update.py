@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib.resources
 import sys
 import tempfile
 from pathlib import Path
@@ -26,8 +27,7 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
-_PACKAGE_DIR = Path(__file__).parent.parent
-_DEFAULT_DATA_DIR = _PACKAGE_DIR / "data"
+_DEFAULT_DATA_DIR: Path = Path(str(importlib.resources.files("dfetch_hub") / "data"))
 
 _MANIFEST_PARSERS = {
     "vcpkg.json": parse_vcpkg_json,

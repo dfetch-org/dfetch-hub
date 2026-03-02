@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.resources
 import json
 import re
 import shutil
@@ -18,9 +19,9 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
-_PACKAGE_DIR = Path(__file__).parent.parent
-_DEFAULT_DATA_DIR = _PACKAGE_DIR / "data"
-_SITE_DIR = _PACKAGE_DIR / "site"
+_PKG = importlib.resources.files("dfetch_hub")
+_DEFAULT_DATA_DIR: Path = Path(str(_PKG / "data"))
+_SITE_DIR: Path = Path(str(_PKG / "site"))
 _DEFAULT_OUTPUT = Path("public")
 
 
