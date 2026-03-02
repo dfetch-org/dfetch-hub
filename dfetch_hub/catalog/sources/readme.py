@@ -83,8 +83,12 @@ def parse_readme_dir(entry_dir: Path) -> BaseManifest | None:
     """
     for name in _README_NAMES:
         readme_path = entry_dir / name
-        if readme_path.exists():
-            text = readme_path.read_text(errors="replace")
+        if readme_path.is_file():
+            try:
+                text = readme_path.read_text(encoding="utf-8", errors="replace")
+            except OSError as exc:
+                logger.debug("Could not read %s: %s — skipped", readme_path, exc)
+                return None
             entry_name = entry_dir.name
             return BaseManifest(
                 entry_name=entry_name,

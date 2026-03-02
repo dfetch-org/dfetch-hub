@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import textwrap
-from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import patch
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 import pytest
 
@@ -34,7 +37,7 @@ _PACKAGES_MD = textwrap.dedent(
     """
 )
 
-_PACKAGE_JSON_BUFFER = {
+_PACKAGE_JSON_BUFFER: dict[str, object] = {
     "name": "buffer",
     "version": "0.4.0",
     "repo": "clibs/buffer",
@@ -43,7 +46,7 @@ _PACKAGE_JSON_BUFFER = {
     "license": "MIT",
 }
 
-_PACKAGE_JSON_STRSPLIT = {
+_PACKAGE_JSON_STRSPLIT: dict[str, object] = {
     "name": "strsplit",
     "version": "1.0.0",
     "repo": "jwerle/strsplit.h",
@@ -63,9 +66,9 @@ def packages_md_file(tmp_path: Path) -> Path:
     return p
 
 
-def _mock_pkg_json(owner: str, repo: str) -> dict | None:
+def _mock_pkg_json(owner: str, repo: str) -> dict[str, object] | None:
     """Return canned package.json data keyed by (owner, repo)."""
-    data = {
+    data: dict[tuple[str, str], dict[str, object]] = {
         ("clibs", "buffer"): _PACKAGE_JSON_BUFFER,
         ("jwerle", "strsplit.h"): _PACKAGE_JSON_STRSPLIT,
     }
@@ -190,7 +193,7 @@ def test_build_package_basic_fields() -> None:
             "String manipulation",
         )
 
-    assert pkg.entry_name == "clibs/buffer"
+    assert pkg.entry_name == "github.com/clibs/buffer"
     assert pkg.package_name == "buffer"
     assert pkg.version == "0.4.0"
     assert pkg.license == "MIT"
@@ -306,10 +309,10 @@ def test_parse_packages_md_category_becomes_keyword(packages_md_file: Path) -> N
     ):
         pkgs = parse_packages_md(packages_md_file)
 
-    buffer_pkg = next(p for p in pkgs if p.entry_name == "clibs/buffer")
+    buffer_pkg = next(p for p in pkgs if p.entry_name == "github.com/clibs/buffer")
     assert "String manipulation" in buffer_pkg.keywords
 
-    jsawk_pkg = next(p for p in pkgs if p.entry_name == "micha/jsawk")
+    jsawk_pkg = next(p for p in pkgs if p.entry_name == "github.com/micha/jsawk")
     assert "Math" in jsawk_pkg.keywords
 
 
