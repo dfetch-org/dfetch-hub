@@ -61,7 +61,7 @@ def _fetch_upstream_tags(url: str) -> list[dict[str, Any]]:
         {
             "name": ref.replace("refs/tags/", ""),
             "is_tag": True,
-            "commit_sha": sha[:14],
+            "commit_sha": sha,
             "date": None,
         }
         for ref, sha in info.items()
