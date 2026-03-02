@@ -19,10 +19,10 @@
 ## Data model
 
 - Use `@dataclass` for all structured data.
-- Mutable defaults must use `field(default_factory=...)`.
-- Shared structural interface: `ComponentManifest` Protocol in `updater.py` — new manifest types must satisfy it via
-  duck-typing (no explicit inheritance needed). Optional extra fields (`topics`, `readme_content`, …) are accessed
-  with `getattr(manifest, "field", default)` in the updater.
+- Mutable defaults must use `field(default_factory=list)` / `field(default_factory=dict)` — **never** `lambda: []` or
+  `lambda: {}` (ruff PIE807).
+- New manifest types inherit from `BaseManifest` (in `catalog/sources/__init__.py`). Optional extra fields (`topics`,
+  `readme_content`, …) are accessed with `getattr(manifest, "field", default)` in the writer.
 
 ## Module structure
 
@@ -51,9 +51,19 @@
 - Use `logger = get_logger(__name__)` from `dfetch.log`.
 - Raise `RuntimeError` only for infrastructure failures (e.g. missing fetch output).
 
+## Package resources
+
+- **Never** use `Path(__file__)` to locate bundled files. Use `importlib.resources` instead:
+  ```python
+  import importlib.resources
+  _DEFAULT_DATA_DIR: Path = Path(str(importlib.resources.files("dfetch_hub") / "data"))
+  ```
+- The `str()` + `Path()` conversion materialises the `Traversable` into a real filesystem path.
+  This is safe because setuptools installs packages as directories, not zips.
+
 ## Catalog pipeline conventions
 
-- `fetch_source()` (fetcher.py) uses the dfetch Python API — no `subprocess`.
+- `clone_source()` (catalog/cloner.py) uses the dfetch Python API — no `subprocess`.
 - External HTTP calls use stdlib `urllib.request` only — no `requests` dependency.
 - GitHub org/repo values are **always lowercased** at extraction time so catalog IDs, file paths, and JSON fields
   stay consistent.
@@ -77,8 +87,42 @@
 
 ## Tooling
 
+All tools live in `.venv/`. Activate the virtual environment before running any tool:
+
 ```
-pre-commit run --all-files   # isort + black + pylint
-.venv/bin/mypy dfetch_hub    # strict type check
-.venv/bin/pytest             # full test suite
+source .venv/bin/activate
+pre-commit run --all-files   # full hook suite (must all pass before committing)
+pytest                       # full test suite (206 tests, all mocked — no network)
 ```
+
+### pre-commit hooks
+
+| Hook | What it enforces |
+|---|---|
+| isort | Import order (stdlib → third-party → local, `profile = "black"`) |
+| black | Code formatting, 120-char lines |
+| ruff | Lint: `A B C4 E F G N PERF PIE PTH RET RSE RUF SIM T20 TCH TRY UP W` |
+| pylint | Structural lint; design limits (see `[tool.pylint.design]` in `pyproject.toml`) |
+| mypy | Strict type checking |
+| pyright | Strict type checking (supplementary; some checks suppressed in `pyproject.toml`) |
+| bandit | Security linting |
+| xenon | Cyclomatic complexity: `--max-absolute B --max-modules A --max-average A` |
+| pyroma | Package metadata quality |
+| djlint | HTML linting |
+| pydocstyle | Docstring style (Google convention) |
+| doc8 | RST/Markdown style, 120-char lines |
+
+### Code quality gotchas
+
+- **pylint `too-many-locals`** counts function *parameters* as locals. Limit is 12 total
+  (params + body variables). Inline a temporary variable or extract a helper to reduce the count.
+- **ruff TC003**: imports from `collections.abc` or `pathlib` used *only in annotations* must live
+  inside the `if TYPE_CHECKING:` block (safe with `from __future__ import annotations`).
+- **ruff PIE807**: use `field(default_factory=list)` / `field(default_factory=dict)`, not lambdas.
+- **xenon average A (≤ 5.0)**: extracting a helper lowers the module average even when the total CC
+  sum stays the same — it adds a new block to the denominator.
+- **suppress comments must be on the same line as the violation**, not on a trailing `)`. Black may
+  move a trailing comment from `_fn(\n  arg\n)  # noqa` to the `)` line, detaching it from the
+  actual offending expression. Put the comment on the opening `_fn(  # noqa` line instead.
+- **`str(None) == "None"`** (truthy): when converting an `object` value to `str | None`, check
+  `value` first — `return str(value) if value else None` — not `s = str(value); return s if s`.
