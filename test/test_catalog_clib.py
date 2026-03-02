@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import textwrap
 from typing import TYPE_CHECKING
 from unittest.mock import patch
@@ -13,6 +14,7 @@ import pytest
 
 from dfetch_hub.catalog.sources.clib import (
     _build_package,
+    _fetch_package_json,
     parse_packages_md,
 )
 
@@ -410,3 +412,122 @@ def test_parse_packages_md_limit_zero_returns_empty(packages_md_file: Path) -> N
         pkgs = parse_packages_md(packages_md_file, limit=0)
 
     assert pkgs == []
+
+
+# ---------------------------------------------------------------------------
+# _fetch_package_json
+# ---------------------------------------------------------------------------
+
+
+def test_fetch_package_json_returns_dict_on_valid_response() -> None:
+    """Returns the parsed dict when the raw response is valid JSON."""
+    data = {"name": "buffer", "version": "0.4.0"}
+    with patch(
+        "dfetch_hub.catalog.sources.clib._fetch_raw", return_value=json.dumps(data)
+    ):
+        result = _fetch_package_json("clibs", "buffer")
+
+    assert result == data
+
+
+def test_fetch_package_json_returns_none_when_fetch_fails() -> None:
+    """Returns None when every HTTP fetch attempt fails."""
+    with patch("dfetch_hub.catalog.sources.clib._fetch_raw", return_value=None):
+        result = _fetch_package_json("owner", "repo")
+
+    assert result is None
+
+
+def test_fetch_package_json_returns_none_on_bad_json() -> None:
+    """Returns None when the response body is not valid JSON."""
+    with patch("dfetch_hub.catalog.sources.clib._fetch_raw", return_value="not json"):
+        result = _fetch_package_json("owner", "repo")
+
+    assert result is None
+
+
+def test_fetch_package_json_returns_none_for_non_object_json() -> None:
+    """Returns None when the JSON root is not an object (e.g. a list)."""
+    with patch(
+        "dfetch_hub.catalog.sources.clib._fetch_raw",
+        return_value=json.dumps([1, 2, 3]),
+    ):
+        result = _fetch_package_json("owner", "repo")
+
+    assert result is None
+
+
+def test_fetch_package_json_falls_back_to_master_branch() -> None:
+    """Returns data from the master branch when main has nothing."""
+    data = {"name": "pkg"}
+
+    def _side_effect(url: str) -> str | None:
+        return json.dumps(data) if "master" in url else None
+
+    with patch("dfetch_hub.catalog.sources.clib._fetch_raw", side_effect=_side_effect):
+        result = _fetch_package_json("owner", "repo")
+
+    assert result == data
+
+
+# ---------------------------------------------------------------------------
+# _build_package — keywords edge cases
+# ---------------------------------------------------------------------------
+
+
+def test_build_package_string_keywords_in_package_json() -> None:
+    """A string-valued keywords field is treated as a single-element list."""
+    pkg_json = {**_PACKAGE_JSON_BUFFER, "keywords": "single-keyword"}
+    with (
+        patch(
+            "dfetch_hub.catalog.sources.clib._fetch_package_json",
+            return_value=pkg_json,
+        ),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
+    ):
+        pkg = _build_package("github.com", "clibs", "buffer", "desc", "Cat")
+
+    assert "single-keyword" in pkg.keywords
+
+
+def test_build_package_non_list_non_string_keywords_ignored() -> None:
+    """A non-list, non-string keywords value produces no JSON keywords."""
+    pkg_json = {**_PACKAGE_JSON_BUFFER, "keywords": 42}
+    with (
+        patch(
+            "dfetch_hub.catalog.sources.clib._fetch_package_json",
+            return_value=pkg_json,
+        ),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
+    ):
+        pkg = _build_package("github.com", "clibs", "buffer", "desc", "Cat")
+
+    assert pkg.keywords == ["Cat"]
+
+
+# ---------------------------------------------------------------------------
+# parse_packages_md — skips URLs without recognized VCS host
+# ---------------------------------------------------------------------------
+
+_PACKAGES_MD_WITH_INVALID_URL = textwrap.dedent(
+    """\
+    ## Tools
+     - [good/repo](https://github.com/good/repo) - a valid entry
+     - [bad entry](ftp://invalid.host/no/repo) - invalid URL scheme
+    """
+)
+
+
+def test_parse_packages_md_skips_unrecognized_vcs_url(tmp_path: Path) -> None:
+    """Bullets with URLs that don't match any VCS pattern are silently skipped."""
+    p = tmp_path / "Packages.md"
+    p.write_text(_PACKAGES_MD_WITH_INVALID_URL, encoding="utf-8")
+
+    with (
+        patch("dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=None),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
+    ):
+        pkgs = parse_packages_md(p)
+
+    assert len(pkgs) == 1
+    assert pkgs[0].entry_name == "github.com/good/repo"

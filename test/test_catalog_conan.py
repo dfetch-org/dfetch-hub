@@ -10,9 +10,12 @@ import pytest
 
 from dfetch_hub.catalog.sources.conan import (
     ConanManifest,
+    _attr_literal,
     _extract_str_attr,
     _extract_tuple_attr,
+    _find_conanfile,
     _latest_version,
+    _scan_paren_value,
     parse_conan_recipe,
 )
 
@@ -220,3 +223,150 @@ def test_parse_conan_recipe_multiline_description(tmp_path: Path) -> None:
     assert "Massively Spiffy" in m.description
     assert m.license == "Zlib"
     assert "compression" in m.topics
+
+
+def test_parse_conan_recipe_nonexistent_dir_returns_none(tmp_path: Path) -> None:
+    """Returns None when the recipe directory does not exist."""
+    assert parse_conan_recipe(tmp_path / "nonexistent") is None
+
+
+def test_parse_conan_recipe_returns_none_on_conanfile_read_oserror(
+    recipe_dir: Path,
+) -> None:
+    """Returns None when conanfile.py raises OSError on read."""
+    with patch.object(Path, "read_text", side_effect=OSError("permission denied")):
+        result = parse_conan_recipe(recipe_dir)
+
+    assert result is None
+
+
+# ---------------------------------------------------------------------------
+# _latest_version — non-dict branches
+# ---------------------------------------------------------------------------
+
+
+def test_latest_version_returns_none_for_non_dict_yaml(tmp_path: Path) -> None:
+    """Returns (None, 'all') when YAML root is not a dict (e.g. a bare string)."""
+    config = tmp_path / "config.yml"
+    config.write_text("just a string\n", encoding="utf-8")
+
+    version, folder = _latest_version(config)
+
+    assert version is None
+    assert folder == "all"
+
+
+def test_latest_version_returns_none_for_non_dict_versions(tmp_path: Path) -> None:
+    """Returns (None, 'all') when 'versions' key maps to a list, not a dict."""
+    config = tmp_path / "config.yml"
+    config.write_text("versions: [1, 2, 3]\n", encoding="utf-8")
+
+    version, folder = _latest_version(config)
+
+    assert version is None
+    assert folder == "all"
+
+
+# ---------------------------------------------------------------------------
+# _scan_paren_value — escape and nesting branches
+# ---------------------------------------------------------------------------
+
+
+def test_scan_paren_value_handles_escaped_quote() -> None:
+    """Escaped quote inside a string does not end the string early."""
+    # ("hello \"world\"") → balanced parens with escape sequences
+    text = '("hello \\"world\\"")'
+    result = _scan_paren_value(text, 0)
+    assert result == text  # entire paren group returned
+
+
+def test_scan_paren_value_handles_nested_parens() -> None:
+    """Nested parentheses increment and decrement depth correctly."""
+    text = "(outer (inner) end)"
+    result = _scan_paren_value(text, 0)
+    assert result == text
+
+
+# ---------------------------------------------------------------------------
+# _attr_literal / _extract_str_attr — edge cases
+# ---------------------------------------------------------------------------
+
+
+def test_attr_literal_returns_none_for_non_string_non_paren_value() -> None:
+    """Returns None when the character after '=' is neither '(' nor a quote."""
+    assert _attr_literal("    version = 42", "version") is None
+
+
+def test_attr_literal_returns_none_on_literal_eval_failure() -> None:
+    """Returns None when ast.literal_eval raises (e.g. unclosed string)."""
+    # No closing quote → end_q == -1 → value_text is unparseable
+    assert _attr_literal('    name = "unclosed', "name") is None
+
+
+def test_extract_str_attr_joins_tuple_of_strings() -> None:
+    """A parenthesised tuple of strings is joined into a single string."""
+    text = '    description = ("part one", "part two")'
+    result = _extract_str_attr(text, "description")
+    assert result == "part onepart two"
+
+
+def test_extract_tuple_attr_with_nested_parens() -> None:
+    """Nested parens inside a tuple value are scanned correctly."""
+    # The inner tuple (("a", "b")) makes depth go to 2 in _scan_paren_value.
+    # Only the outer string "c" passes the isinstance(v, str) filter.
+    text = '    topics = (("a", "b"), "c")'
+    result = _extract_tuple_attr(text, "topics")
+    assert result == ["c"]
+
+
+# ---------------------------------------------------------------------------
+# _find_conanfile — error / fallback branches
+# ---------------------------------------------------------------------------
+
+
+def test_find_conanfile_returns_none_for_nonexistent_dir(tmp_path: Path) -> None:
+    """Returns None when recipe_dir does not exist."""
+    result = _find_conanfile(tmp_path / "nonexistent", "all")
+    assert result is None
+
+
+def test_find_conanfile_returns_none_on_iterdir_oserror(tmp_path: Path) -> None:
+    """Returns None when iterating subdirectories raises OSError."""
+    with patch.object(Path, "iterdir", side_effect=OSError("permission denied")):
+        result = _find_conanfile(tmp_path, "preferred")
+
+    assert result is None
+
+
+# ---------------------------------------------------------------------------
+# parse_conan_recipe — urls dict
+# ---------------------------------------------------------------------------
+
+
+def test_parse_conan_recipe_urls_contains_homepage(recipe_dir: Path) -> None:
+    """urls dict includes 'Homepage' when conanfile.py has a homepage attribute."""
+    m = parse_conan_recipe(recipe_dir)
+    assert m is not None
+    assert m.urls.get("Homepage") == "https://github.com/abseil/abseil-cpp"
+
+
+def test_parse_conan_recipe_urls_contains_source(recipe_dir: Path) -> None:
+    """urls dict includes 'Source' when conanfile.py has a url attribute."""
+    m = parse_conan_recipe(recipe_dir)
+    assert m is not None
+    assert m.urls.get("Source") == "https://github.com/conan-io/conan-center-index"
+
+
+def test_parse_conan_recipe_urls_empty_without_homepage(tmp_path: Path) -> None:
+    """urls dict is empty when conanfile.py has no homepage or url attributes."""
+    minimal = 'from conan import ConanFile\n\nclass Pkg(ConanFile):\n    name = "pkg"\n'
+    all_dir = tmp_path / "all"
+    all_dir.mkdir()
+    (all_dir / "conanfile.py").write_text(minimal, encoding="utf-8")
+    (tmp_path / "config.yml").write_text(
+        'versions:\n  "1.0":\n    folder: all\n', encoding="utf-8"
+    )
+
+    m = parse_conan_recipe(tmp_path)
+    assert m is not None
+    assert m.urls == {}

@@ -24,6 +24,7 @@ from dfetch_hub.catalog.sources import BaseManifest, parse_vcs_slug
 from dfetch_hub.catalog.sources.clib import CLibPackage
 from dfetch_hub.catalog.writer import (
     _catalog_id,
+    _fetch_upstream_tags,
     _generate_readme,
     _merge_catalog_entry,
     _merge_detail,
@@ -407,6 +408,88 @@ def test_generate_readme_uses_provided_url() -> None:
 
 
 # ---------------------------------------------------------------------------
+# _fetch_upstream_tags
+# ---------------------------------------------------------------------------
+
+_FULL_SHA = "a" * 40  # realistic 40-char hex SHA
+
+
+def test_fetch_upstream_tags_returns_tag_entries() -> None:
+    """Tags are extracted from refs/tags/* entries returned by ls-remote."""
+    ls_remote = {
+        f"refs/tags/v1.0.0": _FULL_SHA,
+        f"refs/tags/v2.0.0": "b" * 40,
+        "refs/heads/main": "c" * 40,  # branches must be excluded
+    }
+    with patch(
+        "dfetch_hub.catalog.writer.GitRemote._ls_remote", return_value=ls_remote
+    ):
+        tags = _fetch_upstream_tags("https://github.com/owner/repo")
+
+    tag_names = {t["name"] for t in tags}
+    assert tag_names == {"v1.0.0", "v2.0.0"}, "branch ref must be excluded"
+
+
+def test_fetch_upstream_tags_excludes_branch_refs() -> None:
+    """Entries under refs/heads/ are not returned as tags."""
+    ls_remote = {
+        "refs/heads/main": _FULL_SHA,
+        "refs/heads/dev": "b" * 40,
+    }
+    with patch(
+        "dfetch_hub.catalog.writer.GitRemote._ls_remote", return_value=ls_remote
+    ):
+        tags = _fetch_upstream_tags("https://github.com/owner/repo")
+
+    assert tags == []
+
+
+def test_fetch_upstream_tags_commit_sha_is_full_length() -> None:
+    """commit_sha must be the full 40-character SHA, not a shortened form."""
+    ls_remote = {"refs/tags/v1.0.0": _FULL_SHA}
+    with patch(
+        "dfetch_hub.catalog.writer.GitRemote._ls_remote", return_value=ls_remote
+    ):
+        tags = _fetch_upstream_tags("https://github.com/owner/repo")
+
+    assert len(tags) == 1
+    assert tags[0]["commit_sha"] == _FULL_SHA
+
+
+def test_fetch_upstream_tags_is_tag_true() -> None:
+    """Every entry returned has is_tag set to True."""
+    ls_remote = {"refs/tags/v1.0.0": _FULL_SHA}
+    with patch(
+        "dfetch_hub.catalog.writer.GitRemote._ls_remote", return_value=ls_remote
+    ):
+        tags = _fetch_upstream_tags("https://github.com/owner/repo")
+
+    assert tags[0]["is_tag"] is True
+
+
+def test_fetch_upstream_tags_name_strips_refs_prefix() -> None:
+    """The 'refs/tags/' prefix is stripped from the tag name."""
+    ls_remote = {"refs/tags/release-2024": _FULL_SHA}
+    with patch(
+        "dfetch_hub.catalog.writer.GitRemote._ls_remote", return_value=ls_remote
+    ):
+        tags = _fetch_upstream_tags("https://github.com/owner/repo")
+
+    assert tags[0]["name"] == "release-2024"
+
+
+def test_fetch_upstream_tags_returns_empty_on_error() -> None:
+    """Returns an empty list when ls-remote raises an exception."""
+    with patch(
+        "dfetch_hub.catalog.writer.GitRemote._ls_remote",
+        side_effect=RuntimeError("network error"),
+    ):
+        tags = _fetch_upstream_tags("https://github.com/owner/repo")
+
+    assert tags == []
+
+
+# ---------------------------------------------------------------------------
 # _merge_detail
 # ---------------------------------------------------------------------------
 
@@ -542,6 +625,58 @@ def test_merge_detail_stale_source_name_replaced_not_duplicated() -> None:
 
     source_names = [s["source_name"] for s in detail["catalog_sources"]]
     assert source_names == ["vcpkg"], f"expected only 'vcpkg', got {source_names}"
+
+
+def test_merge_detail_urls_propagated_from_manifest() -> None:
+    """urls from the manifest are written into the detail JSON."""
+    m = BaseManifest(
+        entry_name="abseil",
+        package_name="abseil-cpp",
+        description="desc",
+        homepage="https://github.com/abseil/abseil-cpp",
+        license=None,
+        version=None,
+        urls={
+            "Homepage": "https://github.com/abseil/abseil-cpp",
+            "Source": "https://github.com/x/y",
+        },
+    )
+    with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
+        detail = _merge_detail(
+            None, m, "abseil", "abseil-cpp", "vcpkg", "vcpkg", "ports"
+        )
+    assert detail["urls"]["Homepage"] == "https://github.com/abseil/abseil-cpp"
+    assert detail["urls"]["Source"] == "https://github.com/x/y"
+
+
+def test_merge_detail_urls_empty_when_manifest_has_no_urls() -> None:
+    """urls field in the detail JSON is an empty dict when the manifest carries none."""
+    with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
+        detail = _merge_detail(
+            None, _manifest(), "abseil", "abseil-cpp", "vcpkg", "vcpkg", "ports"
+        )
+    assert detail["urls"] == {}
+
+
+def test_merge_detail_urls_merged_across_sources() -> None:
+    """URLs from a second source are merged into the existing urls dict."""
+    existing = _existing_detail()
+    existing["urls"] = {"Homepage": "https://github.com/abseil/abseil-cpp"}
+    m = BaseManifest(
+        entry_name="abseil",
+        package_name="abseil-cpp",
+        description="desc",
+        homepage="https://github.com/abseil/abseil-cpp",
+        license=None,
+        version=None,
+        urls={"Source": "https://github.com/conan-io/conan-center-index"},
+    )
+    with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
+        detail = _merge_detail(
+            existing, m, "abseil", "abseil-cpp", "conan", "conan", "recipes"
+        )
+    assert "Homepage" in detail["urls"]
+    assert "Source" in detail["urls"]
 
 
 # ---------------------------------------------------------------------------

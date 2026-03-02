@@ -217,8 +217,15 @@ def parse_conan_recipe(recipe_dir: Path) -> ConanManifest | None:
     name = _extract_str_attr(text, "name") or recipe_dir.name
     description = _extract_str_attr(text, "description") or ""
     homepage = _extract_str_attr(text, "homepage")
+    conan_url = _extract_str_attr(text, "url")
     license_val = _extract_str_attr(text, "license") or None
     topics = _extract_tuple_attr(text, "topics")
+
+    urls: dict[str, str] = {}
+    if homepage:
+        urls["Homepage"] = homepage
+    if conan_url:
+        urls["Source"] = conan_url
 
     return ConanManifest(
         entry_name=recipe_dir.name,
@@ -229,4 +236,5 @@ def parse_conan_recipe(recipe_dir: Path) -> ConanManifest | None:
         version=version,
         topics=topics,
         readme_content=fetch_readme_for_homepage(homepage),
+        urls=urls,
     )

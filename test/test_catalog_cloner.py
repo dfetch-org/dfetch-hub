@@ -164,3 +164,25 @@ def test_clone_source_passes_manifest_path_to_parse(tmp_path: Path) -> None:
         clone_source(_SOURCE, tmp_path)
     called_with = mock_parse.call_args[0][0]
     assert called_with.endswith("dfetch.yaml")
+
+
+# ---------------------------------------------------------------------------
+# _validate_source_name (exercised via create_manifest)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "bad_name",
+    ["..", ".", "a/b", "/absolute"],
+)
+def test_create_manifest_raises_for_unsafe_source_name(
+    tmp_path: Path, bad_name: str
+) -> None:
+    """create_manifest raises ValueError for names that could escape dest_dir."""
+    bad_source = SourceConfig(
+        name=bad_name,
+        strategy="subfolders",
+        url="https://github.com/example/repo",
+    )
+    with pytest.raises(ValueError, match="safe single path component"):
+        create_manifest(bad_source, tmp_path)

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
@@ -135,6 +135,11 @@ class BaseManifest:
         license:        SPDX license expression, or ``None`` if unspecified.
         version:        Latest version string, or ``None`` if unavailable.
         readme_content: Raw README text fetched from the upstream repo, or ``None``.
+        urls:           Named URLs for the package (e.g. ``{"Homepage": "...",
+                        "Source": "..."``).  Modelled on ``[project.urls]`` in
+                        ``pyproject.toml``.  Parsers populate this with every URL
+                        they can discover; the catalog detail JSON exposes the full
+                        dict so the frontend can render all links.
     """
 
     entry_name: str
@@ -144,3 +149,4 @@ class BaseManifest:
     license: str | None
     version: str | None
     readme_content: str | None = None
+    urls: dict[str, str] = field(default_factory=dict)

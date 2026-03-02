@@ -79,6 +79,19 @@ def _fetch_package_json(owner: str, repo: str) -> dict[str, object] | None:
 # ---------------------------------------------------------------------------
 
 
+def _build_urls(vcs_url: str, canonical_url: str | None) -> dict[str, str]:
+    """Return the named-URL mapping for a clib entry.
+
+    Always includes ``"Repository"``; adds ``"Homepage"`` when *canonical_url*
+    differs from *vcs_url* (i.e. when ``package.json`` advertises a separate
+    project website).
+    """
+    urls: dict[str, str] = {"Repository": vcs_url}
+    if canonical_url and canonical_url != vcs_url:
+        urls["Homepage"] = canonical_url
+    return urls
+
+
 def _build_package(  # pylint: disable=too-many-locals
     host: str, owner: str, repo: str, tagline: str, category: str
 ) -> CLibPackage:
@@ -139,6 +152,7 @@ def _build_package(  # pylint: disable=too-many-locals
         version=version_val,
         keywords=keywords,
         readme_content=fetch_readme(owner, repo) if is_github else None,
+        urls=_build_urls(vcs_url, canonical_url),
     )
 
 
