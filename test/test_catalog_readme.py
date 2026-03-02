@@ -129,9 +129,7 @@ class TestParseReadmeDir:
         """Parses a README.md file and returns a BaseManifest."""
         pkg = tmp_path / "my-pkg"
         pkg.mkdir()
-        (pkg / "README.md").write_text(
-            "# My Package\n\nA great package.", encoding="utf-8"
-        )
+        (pkg / "README.md").write_text("# My Package\n\nA great package.", encoding="utf-8")
 
         result = parse_readme_dir(pkg)
 

@@ -137,9 +137,7 @@ def _process_subfolders_source(
             )
         return
 
-    logger.print_info_line(
-        source.name, f"Fetching {source.url} (src: {source.path}) ..."
-    )
+    logger.print_info_line(source.name, f"Fetching {source.url} (src: {source.path}) ...")
     with tempfile.TemporaryDirectory(prefix="dfetch-hub-") as tmp:
         fetched_dir = clone_source(source, Path(tmp))
 
@@ -149,9 +147,7 @@ def _process_subfolders_source(
             entry_dirs = entry_dirs[:limit]
 
         logger.print_info_line(source.name, f"Parsing {len(entry_dirs)} package(s) ...")
-        manifests, skipped = _parse_entry_dirs(
-            entry_dirs, parse_fn, _subfolder_homepage(source)
-        )
+        manifests, skipped = _parse_entry_dirs(entry_dirs, parse_fn, _subfolder_homepage(source))
 
         if skipped:
             logger.print_warning_line(
@@ -204,9 +200,7 @@ def _process_git_wiki_source(
         logger.print_info_line(source.name, f"Parsing {source.manifest} ...")
         packages: list[CLibPackage] = parse_packages_md(index_file, limit=limit)
 
-        logger.print_info_line(
-            source.name, f"Fetched metadata for {len(packages)} package(s)"
-        )
+        logger.print_info_line(source.name, f"Fetched metadata for {len(packages)} package(s)")
         _added, _updated = write_catalog(
             packages,  # type: ignore[arg-type]
             data_dir,
@@ -239,9 +233,7 @@ def _process_source(
 
 def _cmd_update(parsed: argparse.Namespace) -> None:
     """Run the catalog update pipeline."""
-    config, data_dir = load_config_with_data_dir(
-        parsed.config, parsed.data_dir, _DEFAULT_DATA_DIR
-    )
+    config, data_dir = load_config_with_data_dir(parsed.config, parsed.data_dir, _DEFAULT_DATA_DIR)
 
     sources = config.sources
     if parsed.source:

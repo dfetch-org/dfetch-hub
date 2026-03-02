@@ -86,9 +86,7 @@ def test_create_manifest_idempotent(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _patch_dfetch(
-    tmp_path: Path, source: SourceConfig
-) -> tuple[Path, MagicMock, MagicMock]:
+def _patch_dfetch(tmp_path: Path, source: SourceConfig) -> tuple[Path, MagicMock, MagicMock]:
     """Create the expected output dir and return (fetched_path, mock_project, mock_sub)."""
     fetched = tmp_path / source.name
     fetched.mkdir()
@@ -175,9 +173,7 @@ def test_clone_source_passes_manifest_path_to_parse(tmp_path: Path) -> None:
     "bad_name",
     ["..", ".", "a/b", "/absolute"],
 )
-def test_create_manifest_raises_for_unsafe_source_name(
-    tmp_path: Path, bad_name: str
-) -> None:
+def test_create_manifest_raises_for_unsafe_source_name(tmp_path: Path, bad_name: str) -> None:
     """create_manifest raises ValueError for names that could escape dest_dir."""
     bad_source = SourceConfig(
         name=bad_name,

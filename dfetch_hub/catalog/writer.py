@@ -50,9 +50,7 @@ def _catalog_id(vcs_host: str, org: str, repo: str) -> str:
 def _fetch_upstream_tags(url: str) -> list[dict[str, Any]]:
     """Return git tags from *url* using dfetch's GitRemote."""
     try:
-        info = GitRemote._ls_remote(  # pylint: disable=protected-access  # pyright: ignore[reportPrivateUsage]
-            url
-        )
+        info = GitRemote._ls_remote(url)  # pylint: disable=protected-access  # pyright: ignore[reportPrivateUsage]
     except Exception as exc:  # pylint: disable=broad-exception-caught
         logger.warning("Could not list tags for %s: %s", url, exc)  # pragma: no cover
         return []  # pragma: no cover
@@ -226,16 +224,9 @@ def _merge_catalog_sources(
     new_source = _catalog_source_entry(manifest, source_name, label, registry_path)
     new_index_path = new_source["index_path"]
     detail["catalog_sources"] = sources = [
-        s
-        for s in sources
-        if not (
-            s.get("index_path") == new_index_path
-            and s.get("source_name") != source_name
-        )
+        s for s in sources if not (s.get("index_path") == new_index_path and s.get("source_name") != source_name)
     ]
-    existing_source = next(
-        (s for s in sources if s.get("source_name") == source_name), None
-    )
+    existing_source = next((s for s in sources if s.get("source_name") == source_name), None)
     if existing_source is None:
         sources.append(new_source)
     else:
@@ -260,8 +251,7 @@ def _merge_detail(  # pylint: disable=too-many-arguments,too-many-positional-arg
         "subfolder_path": None,
         "catalog_sources": [],
         "manifests": [],
-        "readme": fetched_readme
-        or _generate_readme(manifest, repo, manifest.homepage or ""),
+        "readme": fetched_readme or _generate_readme(manifest, repo, manifest.homepage or ""),
         "tags": [],
         "branches": [
             {"name": "main", "is_tag": False, "commit_sha": None, "date": None},
@@ -385,16 +375,12 @@ def _process_manifest(  # pylint: disable=too-many-arguments,too-many-positional
         was successfully written; both are ``False`` when the manifest is skipped.
     """
     if not manifest.homepage:
-        logger.warning(
-            "cannot determine upstream repo without a URL of %s", manifest.entry_name
-        )
+        logger.warning("cannot determine upstream repo without a URL of %s", manifest.entry_name)
         return False, False
 
     parsed = parse_vcs_slug(manifest.homepage)
     if not parsed:
-        logger.warning(
-            "skipping entry without recognized VCS URL: %s", manifest.homepage
-        )
+        logger.warning("skipping entry without recognized VCS URL: %s", manifest.homepage)
         return False, False
 
     host, org, repo = parsed
@@ -403,9 +389,7 @@ def _process_manifest(  # pylint: disable=too-many-arguments,too-many-positional
     catalog[_catalog_id(vcs_host, org, repo)] = _merge_catalog_entry(
         existing_entry, manifest, vcs_host, org, repo, label
     )
-    _write_detail_json(
-        data_dir, vcs_host, org, repo, manifest, source_name, label, registry_path
-    )
+    _write_detail_json(data_dir, vcs_host, org, repo, manifest, source_name, label, registry_path)
     return existing_entry is None, existing_entry is not None
 
 
@@ -435,9 +419,7 @@ def write_catalog(
     updated = 0
 
     for manifest in manifests:
-        was_added, was_updated = _process_manifest(
-            manifest, catalog, data_dir, source_name, label, registry_path
-        )
+        was_added, was_updated = _process_manifest(manifest, catalog, data_dir, source_name, label, registry_path)
         added += was_added
         updated += was_updated
 

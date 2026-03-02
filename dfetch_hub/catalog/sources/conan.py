@@ -139,11 +139,7 @@ def _latest_version(config_path: Path) -> tuple[str | None, str]:
         if versions:
             latest = list(versions)[-1]
             latest_meta = versions.get(latest)
-            folder = (
-                str(latest_meta.get("folder", "all"))
-                if isinstance(latest_meta, dict)
-                else "all"
-            )
+            folder = str(latest_meta.get("folder", "all")) if isinstance(latest_meta, dict) else "all"
             return latest, folder
     except (OSError, yaml.YAMLError) as exc:
         logger.debug("Could not parse %s: %s", config_path, exc)

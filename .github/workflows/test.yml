@@ -22,16 +22,16 @@ jobs:
         run: |
           pip install .[development]
 
-      - run: isort --diff dfetch_hub                                                      # Checks import order
-      - run: black --check dfetch_hub                                                     # Checks code style
-      - run: ruff check dfetch_hub                                                        # Fast linter (bugbear, comprehensions, naming, …)
-      - run: pylint dfetch_hub                                                            # Deep static analysis
-      - run: mypy --strict dfetch_hub                                                     # mypy type check (strict)
-      - run: pyright dfetch_hub                                                           # pyright type check (standard)
-      - run: bandit -c pyproject.toml -r dfetch_hub                                      # Security linting
-      - run: xenon --max-absolute C --max-modules B --max-average A dfetch_hub           # Cyclomatic complexity
-      - run: pyroma --directory --min 9 .                                                 # Package metadata quality
-      - run: djlint --lint dfetch_hub                                                     # HTML linting
-      - run: pydocstyle --convention=google dfetch_hub                                    # Docstring style (Google convention)
-      - run: doc8 --extension .md --max-line-length 120 README.md                          # Documentation prose style
-      - run: pytest --cov=dfetch_hub test                                                 # Run tests with coverage
+      - run: isort --check dfetch_hub                                    # Import order (config: [tool.isort])
+      - run: black --check dfetch_hub                                    # Code style (config: [tool.black])
+      - run: ruff check dfetch_hub                                       # Lint rules (config: [tool.ruff])
+      - run: pylint dfetch_hub                                           # Static analysis (config: [tool.pylint])
+      - run: mypy                                                        # Type check (config: [tool.mypy] files+strict)
+      - run: pyright                                                     # Type check (config: [tool.pyright])
+      - run: bandit -c pyproject.toml -r dfetch_hub                     # Security (config: [tool.bandit])
+      - run: xenon --max-absolute B --max-modules A --max-average A dfetch_hub  # Complexity
+      - run: pyroma --directory --min 9 .                                # Package metadata quality
+      - run: djlint --lint dfetch_hub                                    # HTML lint (config: [tool.djlint])
+      - run: pydocstyle dfetch_hub                                       # Docstrings (config: [tool.pydocstyle])
+      - run: doc8                                                        # Doc style (config: [tool.doc8])
+      - run: pytest                                                      # Tests (config: [tool.pytest.ini_options])

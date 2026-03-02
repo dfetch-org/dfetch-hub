@@ -155,8 +155,8 @@ def _build_package(  # pylint: disable=too-many-locals
     pkg_json = _fetch_package_json(owner, repo) if is_github else None
 
     if pkg_json is not None:
-        package_name, description, license_val, version_val, json_kws, canonical_url = (
-            _enrich_from_pkg_json(pkg_json, vcs_url, tagline, repo)
+        package_name, description, license_val, version_val, json_kws, canonical_url = _enrich_from_pkg_json(
+            pkg_json, vcs_url, tagline, repo
         )
     else:
         package_name, description, license_val, version_val, json_kws = (
@@ -168,9 +168,7 @@ def _build_package(  # pylint: disable=too-many-locals
         )
         canonical_url = vcs_url
 
-    keywords: list[str] = ([category] if category else []) + [
-        k for k in json_kws if k != category
-    ]
+    keywords: list[str] = ([category] if category else []) + [k for k in json_kws if k != category]
     return CLibPackage(
         entry_name=f"{host}/{owner}/{repo}",
         package_name=package_name,
@@ -184,9 +182,7 @@ def _build_package(  # pylint: disable=too-many-locals
     )
 
 
-def _process_wiki_line(
-    line: str, current_category: str
-) -> tuple[str, CLibPackage | None]:
+def _process_wiki_line(line: str, current_category: str) -> tuple[str, CLibPackage | None]:
     """Process one Packages.md line; return updated category and optional package.
 
     Args:
@@ -212,14 +208,10 @@ def _process_wiki_line(
         return current_category, None
 
     host, owner, repo = parsed
-    return current_category, _build_package(
-        host, owner, repo, (tagline or "").strip(), current_category
-    )
+    return current_category, _build_package(host, owner, repo, (tagline or "").strip(), current_category)
 
 
-def parse_packages_md(
-    packages_md: "Path", limit: int | None = None
-) -> list[CLibPackage]:
+def parse_packages_md(packages_md: "Path", limit: int | None = None) -> list[CLibPackage]:
     """Parse ``Packages.md`` from the clib wiki into a list of :class:`CLibPackage`.
 
     For each bullet-point entry the function:

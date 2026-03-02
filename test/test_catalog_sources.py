@@ -100,9 +100,7 @@ def test_fetch_raw_returns_none_on_url_error() -> None:
 
 def test_fetch_raw_returns_none_on_os_error() -> None:
     """Returns None when urllib raises OSError (socket-level failure)."""
-    with patch(
-        "dfetch_hub.catalog.sources.urlopen", side_effect=OSError("connection reset")
-    ):
+    with patch("dfetch_hub.catalog.sources.urlopen", side_effect=OSError("connection reset")):
         result = fetch_raw("https://example.com/file")
 
     assert result is None
@@ -171,9 +169,7 @@ def test_fetch_readme_for_homepage_returns_none_for_non_github_host() -> None:
 
 def test_fetch_readme_for_homepage_delegates_to_fetch_readme_for_github() -> None:
     """Calls fetch_readme(owner, repo) for GitHub URLs and returns its result."""
-    with patch(
-        "dfetch_hub.catalog.sources.fetch_readme", return_value="# content"
-    ) as mock_fn:
+    with patch("dfetch_hub.catalog.sources.fetch_readme", return_value="# content") as mock_fn:
         result = fetch_readme_for_homepage("https://github.com/myorg/myrepo")
 
     mock_fn.assert_called_once_with("myorg", "myrepo")

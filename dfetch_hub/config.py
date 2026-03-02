@@ -93,17 +93,14 @@ def load_config(path: str = "dfetch-hub.toml") -> HubConfig:
         raise TypeError("`[settings]` must be a TOML table")
 
     raw_sources_obj = data.get("source", [])
-    if not isinstance(raw_sources_obj, list) or any(
-        not isinstance(raw, dict) for raw in raw_sources_obj
-    ):
+    if not isinstance(raw_sources_obj, list) or any(not isinstance(raw, dict) for raw in raw_sources_obj):
         raise TypeError("`[[source]]` must be an array of TOML tables")
 
     raw_settings = {k: v for k, v in raw_settings_obj.items() if k in _SETTINGS_FIELDS}
     settings = Settings(**raw_settings)
 
     sources: list[SourceConfig] = [
-        SourceConfig(**{k: v for k, v in raw.items() if k in _SOURCE_FIELDS})
-        for raw in raw_sources_obj
+        SourceConfig(**{k: v for k, v in raw.items() if k in _SOURCE_FIELDS}) for raw in raw_sources_obj
     ]
 
     return HubConfig(settings=settings, sources=sources)

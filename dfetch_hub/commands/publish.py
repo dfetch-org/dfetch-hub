@@ -44,19 +44,13 @@ def _validate_output_dir(data_dir: Path, output: Path) -> None:
         output:   Intended output directory that must not overlap *data_dir*.
     """
     if not data_dir.is_dir():
-        logger.error(
-            "Catalog data directory '%s' does not exist or is not a directory", data_dir
-        )
+        logger.error("Catalog data directory '%s' does not exist or is not a directory", data_dir)
         sys.exit(1)
     if not any(data_dir.rglob("*.json")):
         logger.error("Catalog data directory '%s' contains no JSON files", data_dir)
         sys.exit(1)
     out_res, src_res = output.resolve(), data_dir.resolve()
-    if (
-        out_res == src_res
-        or out_res.is_relative_to(src_res)
-        or src_res.is_relative_to(out_res)
-    ):
+    if out_res == src_res or out_res.is_relative_to(src_res) or src_res.is_relative_to(out_res):
         logger.error(
             "Output '%s' and data directory '%s' overlap — aborting to prevent data loss",
             output,
@@ -82,9 +76,7 @@ def _copy_assets(site_dir: Path, output: Path) -> None:
         dst.parent.mkdir(parents=True, exist_ok=True)
         if src.name == "index.html":
             text = src.read_text(encoding="utf-8")
-            dst.write_text(
-                re.sub(r"(['\"`])\.\.\/data\/", r"\1data/", text), encoding="utf-8"
-            )
+            dst.write_text(re.sub(r"(['\"`])\.\.\/data\/", r"\1data/", text), encoding="utf-8")
         else:
             shutil.copy2(src, dst)
 
@@ -109,9 +101,7 @@ def _minify_catalog(data_dir: Path, output: Path) -> int:
 def _cmd_publish(parsed: argparse.Namespace) -> None:
     """Build a deployable static site for GitHub Pages / GitLab Pages."""
     output = Path(parsed.output)
-    _config, data_dir = load_config_with_data_dir(
-        parsed.config, parsed.data_dir, _DEFAULT_DATA_DIR
-    )
+    _config, data_dir = load_config_with_data_dir(parsed.config, parsed.data_dir, _DEFAULT_DATA_DIR)
     _validate_output_dir(data_dir, output)
 
     if output.exists():
