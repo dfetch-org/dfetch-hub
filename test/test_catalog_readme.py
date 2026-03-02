@@ -210,3 +210,17 @@ class TestParseReadmeDir:
 
         assert result is not None
         assert result.entry_name == "pkg"
+
+    def test_returns_none_on_read_oserror(self, tmp_path: Path) -> None:
+        """Returns None when read_text raises OSError (e.g. permission denied)."""
+        from pathlib import Path as _Path
+        from unittest.mock import patch
+
+        pkg = tmp_path / "pkg"
+        pkg.mkdir()
+        (pkg / "README.md").touch()
+
+        with patch.object(_Path, "read_text", side_effect=OSError("permission denied")):
+            result = parse_readme_dir(pkg)
+
+        assert result is None
