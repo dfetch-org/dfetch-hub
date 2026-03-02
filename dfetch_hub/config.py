@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import tomllib
 from dataclasses import dataclass, field, fields
+from pathlib import Path
 
 
 @dataclass
@@ -84,18 +85,18 @@ def load_config(path: str = "dfetch-hub.toml") -> HubConfig:
         tomllib.TOMLDecodeError: If the file is not valid TOML.
 
     """
-    with open(path, "rb") as fh:
+    with Path(path).open("rb") as fh:
         data = tomllib.load(fh)
 
     raw_settings_obj = data.get("settings", {})
     if not isinstance(raw_settings_obj, dict):
-        raise ValueError("`[settings]` must be a TOML table")
+        raise TypeError("`[settings]` must be a TOML table")
 
     raw_sources_obj = data.get("source", [])
     if not isinstance(raw_sources_obj, list) or any(
         not isinstance(raw, dict) for raw in raw_sources_obj
     ):
-        raise ValueError("`[[source]]` must be an array of TOML tables")
+        raise TypeError("`[[source]]` must be an array of TOML tables")
 
     raw_settings = {k: v for k, v in raw_settings_obj.items() if k in _SETTINGS_FIELDS}
     settings = Settings(**raw_settings)

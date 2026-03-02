@@ -7,10 +7,10 @@ from urllib.error import URLError
 
 from dfetch_hub.catalog.sources import (
     BaseManifest,
-    _fetch_raw,
-    _raw_url,
+    fetch_raw,
     fetch_readme,
     fetch_readme_for_homepage,
+    raw_url,
 )
 
 # ---------------------------------------------------------------------------
@@ -47,26 +47,26 @@ def test_base_manifest_urls_accepts_populated_dict() -> None:
 
 
 # ---------------------------------------------------------------------------
-# _raw_url
+# raw_url
 # ---------------------------------------------------------------------------
 
 
 def test_raw_url_produces_correct_format() -> None:
     """URL is assembled from owner, repo, branch, and filename."""
-    url = _raw_url("owner", "repo", "main", "README.md")
+    url = raw_url("owner", "repo", "main", "README.md")
     assert url == "https://raw.githubusercontent.com/owner/repo/main/README.md"
 
 
 def test_raw_url_reflects_branch_and_filename() -> None:
     """Different branch and filename produce the expected URL."""
-    url = _raw_url("org", "project", "master", "README.rst")
+    url = raw_url("org", "project", "master", "README.rst")
     assert "master" in url
     assert "README.rst" in url
     assert "org/project" in url
 
 
 # ---------------------------------------------------------------------------
-# _fetch_raw
+# fetch_raw
 # ---------------------------------------------------------------------------
 
 
@@ -85,7 +85,7 @@ def test_fetch_raw_returns_decoded_content_on_success() -> None:
         "dfetch_hub.catalog.sources.urlopen",
         return_value=_make_response(b"hello world"),
     ):
-        result = _fetch_raw("https://example.com/file")
+        result = fetch_raw("https://example.com/file")
 
     assert result == "hello world"
 
@@ -93,7 +93,7 @@ def test_fetch_raw_returns_decoded_content_on_success() -> None:
 def test_fetch_raw_returns_none_on_url_error() -> None:
     """Returns None when urllib raises URLError (network failure, 404, etc.)."""
     with patch("dfetch_hub.catalog.sources.urlopen", side_effect=URLError("timeout")):
-        result = _fetch_raw("https://example.com/file")
+        result = fetch_raw("https://example.com/file")
 
     assert result is None
 
@@ -103,7 +103,7 @@ def test_fetch_raw_returns_none_on_os_error() -> None:
     with patch(
         "dfetch_hub.catalog.sources.urlopen", side_effect=OSError("connection reset")
     ):
-        result = _fetch_raw("https://example.com/file")
+        result = fetch_raw("https://example.com/file")
 
     assert result is None
 
@@ -119,7 +119,7 @@ def test_fetch_readme_returns_first_found_content() -> None:
     def _side_effect(url: str) -> str | None:
         return "# README" if ("main" in url and "README.md" in url) else None
 
-    with patch("dfetch_hub.catalog.sources._fetch_raw", side_effect=_side_effect):
+    with patch("dfetch_hub.catalog.sources.fetch_raw", side_effect=_side_effect):
         result = fetch_readme("owner", "repo")
 
     assert result == "# README"
@@ -131,7 +131,7 @@ def test_fetch_readme_falls_back_to_master_branch() -> None:
     def _side_effect(url: str) -> str | None:
         return "# Master README" if "master" in url else None
 
-    with patch("dfetch_hub.catalog.sources._fetch_raw", side_effect=_side_effect):
+    with patch("dfetch_hub.catalog.sources.fetch_raw", side_effect=_side_effect):
         result = fetch_readme("owner", "repo")
 
     assert result == "# Master README"
@@ -139,7 +139,7 @@ def test_fetch_readme_falls_back_to_master_branch() -> None:
 
 def test_fetch_readme_returns_none_when_all_attempts_fail() -> None:
     """Returns None when every branch/filename combination returns nothing."""
-    with patch("dfetch_hub.catalog.sources._fetch_raw", return_value=None):
+    with patch("dfetch_hub.catalog.sources.fetch_raw", return_value=None):
         result = fetch_readme("owner", "repo")
 
     assert result is None

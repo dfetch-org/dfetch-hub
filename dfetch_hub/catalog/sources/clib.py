@@ -10,12 +10,12 @@ from typing import TYPE_CHECKING
 from dfetch.log import get_logger
 
 from dfetch_hub.catalog.sources import (
-    _RAW_BRANCHES,
+    RAW_BRANCHES,
     BaseManifest,
-    _fetch_raw,
-    _raw_url,
+    fetch_raw,
     fetch_readme,
     parse_vcs_slug,
+    raw_url,
 )
 
 if TYPE_CHECKING:
@@ -56,8 +56,8 @@ def _fetch_package_json(owner: str, repo: str) -> dict[str, object] | None:
 
     Tries ``main`` then ``master`` branch.  Returns ``None`` on failure.
     """
-    for branch in _RAW_BRANCHES:
-        raw = _fetch_raw(_raw_url(owner, repo, branch, "package.json"))
+    for branch in RAW_BRANCHES:
+        raw = fetch_raw(raw_url(owner, repo, branch, "package.json"))
         if raw is None:
             continue
         try:
@@ -92,6 +92,43 @@ def _build_urls(vcs_url: str, canonical_url: str | None) -> dict[str, str]:
     return urls
 
 
+def _str_or_none(value: object) -> str | None:
+    """Return ``str(value)`` when *value* is truthy, else ``None``."""
+    return str(value) if value else None
+
+
+def _pkg_json_keywords(raw: object) -> list[str]:
+    """Extract a flat keyword list from the ``keywords`` field of ``package.json``."""
+    if isinstance(raw, list):
+        return [str(k) for k in raw]
+    if isinstance(raw, str):
+        return [raw]
+    return []
+
+
+def _enrich_from_pkg_json(
+    pkg_json: dict[str, object], vcs_url: str, tagline: str, repo: str
+) -> tuple[str, str, str | None, str | None, list[str], str]:
+    """Extract package metadata from ``package.json``.
+
+    Args:
+        pkg_json: Parsed ``package.json`` dict.
+        vcs_url:  VCS repository URL used as the fallback homepage.
+        tagline:  Description extracted from the wiki bullet (used when ``package.json`` has none).
+        repo:     Repository name used as the fallback package name.
+
+    Returns:
+        ``(package_name, description, license, version, keywords, canonical_url)``
+    """
+    package_name = str(pkg_json.get("name") or repo)
+    description = tagline or str(pkg_json.get("description") or "")
+    license_val = _str_or_none(pkg_json.get("license"))
+    version_val = _str_or_none(pkg_json.get("version"))
+    json_kws = _pkg_json_keywords(pkg_json.get("keywords"))
+    canonical_url = _str_or_none(pkg_json.get("homepage")) or vcs_url
+    return package_name, description, license_val, version_val, json_kws, canonical_url
+
+
 def _build_package(  # pylint: disable=too-many-locals
     host: str, owner: str, repo: str, tagline: str, category: str
 ) -> CLibPackage:
@@ -118,26 +155,17 @@ def _build_package(  # pylint: disable=too-many-locals
     pkg_json = _fetch_package_json(owner, repo) if is_github else None
 
     if pkg_json is not None:
-        package_name = str(pkg_json.get("name") or repo)
-        description = tagline or str(pkg_json.get("description") or "")
-        license_val = str(pkg_json.get("license") or "") or None
-        version_val = str(pkg_json.get("version") or "") or None
-        raw_keywords = pkg_json.get("keywords")
-        if isinstance(raw_keywords, list):
-            json_kws: list[str] = [str(k) for k in raw_keywords]
-        elif isinstance(raw_keywords, str):
-            json_kws = [raw_keywords]
-        else:
-            json_kws = []
-        # Prefer an explicit homepage from package.json (e.g. project website);
-        # fall back to the VCS repo URL so the field is always populated.
-        canonical_url: str | None = str(pkg_json.get("homepage") or "") or vcs_url
+        package_name, description, license_val, version_val, json_kws, canonical_url = (
+            _enrich_from_pkg_json(pkg_json, vcs_url, tagline, repo)
+        )
     else:
-        package_name = repo
-        description = tagline
-        license_val = None
-        version_val = None
-        json_kws = []
+        package_name, description, license_val, version_val, json_kws = (
+            repo,
+            tagline,
+            None,
+            None,
+            [],
+        )
         canonical_url = vcs_url
 
     keywords: list[str] = ([category] if category else []) + [
@@ -153,6 +181,39 @@ def _build_package(  # pylint: disable=too-many-locals
         keywords=keywords,
         readme_content=fetch_readme(owner, repo) if is_github else None,
         urls=_build_urls(vcs_url, canonical_url),
+    )
+
+
+def _process_wiki_line(
+    line: str, current_category: str
+) -> tuple[str, CLibPackage | None]:
+    """Process one Packages.md line; return updated category and optional package.
+
+    Args:
+        line:             A single line from ``Packages.md``.
+        current_category: The most-recently seen section heading.
+
+    Returns:
+        A ``(category, package)`` pair where *category* may be updated and
+        *package* is ``None`` for non-bullet or unrecognised lines.
+    """
+    heading_match = _HEADING_RE.match(line)
+    if heading_match:
+        return heading_match.group(1).strip(), None
+
+    bullet_match = _BULLET_RE.match(line)
+    if not bullet_match:
+        return current_category, None
+
+    _link_text, url, tagline = bullet_match.groups()
+    parsed = parse_vcs_slug(url)
+    if not parsed:
+        logger.debug("Skipping URL without recognized VCS host in Packages.md: %s", url)
+        return current_category, None
+
+    host, owner, repo = parsed
+    return current_category, _build_package(
+        host, owner, repo, (tagline or "").strip(), current_category
     )
 
 
@@ -179,29 +240,10 @@ def parse_packages_md(
     current_category: str = ""
 
     for line in packages_md.read_text(encoding="utf-8").splitlines():
-        heading_match = _HEADING_RE.match(line)
-        if heading_match:
-            current_category = heading_match.group(1).strip()
-            continue
-
-        bullet_match = _BULLET_RE.match(line)
-        if not bullet_match:
-            continue
-
-        _link_text, url, tagline = bullet_match.groups()
-        parsed = parse_vcs_slug(url)
-        if not parsed:
-            logger.debug(
-                "Skipping URL without recognized VCS host in Packages.md: %s", url
-            )
-            continue
-
         if limit is not None and len(packages) >= limit:
             break
-
-        host, owner, repo = parsed
-        packages.append(
-            _build_package(host, owner, repo, (tagline or "").strip(), current_category)
-        )
+        current_category, pkg = _process_wiki_line(line, current_category)
+        if pkg is not None:
+            packages.append(pkg)
 
     return packages

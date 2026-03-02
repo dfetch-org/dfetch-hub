@@ -423,7 +423,7 @@ def test_fetch_package_json_returns_dict_on_valid_response() -> None:
     """Returns the parsed dict when the raw response is valid JSON."""
     data = {"name": "buffer", "version": "0.4.0"}
     with patch(
-        "dfetch_hub.catalog.sources.clib._fetch_raw", return_value=json.dumps(data)
+        "dfetch_hub.catalog.sources.clib.fetch_raw", return_value=json.dumps(data)
     ):
         result = _fetch_package_json("clibs", "buffer")
 
@@ -432,7 +432,7 @@ def test_fetch_package_json_returns_dict_on_valid_response() -> None:
 
 def test_fetch_package_json_returns_none_when_fetch_fails() -> None:
     """Returns None when every HTTP fetch attempt fails."""
-    with patch("dfetch_hub.catalog.sources.clib._fetch_raw", return_value=None):
+    with patch("dfetch_hub.catalog.sources.clib.fetch_raw", return_value=None):
         result = _fetch_package_json("owner", "repo")
 
     assert result is None
@@ -440,7 +440,7 @@ def test_fetch_package_json_returns_none_when_fetch_fails() -> None:
 
 def test_fetch_package_json_returns_none_on_bad_json() -> None:
     """Returns None when the response body is not valid JSON."""
-    with patch("dfetch_hub.catalog.sources.clib._fetch_raw", return_value="not json"):
+    with patch("dfetch_hub.catalog.sources.clib.fetch_raw", return_value="not json"):
         result = _fetch_package_json("owner", "repo")
 
     assert result is None
@@ -449,7 +449,7 @@ def test_fetch_package_json_returns_none_on_bad_json() -> None:
 def test_fetch_package_json_returns_none_for_non_object_json() -> None:
     """Returns None when the JSON root is not an object (e.g. a list)."""
     with patch(
-        "dfetch_hub.catalog.sources.clib._fetch_raw",
+        "dfetch_hub.catalog.sources.clib.fetch_raw",
         return_value=json.dumps([1, 2, 3]),
     ):
         result = _fetch_package_json("owner", "repo")
@@ -464,7 +464,7 @@ def test_fetch_package_json_falls_back_to_master_branch() -> None:
     def _side_effect(url: str) -> str | None:
         return json.dumps(data) if "master" in url else None
 
-    with patch("dfetch_hub.catalog.sources.clib._fetch_raw", side_effect=_side_effect):
+    with patch("dfetch_hub.catalog.sources.clib.fetch_raw", side_effect=_side_effect):
         result = _fetch_package_json("owner", "repo")
 
     assert result == data

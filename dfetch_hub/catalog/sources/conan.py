@@ -22,6 +22,25 @@ logger = get_logger(__name__)
 # ---------------------------------------------------------------------------
 
 
+def _advance_in_string(text: str, i: int, str_char: str) -> tuple[int, bool]:
+    """Advance index *i* by one step while inside a string literal.
+
+    Args:
+        text:     Full source text being scanned.
+        i:        Current position (the character to inspect).
+        str_char: The opening quote character of the current string.
+
+    Returns:
+        ``(next_i, still_in_string)`` — *next_i* skips an extra character when
+        a backslash escape is encountered; *still_in_string* is ``False`` when
+        *i* points at the closing quote.
+    """
+    ch = text[i]
+    if ch == "\\" and i + 1 < len(text):
+        return i + 1, True
+    return i, ch != str_char
+
+
 def _scan_paren_value(text: str, start: int) -> str:
     """Return the substring from *start* (a ``(`` character) to its matching ``)``."""
     depth = 1
@@ -31,17 +50,13 @@ def _scan_paren_value(text: str, start: int) -> str:
     while i < len(text) and depth > 0:
         ch = text[i]
         if in_str:
-            if ch == "\\" and i + 1 < len(text):
-                i += 1
-            elif ch == str_char:
-                in_str = False
-        else:
-            if ch in ('"', "'"):
-                in_str, str_char = True, ch
-            elif ch == "(":
-                depth += 1
-            elif ch == ")":
-                depth -= 1
+            i, in_str = _advance_in_string(text, i, str_char)
+        elif ch in ('"', "'"):
+            in_str, str_char = True, ch
+        elif ch == "(":
+            depth += 1
+        elif ch == ")":
+            depth -= 1
         i += 1
     return text[start:i]
 
@@ -135,28 +150,37 @@ def _latest_version(config_path: Path) -> tuple[str | None, str]:
     return None, "all"
 
 
-def _find_conanfile(recipe_dir: Path, preferred_folder: str) -> Path | None:
-    """Return the path to ``conanfile.py`` inside *recipe_dir*.
+def _safe_conanfile(candidate: Path, base: Path) -> Path | None:
+    """Resolve *candidate* and return it if it is a file strictly within *base*.
 
-    Tries *preferred_folder* first, then falls back to any subdirectory.
-    Both candidate paths are resolved and verified to be strictly contained
-    within *recipe_dir* before being returned, preventing path traversal via
-    crafted folder names or symlinks.
+    Args:
+        candidate: Path to a potential ``conanfile.py``.
+        base:      Resolved absolute root that the candidate must be under.
+
+    Returns:
+        Resolved path on success, or ``None`` if resolution fails or the path
+        escapes *base* or does not point to an existing file.
     """
-    base = recipe_dir.resolve()
-
-    preferred = recipe_dir / preferred_folder / "conanfile.py"
     try:
-        preferred_resolved = preferred.resolve()
+        resolved = candidate.resolve()
     except OSError:
-        preferred_resolved = None
-    if (
-        preferred_resolved is not None
-        and preferred_resolved.is_relative_to(base)
-        and preferred_resolved.is_file()
-    ):
-        return preferred_resolved
+        return None
+    return resolved if resolved.is_relative_to(base) and resolved.is_file() else None
 
+
+def _scan_recipe_dir(base: Path, recipe_dir: Path) -> Path | None:
+    """Scan all subdirectories of *recipe_dir* for ``conanfile.py``.
+
+    Every candidate path is verified to be strictly contained within *base*
+    before being returned, preventing path traversal.
+
+    Args:
+        base:       Resolved absolute path of the recipe directory root.
+        recipe_dir: Recipe directory to scan.
+
+    Returns:
+        Path to the first safe ``conanfile.py`` found, or ``None``.
+    """
     if not recipe_dir.exists() or not recipe_dir.is_dir():
         return None
 
@@ -167,20 +191,54 @@ def _find_conanfile(recipe_dir: Path, preferred_folder: str) -> Path | None:
 
     for sub in entries:
         if sub.is_dir():
-            candidate = sub / "conanfile.py"
-            try:
-                candidate_resolved = candidate.resolve()
-            except OSError:
-                continue
-            if candidate_resolved.is_relative_to(base) and candidate_resolved.is_file():
-                return candidate_resolved
+            result = _safe_conanfile(sub / "conanfile.py", base)
+            if result is not None:
+                return result
 
     return None
+
+
+def _find_conanfile(recipe_dir: Path, preferred_folder: str) -> Path | None:
+    """Return the path to ``conanfile.py`` inside *recipe_dir*.
+
+    Tries *preferred_folder* first, then falls back to any subdirectory.
+    Both candidate paths are verified to be strictly contained within
+    *recipe_dir* before being returned, preventing path traversal via
+    crafted folder names or symlinks.
+
+    Args:
+        recipe_dir:       Path to the recipe directory.
+        preferred_folder: Subfolder to try first (e.g. ``"all"``).
+
+    Returns:
+        Path to ``conanfile.py`` on success, or ``None``.
+    """
+    base = recipe_dir.resolve()
+    result = _safe_conanfile(recipe_dir / preferred_folder / "conanfile.py", base)
+    return result if result is not None else _scan_recipe_dir(base, recipe_dir)
 
 
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
+
+def _build_conan_urls(homepage: str | None, conan_url: str | None) -> dict[str, str]:
+    """Build the named URL mapping for a conan recipe.
+
+    Args:
+        homepage:  Upstream project website, or ``None``.
+        conan_url: Conan recipe repository URL, or ``None``.
+
+    Returns:
+        A dict with ``"Homepage"`` and/or ``"Source"`` keys as available.
+    """
+    urls: dict[str, str] = {}
+    if homepage:
+        urls["Homepage"] = homepage
+    if conan_url:
+        urls["Source"] = conan_url
+    return urls
 
 
 def parse_conan_recipe(recipe_dir: Path) -> ConanManifest | None:
@@ -217,15 +275,8 @@ def parse_conan_recipe(recipe_dir: Path) -> ConanManifest | None:
     name = _extract_str_attr(text, "name") or recipe_dir.name
     description = _extract_str_attr(text, "description") or ""
     homepage = _extract_str_attr(text, "homepage")
-    conan_url = _extract_str_attr(text, "url")
     license_val = _extract_str_attr(text, "license") or None
     topics = _extract_tuple_attr(text, "topics")
-
-    urls: dict[str, str] = {}
-    if homepage:
-        urls["Homepage"] = homepage
-    if conan_url:
-        urls["Source"] = conan_url
 
     return ConanManifest(
         entry_name=recipe_dir.name,
@@ -236,5 +287,5 @@ def parse_conan_recipe(recipe_dir: Path) -> ConanManifest | None:
         version=version,
         topics=topics,
         readme_content=fetch_readme_for_homepage(homepage),
-        urls=urls,
+        urls=_build_conan_urls(homepage, _extract_str_attr(text, "url")),
     )

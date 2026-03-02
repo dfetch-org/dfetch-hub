@@ -19,6 +19,8 @@ from dfetch_hub.catalog.writer import write_catalog
 from dfetch_hub.commands import load_config_with_data_dir
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from dfetch_hub.catalog.sources import BaseManifest
     from dfetch_hub.config import SourceConfig
 
@@ -81,6 +83,38 @@ def _subfolder_homepage(source: SourceConfig) -> str | None:
     return source.url or None
 
 
+def _parse_entry_dirs(
+    entry_dirs: list[Path],
+    parse_fn: Callable[[Path], BaseManifest | None],
+    fallback_homepage: str | None,
+) -> tuple[list[BaseManifest], int]:
+    """Parse *entry_dirs* and return ``(manifests, skipped_count)``.
+
+    For each directory the appropriate parser is called.  Packages whose
+    homepage is ``None`` get the *fallback_homepage* (i.e. the repository root
+    URL) if one is available.
+
+    Args:
+        entry_dirs:       Sorted list of package directories to process.
+        parse_fn:         Parser function for the manifest type.
+        fallback_homepage: Repository root URL used when a manifest has no homepage.
+
+    Returns:
+        A ``(manifests, skipped)`` tuple.
+    """
+    manifests: list[BaseManifest] = []
+    skipped = 0
+    for entry_dir in entry_dirs:
+        m = parse_fn(entry_dir)
+        if m is None:
+            skipped += 1
+        else:
+            if m.homepage is None and fallback_homepage is not None:
+                m.homepage = fallback_homepage
+            manifests.append(m)
+    return manifests, skipped
+
+
 def _process_subfolders_source(
     source: SourceConfig,
     data_dir: Path,
@@ -107,8 +141,7 @@ def _process_subfolders_source(
         source.name, f"Fetching {source.url} (src: {source.path}) ..."
     )
     with tempfile.TemporaryDirectory(prefix="dfetch-hub-") as tmp:
-        tmp_path = Path(tmp)
-        fetched_dir = clone_source(source, tmp_path)
+        fetched_dir = clone_source(source, Path(tmp))
 
         entry_dirs = sorted(d for d in fetched_dir.iterdir() if d.is_dir())
         entry_dirs = _filter_sentinel(source, entry_dirs)
@@ -116,18 +149,9 @@ def _process_subfolders_source(
             entry_dirs = entry_dirs[:limit]
 
         logger.print_info_line(source.name, f"Parsing {len(entry_dirs)} package(s) ...")
-        manifests: list[BaseManifest] = []
-        skipped = 0
-        for entry_dir in entry_dirs:
-            m = parse_fn(entry_dir)
-            if m is None:
-                skipped += 1
-            else:
-                if m.homepage is None:
-                    hp = _subfolder_homepage(source)
-                    if hp is not None:
-                        m.homepage = hp
-                manifests.append(m)
+        manifests, skipped = _parse_entry_dirs(
+            entry_dirs, parse_fn, _subfolder_homepage(source)
+        )
 
         if skipped:
             logger.print_warning_line(

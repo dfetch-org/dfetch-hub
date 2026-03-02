@@ -8,7 +8,10 @@ import threading
 import webbrowser
 from pathlib import Path
 
+from dfetch.log import get_logger
+
 _PACKAGE_DIR = Path(__file__).parent.parent
+logger = get_logger(__name__)
 
 
 def _port_type(value: str) -> int:
@@ -36,7 +39,7 @@ def _cmd_serve(parsed: argparse.Namespace) -> None:
             pass  # suppress per-request noise
 
     url = f"http://localhost:{port}/site/index.html"
-    print(f"Serving {serve_dir} on {url}  (Ctrl-C to stop)")
+    logger.info("Serving %s on %s  (Ctrl-C to stop)", serve_dir, url)
 
     server = http.server.ThreadingHTTPServer(("127.0.0.1", port), _Handler)
 
@@ -45,7 +48,7 @@ def _cmd_serve(parsed: argparse.Namespace) -> None:
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\nStopped.")
+        logger.info("Stopped.")
     finally:
         server.server_close()
 

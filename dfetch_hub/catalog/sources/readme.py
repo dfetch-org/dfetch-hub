@@ -21,10 +21,14 @@ logger = get_logger(__name__)
 
 _README_NAMES = ("README.md", "readme.md", "Readme.md", "README.rst", "README")
 
-_HEADING_RE = re.compile(r"^#+\s+")
-_BADGE_RE = re.compile(r"^\[!\[")
-_BLANK_RE = re.compile(r"^\s*$")
+# Matches lines that should be skipped: blank, Markdown headings, or badge links.
+_SKIP_RE = re.compile(r"^(#+\s+|\[!\[|\s*$)")
 _DESCRIPTION_MAX = 120
+
+
+def _is_content_line(line: str, in_code_block: bool) -> bool:
+    """Return ``True`` if *line* is a prose content line worth using as a description."""
+    return not in_code_block and not _SKIP_RE.match(line) and bool(line.strip())
 
 
 def _extract_description(text: str) -> str:
@@ -47,13 +51,8 @@ def _extract_description(text: str) -> str:
         if line.startswith(("```", "~~~")):
             in_code_block = not in_code_block
             continue
-        if in_code_block:
-            continue
-        if _BLANK_RE.match(line) or _HEADING_RE.match(line) or _BADGE_RE.match(line):
-            continue
-        stripped = line.strip()
-        if stripped:
-            return stripped[:_DESCRIPTION_MAX]
+        if _is_content_line(line, in_code_block):
+            return line.strip()[:_DESCRIPTION_MAX]
     return ""
 
 

@@ -42,7 +42,7 @@ def load_config_with_data_dir(
     try:
         config = load_config(config_path)
     except FileNotFoundError:
-        _logger.error("Config file '%s' not found", config_path)
+        _logger.exception("Config file '%s' not found", config_path)
         sys.exit(1)
 
     if data_dir_override is not None:
