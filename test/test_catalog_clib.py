@@ -127,7 +127,17 @@ def test_build_package_falls_back_to_vcs_url_when_no_package_json() -> None:
 
 def test_build_package_non_github_uses_vcs_url() -> None:
     """Non-GitHub entries use their own VCS URL as homepage."""
-    pkg = _build_package("gitlab.com", "myorg", "myrepo", "a gitlab lib", "Tools")
+    with (
+        patch(
+            "dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=None
+        ) as mock_pkg_json,
+        patch(
+            "dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None
+        ) as mock_readme,
+    ):
+        pkg = _build_package("gitlab.com", "myorg", "myrepo", "a gitlab lib", "Tools")
+    mock_pkg_json.assert_not_called()
+    mock_readme.assert_not_called()
 
     assert pkg.homepage == "https://gitlab.com/myorg/myrepo"
 
@@ -166,7 +176,17 @@ def test_build_package_readme_none_when_not_found() -> None:
 
 def test_build_package_non_github_readme_is_none() -> None:
     """Non-GitHub packages always have readme_content=None (raw URL not available)."""
-    pkg = _build_package("gitlab.com", "org", "repo", "desc", "Cat")
+    with (
+        patch(
+            "dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=None
+        ) as mock_pkg_json,
+        patch(
+            "dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None
+        ) as mock_readme,
+    ):
+        pkg = _build_package("gitlab.com", "org", "repo", "desc", "Cat")
+    mock_pkg_json.assert_not_called()
+    mock_readme.assert_not_called()
 
     assert pkg.readme_content is None
 
