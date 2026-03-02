@@ -45,7 +45,7 @@ repos:
       args: [dfetch_hub]
   -   id: xenon
       name: cyclomatic complexity
-      entry: xenon --max-absolute C --max-modules B --max-average A
+      entry: xenon --max-absolute B --max-modules A --max-average A
       language: python
       files: ^dfetch_hub/
       types: [file, python]
