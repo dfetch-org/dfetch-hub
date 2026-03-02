@@ -16,9 +16,11 @@ logger = get_logger(__name__)
 # VCS URL helpers
 # ---------------------------------------------------------------------------
 
-# Matches any https://host/owner/repo[.git] URL regardless of hosting provider.
+# Matches any https://host/[groups.../]repo[.git] URL regardless of hosting provider.
+# The owner group captures everything between the host and the final path segment,
+# so GitLab nested groups (group/subgroup/…) are preserved intact.
 _VCS_URL_RE = re.compile(
-    r"https?://([^/]+)/([^/]+)/([^/\s#?]+?)(?:\.git)?/?$",
+    r"https?://([^/]+)/(.+)/([^/\s#?]+?)(?:\.git)?/?$",
     re.IGNORECASE,
 )
 
@@ -27,15 +29,18 @@ def parse_vcs_slug(url: str) -> tuple[str, str, str] | None:
     """Return ``(host, owner, repo)`` extracted from a VCS URL, normalised to lowercase.
 
     Works with any ``https://host/owner/repo`` URL — GitHub, GitLab, Gitea,
-    Bitbucket, and company-hosted instances.  Lowercasing ensures the catalog
-    ID, the detail-file path, and the JSON fields are all consistent.
+    Bitbucket, and company-hosted instances.  For GitLab (and similar hosts)
+    the *owner* component may contain slashes representing nested groups, e.g.
+    ``"group/subgroup"`` for ``https://gitlab.com/group/subgroup/repo``.
+    Lowercasing ensures the catalog ID, the detail-file path, and the JSON
+    fields are all consistent.
 
     Args:
         url: A VCS repository URL.
 
     Returns:
         A ``(host, owner, repo)`` triple, or ``None`` if *url* does not match
-        the expected ``https://host/owner/repo`` pattern.
+        the expected ``https://host/…/repo`` pattern.
 
     """
     m = _VCS_URL_RE.match(url.strip())

@@ -118,6 +118,14 @@ def _existing_detail() -> dict[str, Any]:
         ),
         ("http://github.com/foo/bar", ("github.com", "foo", "bar")),
         ("https://gitlab.com/org/repo", ("gitlab.com", "org", "repo")),
+        (
+            "https://gitlab.com/group/subgroup/repo",
+            ("gitlab.com", "group/subgroup", "repo"),
+        ),
+        (
+            "https://gitlab.com/group/subgroup/nested/repo",
+            ("gitlab.com", "group/subgroup/nested", "repo"),
+        ),
         ("https://bitbucket.org/org/repo", ("bitbucket.org", "org", "repo")),
         (
             "https://gitea.example.com/org/repo",
