@@ -31,7 +31,7 @@ development = [
     "pytest==8.4.2",
     "pytest-cov==7.0.0",
     "vcrpy==7.0.0",
-    "types-PyYaml==6.0.12"
+    "types-PyYaml==6.0.12.20250915"
 ]
 [project.urls]
 Homepage = "https://github.com/dfetch-org/dfetch-hub"
