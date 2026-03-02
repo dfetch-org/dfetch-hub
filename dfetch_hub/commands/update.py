@@ -13,6 +13,7 @@ from dfetch.log import get_logger
 from dfetch_hub.catalog.cloner import clone_source
 from dfetch_hub.catalog.sources.clib import CLibPackage, parse_packages_md
 from dfetch_hub.catalog.sources.conan import parse_conan_recipe
+from dfetch_hub.catalog.sources.readme import parse_readme_dir
 from dfetch_hub.catalog.sources.vcpkg import parse_vcpkg_json
 from dfetch_hub.catalog.writer import write_catalog
 from dfetch_hub.commands import load_config_with_data_dir
@@ -26,10 +27,58 @@ logger = get_logger(__name__)
 _PACKAGE_DIR = Path(__file__).parent.parent
 _DEFAULT_DATA_DIR = _PACKAGE_DIR / "data"
 
-_SUBFOLDER_PARSERS = {
+_MANIFEST_PARSERS = {
     "vcpkg.json": parse_vcpkg_json,
     "conandata.yml": parse_conan_recipe,
+    "readme": parse_readme_dir,
 }
+
+
+def _filter_sentinel(source: SourceConfig, entry_dirs: list[Path]) -> list[Path]:
+    """Remove entries from *entry_dirs* that contain ``source.ignore_if_present``.
+
+    When ``source.ignore_if_present`` is an empty string the original list is
+    returned unchanged.  Otherwise every directory that contains a file (or
+    sub-directory) with that name is removed, and the number of removals is
+    logged at info level.
+
+    Args:
+        source:     Source configuration (provides ``ignore_if_present`` and ``name``).
+        entry_dirs: Candidate entry directories to filter.
+
+    Returns:
+        Filtered list with sentinel-containing directories removed.
+
+    """
+    if not source.ignore_if_present:
+        return entry_dirs
+    before = len(entry_dirs)
+    filtered = [d for d in entry_dirs if not (d / source.ignore_if_present).exists()]
+    ignored = before - len(filtered)
+    if ignored:
+        logger.print_info_line(
+            source.name,
+            f"Ignored {ignored} folder(s) containing '{source.ignore_if_present}'",
+        )
+    return filtered
+
+
+def _subfolder_homepage(source: SourceConfig) -> str | None:
+    """Return the repository URL as a homepage for a subfolder package.
+
+    VCS hosting providers (GitHub, GitLab, Gitea, Bitbucket, company-hosted
+    instances) each use different URL schemes for linking to subdirectories, so
+    we do not attempt to construct a provider-specific tree URL.  The repository
+    root URL is always a valid and useful landing page.
+
+    Args:
+        source: Source configuration supplying the remote URL.
+
+    Returns:
+        ``source.url`` if non-empty, ``None`` otherwise.
+
+    """
+    return source.url or None
 
 
 def _process_subfolders_source(
@@ -42,7 +91,7 @@ def _process_subfolders_source(
     Dispatches to the appropriate per-directory parser based on
     ``source.manifest`` (e.g. ``vcpkg.json`` → vcpkg, ``conandata.yml`` → conan).
     """
-    parse_fn = _SUBFOLDER_PARSERS.get(source.manifest)
+    parse_fn = _MANIFEST_PARSERS.get(source.manifest)
     if parse_fn is None:
         if not source.manifest:
             logger.warning("%s: no 'manifest' configured — skipped", source.name)
@@ -61,24 +110,29 @@ def _process_subfolders_source(
         tmp_path = Path(tmp)
         fetched_dir = clone_source(source, tmp_path)
 
-        port_dirs = sorted(d for d in fetched_dir.iterdir() if d.is_dir())
+        entry_dirs = sorted(d for d in fetched_dir.iterdir() if d.is_dir())
+        entry_dirs = _filter_sentinel(source, entry_dirs)
         if limit is not None:
-            port_dirs = port_dirs[:limit]
+            entry_dirs = entry_dirs[:limit]
 
-        logger.print_info_line(source.name, f"Parsing {len(port_dirs)} port(s) ...")
+        logger.print_info_line(source.name, f"Parsing {len(entry_dirs)} package(s) ...")
         manifests: list[BaseManifest] = []
         skipped = 0
-        for port_dir in port_dirs:
-            m = parse_fn(port_dir)
+        for entry_dir in entry_dirs:
+            m = parse_fn(entry_dir)
             if m is None:
                 skipped += 1
             else:
+                if m.homepage is None:
+                    hp = _subfolder_homepage(source)
+                    if hp is not None:
+                        m.homepage = hp
                 manifests.append(m)
 
         if skipped:
             logger.print_warning_line(
                 source.name,
-                f"Skipped {skipped} port(s) with no manifest",
+                f"Skipped {skipped} package(s) with no manifest",
             )
 
         _added, _updated = write_catalog(
@@ -86,11 +140,11 @@ def _process_subfolders_source(
             data_dir,
             source_name=source.name,
             label=source.label or source.name,
-            ports_path=source.path or source.name,
+            registry_path=source.path or source.name,
         )
         logger.print_info_line(
             source.name,
-            f"Done — {_added} added, {_updated} updated ({len(manifests) - _added - _updated} skipped/no-github-url)",
+            f"Done — {_added} added, {_updated} updated ({len(manifests) - _added - _updated} skipped/no-vcs-url)",
         )
 
 
@@ -134,11 +188,11 @@ def _process_git_wiki_source(
             data_dir,
             source_name=source.name,
             label=source.label or source.name,
-            ports_path=source.path or source.name,
+            registry_path=source.path or source.name,
         )
         logger.print_info_line(
             source.name,
-            f"Done — {_added} added, {_updated} updated ({len(packages) - _added - _updated} skipped/no-github-url)",
+            f"Done — {_added} added, {_updated} updated ({len(packages) - _added - _updated} skipped/no-vcs-url)",
         )
 
 
@@ -205,7 +259,7 @@ def register(subparsers: argparse._SubParsersAction) -> None:  # type: ignore[ty
         type=_non_negative_int,
         default=None,
         metavar="N",
-        help="Process only the first N ports per source (useful for testing)",
+        help="Process only the first N entries per source (useful for testing)",
     )
     update_p.add_argument(
         "--source",

@@ -11,13 +11,15 @@ class SourceConfig:
     """A single ``[[source]]`` block from *dfetch-hub.toml*.
 
     Attributes:
-        name:     Unique name for this source.
-        strategy: Discovery strategy (``subfolders``, ``single``, …).
-        url:      URL of the remote repository or registry.
-        path:     Subfolder inside the remote repo to fetch (e.g. ``ports``).
-        manifest: Manifest filename inside each subfolder (e.g. ``vcpkg.json``).
-        label:    Tag added to every component found here.
-        branch:   Branch to fetch; auto-detected from the remote when empty.
+        name:              Unique name for this source.
+        strategy:          Discovery strategy (``subfolders``, ``git-wiki``).
+        url:               URL of the remote repository or registry.
+        path:              Subfolder inside the remote repo to fetch (e.g. ``ports``).
+        manifest:          Manifest filename inside each subfolder (e.g. ``vcpkg.json``).
+        label:             Tag added to every component found here.
+        branch:            Branch to fetch; auto-detected from the remote when empty.
+        ignore_if_present: Skip any subfolder that contains a file with this name
+                           (e.g. ``.dfetch_data.yaml``).  Empty string disables filtering.
 
     """
 
@@ -28,6 +30,7 @@ class SourceConfig:
     manifest: str = ""
     label: str = ""
     branch: str = ""
+    ignore_if_present: str = ""
 
 
 @dataclass

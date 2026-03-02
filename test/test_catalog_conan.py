@@ -179,10 +179,10 @@ def test_parse_conan_recipe_latest_version(recipe_dir: Path) -> None:
     assert m.version == "3.1.0"
 
 
-def test_parse_conan_recipe_port_name_is_dir_name(recipe_dir: Path) -> None:
+def test_parse_conan_recipe_entry_name_is_dir_name(recipe_dir: Path) -> None:
     m = parse_conan_recipe(recipe_dir)
     assert m is not None
-    assert m.port_name == recipe_dir.name
+    assert m.entry_name == recipe_dir.name
 
 
 def test_parse_conan_recipe_no_conanfile_returns_none(tmp_path: Path) -> None:

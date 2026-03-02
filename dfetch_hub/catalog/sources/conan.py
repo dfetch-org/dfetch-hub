@@ -221,7 +221,7 @@ def parse_conan_recipe(recipe_dir: Path) -> ConanManifest | None:
     topics = _extract_tuple_attr(text, "topics")
 
     return ConanManifest(
-        port_name=recipe_dir.name,
+        entry_name=recipe_dir.name,
         package_name=name,
         description=description,
         homepage=homepage,

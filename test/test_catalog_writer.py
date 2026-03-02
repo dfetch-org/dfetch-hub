@@ -1,7 +1,7 @@
 """Tests for dfetch_hub.catalog.writer: catalog JSON writing pipeline.
 
 Covers:
-- parse_github_slug: URL parsing and lowercase normalisation.
+- parse_vcs_slug: URL parsing and lowercase normalisation.
 - _catalog_id: ID string format.
 - _merge_catalog_entry: create / update catalog.json entries.
 - _generate_readme: fallback README content.
@@ -12,13 +12,15 @@ Covers:
 from __future__ import annotations
 
 import json
-from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
-from dfetch_hub.catalog.sources import BaseManifest, parse_github_slug
+from dfetch_hub.catalog.sources import BaseManifest, parse_vcs_slug
 from dfetch_hub.catalog.sources.clib import CLibPackage
 from dfetch_hub.catalog.writer import (
     _catalog_id,
@@ -34,7 +36,7 @@ from dfetch_hub.catalog.writer import (
 
 
 def _manifest(  # pylint: disable=too-many-arguments,too-many-positional-arguments
-    port_name: str = "abseil",
+    entry_name: str = "abseil",
     package_name: str = "abseil-cpp",
     description: str = "Abseil C++ libraries from Google",
     homepage: str | None = "https://github.com/abseil/abseil-cpp",
@@ -43,7 +45,7 @@ def _manifest(  # pylint: disable=too-many-arguments,too-many-positional-argumen
 ) -> BaseManifest:
     """Build a minimal BaseManifest with sensible defaults for testing."""
     return BaseManifest(
-        port_name=port_name,
+        entry_name=entry_name,
         package_name=package_name,
         description=description,
         homepage=homepage,
@@ -97,25 +99,51 @@ def _existing_detail() -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# parse_github_slug
+# parse_vcs_slug
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
     "url, expected",
     [
-        ("https://github.com/abseil/abseil-cpp", ("abseil", "abseil-cpp")),
-        ("https://github.com/abseil/abseil-cpp.git", ("abseil", "abseil-cpp")),
-        ("https://github.com/abseil/abseil-cpp/", ("abseil", "abseil-cpp")),
-        ("http://github.com/foo/bar", ("foo", "bar")),
+        (
+            "https://github.com/abseil/abseil-cpp",
+            ("github.com", "abseil", "abseil-cpp"),
+        ),
+        (
+            "https://github.com/abseil/abseil-cpp.git",
+            ("github.com", "abseil", "abseil-cpp"),
+        ),
+        (
+            "https://github.com/abseil/abseil-cpp/",
+            ("github.com", "abseil", "abseil-cpp"),
+        ),
+        ("http://github.com/foo/bar", ("github.com", "foo", "bar")),
+        ("https://gitlab.com/org/repo", ("gitlab.com", "org", "repo")),
+        (
+            "https://gitlab.com/group/subgroup/repo",
+            ("gitlab.com", "group/subgroup", "repo"),
+        ),
+        (
+            "https://gitlab.com/group/subgroup/nested/repo",
+            ("gitlab.com", "group/subgroup/nested", "repo"),
+        ),
+        ("https://bitbucket.org/org/repo", ("bitbucket.org", "org", "repo")),
+        (
+            "https://gitea.example.com/org/repo",
+            ("gitea.example.com", "org", "repo"),
+        ),
     ],
 )
-def testparse_github_slug_valid(url: str, expected: tuple[str, str]) -> None:
-    assert parse_github_slug(url) == expected
+def test_parse_vcs_slug_valid(url: str, expected: tuple[str, str, str]) -> None:
+    """Parses host, owner and repo from any https://host/owner/repo URL."""
+    assert parse_vcs_slug(url) == expected
 
 
-def testparse_github_slug_lowercases_org_and_repo() -> None:
-    assert parse_github_slug("https://github.com/ABSEIL/Abseil-CPP") == (
+def test_parse_vcs_slug_lowercases_all_parts() -> None:
+    """All three parts of the returned tuple are lowercased."""
+    assert parse_vcs_slug("https://GitHub.COM/ABSEIL/Abseil-CPP") == (
+        "github.com",
         "abseil",
         "abseil-cpp",
     )
@@ -124,15 +152,14 @@ def testparse_github_slug_lowercases_org_and_repo() -> None:
 @pytest.mark.parametrize(
     "url",
     [
-        "https://gitlab.com/org/repo",
-        "https://bitbucket.org/org/repo",
         "not-a-url",
         "",
         "https://github.com/only-org",
     ],
 )
-def testparse_github_slug_non_github_returns_none(url: str) -> None:
-    assert parse_github_slug(url) is None
+def test_parse_vcs_slug_invalid_returns_none(url: str) -> None:
+    """Returns None for URLs that do not match host/owner/repo."""
+    assert parse_vcs_slug(url) is None
 
 
 # ---------------------------------------------------------------------------
@@ -141,11 +168,18 @@ def testparse_github_slug_non_github_returns_none(url: str) -> None:
 
 
 def test_catalog_id_format() -> None:
-    assert _catalog_id("abseil", "abseil-cpp") == "github/abseil/abseil-cpp"
+    """Produces vcs_host/org/repo format."""
+    assert _catalog_id("github", "abseil", "abseil-cpp") == "github/abseil/abseil-cpp"
 
 
 def test_catalog_id_lowercases_inputs() -> None:
-    assert _catalog_id("Abseil", "Abseil-CPP") == "github/abseil/abseil-cpp"
+    """All components are lowercased."""
+    assert _catalog_id("GITHUB", "Abseil", "Abseil-CPP") == "github/abseil/abseil-cpp"
+
+
+def test_catalog_id_gitlab() -> None:
+    """Works for non-GitHub VCS hosts."""
+    assert _catalog_id("gitlab", "org", "repo") == "gitlab/org/repo"
 
 
 # ---------------------------------------------------------------------------
@@ -154,72 +188,120 @@ def test_catalog_id_lowercases_inputs() -> None:
 
 
 def test_merge_catalog_entry_new_has_correct_id() -> None:
-    entry = _merge_catalog_entry(None, _manifest(), "abseil", "abseil-cpp", "vcpkg")
+    """New entry has the correct vcs_host/org/repo ID."""
+    entry = _merge_catalog_entry(
+        None, _manifest(), "github", "abseil", "abseil-cpp", "vcpkg"
+    )
     assert entry["id"] == "github/abseil/abseil-cpp"
 
 
 def test_merge_catalog_entry_new_populates_name() -> None:
-    entry = _merge_catalog_entry(None, _manifest(), "abseil", "abseil-cpp", "vcpkg")
+    """New entry takes package_name from the manifest."""
+    entry = _merge_catalog_entry(
+        None, _manifest(), "github", "abseil", "abseil-cpp", "vcpkg"
+    )
     assert entry["name"] == "abseil-cpp"
 
 
 def test_merge_catalog_entry_new_populates_description() -> None:
-    entry = _merge_catalog_entry(None, _manifest(), "abseil", "abseil-cpp", "vcpkg")
+    """New entry takes description from the manifest."""
+    entry = _merge_catalog_entry(
+        None, _manifest(), "github", "abseil", "abseil-cpp", "vcpkg"
+    )
     assert entry["description"] == "Abseil C++ libraries from Google"
 
 
 def test_merge_catalog_entry_new_populates_license() -> None:
-    entry = _merge_catalog_entry(None, _manifest(), "abseil", "abseil-cpp", "vcpkg")
+    """New entry takes license from the manifest."""
+    entry = _merge_catalog_entry(
+        None, _manifest(), "github", "abseil", "abseil-cpp", "vcpkg"
+    )
     assert entry["license"] == "Apache-2.0"
 
 
+def test_merge_catalog_entry_source_type_matches_vcs_host() -> None:
+    """source_type equals the vcs_host passed in."""
+    github_entry = _merge_catalog_entry(
+        None, _manifest(), "github", "abseil", "abseil-cpp", "vcpkg"
+    )
+    assert github_entry["source_type"] == "github"
+
+    gitlab_entry = _merge_catalog_entry(
+        None,
+        _manifest(homepage="https://gitlab.com/org/repo"),
+        "gitlab",
+        "org",
+        "repo",
+        "some-source",
+    )
+    assert gitlab_entry["source_type"] == "gitlab"
+
+
 def test_merge_catalog_entry_adds_source_label() -> None:
-    entry = _merge_catalog_entry(None, _manifest(), "abseil", "abseil-cpp", "vcpkg")
+    """Label is present in source_labels of the new entry."""
+    entry = _merge_catalog_entry(
+        None, _manifest(), "github", "abseil", "abseil-cpp", "vcpkg"
+    )
     assert "vcpkg" in entry["source_labels"]
 
 
 def test_merge_catalog_entry_adds_version_tag() -> None:
+    """Version is recorded in the tags list."""
     entry = _merge_catalog_entry(
-        None, _manifest(version="20240116.2"), "abseil", "abseil-cpp", "vcpkg"
+        None, _manifest(version="20240116.2"), "github", "abseil", "abseil-cpp", "vcpkg"
     )
     tag_names = {t["name"] for t in entry["tags"]}
     assert "20240116.2" in tag_names
 
 
 def test_merge_catalog_entry_no_duplicate_version_tag() -> None:
+    """The same version is not added a second time."""
     existing = _existing_catalog_entry()
     existing["tags"] = [
         {"name": "20240116.2", "is_tag": True, "commit_sha": None, "date": None}
     ]
     entry = _merge_catalog_entry(
-        existing, _manifest(version="20240116.2"), "abseil", "abseil-cpp", "vcpkg"
+        existing,
+        _manifest(version="20240116.2"),
+        "github",
+        "abseil",
+        "abseil-cpp",
+        "vcpkg",
     )
     assert sum(1 for t in entry["tags"] if t["name"] == "20240116.2") == 1
 
 
 def test_merge_catalog_entry_merges_source_labels() -> None:
+    """Updating an existing entry preserves its other labels."""
     existing = _existing_catalog_entry(label="conan")
-    entry = _merge_catalog_entry(existing, _manifest(), "abseil", "abseil-cpp", "vcpkg")
+    entry = _merge_catalog_entry(
+        existing, _manifest(), "github", "abseil", "abseil-cpp", "vcpkg"
+    )
     assert "conan" in entry["source_labels"]
     assert "vcpkg" in entry["source_labels"]
 
 
 def test_merge_catalog_entry_no_duplicate_label() -> None:
+    """Applying the same label twice does not duplicate it."""
     existing = _existing_catalog_entry(label="vcpkg")
-    entry = _merge_catalog_entry(existing, _manifest(), "abseil", "abseil-cpp", "vcpkg")
+    entry = _merge_catalog_entry(
+        existing, _manifest(), "github", "abseil", "abseil-cpp", "vcpkg"
+    )
     assert entry["source_labels"].count("vcpkg") == 1
 
 
-def test_merge_catalog_entry_url_falls_back_to_github_url() -> None:
+def test_merge_catalog_entry_url_uses_homepage() -> None:
+    """New entry uses manifest.homepage as the package URL."""
     entry = _merge_catalog_entry(
-        None, _manifest(homepage=None), "abseil", "abseil-cpp", "vcpkg"
+        None, _manifest(), "github", "abseil", "abseil-cpp", "vcpkg"
     )
     assert entry["url"] == "https://github.com/abseil/abseil-cpp"
 
 
 def test_merge_catalog_entry_no_version_no_tag_added() -> None:
+    """No tag entry is created when version is None."""
     entry = _merge_catalog_entry(
-        None, _manifest(version=None), "abseil", "abseil-cpp", "vcpkg"
+        None, _manifest(version=None), "github", "abseil", "abseil-cpp", "vcpkg"
     )
     assert not entry["tags"]
 
@@ -228,21 +310,27 @@ def test_merge_catalog_entry_backfills_missing_description() -> None:
     """Existing entry with no description is backfilled from the manifest."""
     existing = _existing_catalog_entry()
     existing["description"] = None
-    entry = _merge_catalog_entry(existing, _manifest(), "abseil", "abseil-cpp", "vcpkg")
+    entry = _merge_catalog_entry(
+        existing, _manifest(), "github", "abseil", "abseil-cpp", "vcpkg"
+    )
     assert entry["description"] == "Abseil C++ libraries from Google"
 
 
 def test_merge_catalog_entry_does_not_overwrite_existing_description() -> None:
     """An already-populated description must not be replaced by the manifest."""
     existing = _existing_catalog_entry()  # description = "old description"
-    entry = _merge_catalog_entry(existing, _manifest(), "abseil", "abseil-cpp", "vcpkg")
+    entry = _merge_catalog_entry(
+        existing, _manifest(), "github", "abseil", "abseil-cpp", "vcpkg"
+    )
     assert entry["description"] == "old description"
 
 
 def test_merge_catalog_entry_backfills_missing_license() -> None:
     """Existing entry with no license is backfilled from the manifest."""
     existing = _existing_catalog_entry()  # license = None by default
-    entry = _merge_catalog_entry(existing, _manifest(), "abseil", "abseil-cpp", "vcpkg")
+    entry = _merge_catalog_entry(
+        existing, _manifest(), "github", "abseil", "abseil-cpp", "vcpkg"
+    )
     assert entry["license"] == "Apache-2.0"
 
 
@@ -250,7 +338,9 @@ def test_merge_catalog_entry_does_not_overwrite_existing_license() -> None:
     """An already-populated license must not be replaced by the manifest."""
     existing = _existing_catalog_entry()
     existing["license"] = "MIT"
-    entry = _merge_catalog_entry(existing, _manifest(), "abseil", "abseil-cpp", "vcpkg")
+    entry = _merge_catalog_entry(
+        existing, _manifest(), "github", "abseil", "abseil-cpp", "vcpkg"
+    )
     assert entry["license"] == "MIT"
 
 
@@ -261,7 +351,7 @@ def test_merge_catalog_entry_v_prefix_tag_not_duplicated() -> None:
         {"name": "v1.2.3", "is_tag": True, "commit_sha": None, "date": None}
     ]
     entry = _merge_catalog_entry(
-        existing, _manifest(version="1.2.3"), "abseil", "abseil-cpp", "vcpkg"
+        existing, _manifest(version="1.2.3"), "github", "abseil", "abseil-cpp", "vcpkg"
     )
     assert sum(1 for t in entry["tags"] if t["name"].lstrip("v") == "1.2.3") == 1
 
@@ -272,29 +362,48 @@ def test_merge_catalog_entry_v_prefix_tag_not_duplicated() -> None:
 
 
 def test_generate_readme_contains_package_name() -> None:
-    assert "abseil-cpp" in _generate_readme(_manifest(), "abseil", "abseil-cpp")
+    """Package name appears in the generated README heading."""
+    assert "abseil-cpp" in _generate_readme(
+        _manifest(), "abseil-cpp", "https://github.com/abseil/abseil-cpp"
+    )
 
 
 def test_generate_readme_contains_description() -> None:
+    """Package description appears in the generated README."""
     assert "Abseil C++ libraries" in _generate_readme(
-        _manifest(), "abseil", "abseil-cpp"
+        _manifest(), "abseil-cpp", "https://github.com/abseil/abseil-cpp"
     )
 
 
 def test_generate_readme_contains_version_tag() -> None:
+    """Version tag appears in the dfetch.yaml snippet."""
     assert "20240116.2" in _generate_readme(
-        _manifest(version="20240116.2"), "abseil", "abseil-cpp"
+        _manifest(version="20240116.2"),
+        "abseil-cpp",
+        "https://github.com/abseil/abseil-cpp",
     )
 
 
 def test_generate_readme_omits_tag_when_no_version() -> None:
-    readme = _generate_readme(_manifest(version=None), "abseil", "abseil-cpp")
+    """No 'tag:' line is emitted when version is None."""
+    readme = _generate_readme(
+        _manifest(version=None), "abseil-cpp", "https://github.com/abseil/abseil-cpp"
+    )
     assert "tag:" not in readme
 
 
 def test_generate_readme_contains_dfetch_yaml_snippet() -> None:
-    readme = _generate_readme(_manifest(), "abseil", "abseil-cpp")
+    """The generated README contains a dfetch.yaml code block."""
+    readme = _generate_readme(
+        _manifest(), "abseil-cpp", "https://github.com/abseil/abseil-cpp"
+    )
     assert "dfetch.yaml" in readme
+
+
+def test_generate_readme_uses_provided_url() -> None:
+    """The URL passed in appears verbatim in the dfetch.yaml snippet."""
+    readme = _generate_readme(_manifest(), "myrepo", "https://gitlab.com/myorg/myrepo")
+    assert "https://gitlab.com/myorg/myrepo" in readme
 
 
 # ---------------------------------------------------------------------------
@@ -303,6 +412,7 @@ def test_generate_readme_contains_dfetch_yaml_snippet() -> None:
 
 
 def test_merge_detail_new_sets_org_and_repo() -> None:
+    """New detail record stores org and repo."""
     with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
         detail = _merge_detail(
             None, _manifest(), "abseil", "abseil-cpp", "vcpkg", "vcpkg", "ports"
@@ -312,6 +422,7 @@ def test_merge_detail_new_sets_org_and_repo() -> None:
 
 
 def test_merge_detail_new_adds_catalog_source() -> None:
+    """New detail record contains exactly one catalog source entry."""
     with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
         detail = _merge_detail(
             None, _manifest(), "abseil", "abseil-cpp", "vcpkg", "vcpkg", "ports"
@@ -325,7 +436,7 @@ def test_merge_detail_new_adds_catalog_source() -> None:
 def test_merge_detail_readme_content_overwrites_generated() -> None:
     """readme_content on the manifest (e.g. CLibPackage) replaces the generated placeholder."""
     m = CLibPackage(
-        port_name="clibs/buffer",
+        entry_name="clibs/buffer",
         package_name="buffer",
         description="Tiny C buffer library",
         homepage="https://github.com/clibs/buffer",
@@ -341,7 +452,7 @@ def test_merge_detail_readme_content_overwrites_generated() -> None:
 def test_merge_detail_readme_content_overwrites_existing_readme() -> None:
     """readme_content always overwrites, even when updating an existing detail."""
     m = CLibPackage(
-        port_name="clibs/buffer",
+        entry_name="clibs/buffer",
         package_name="buffer",
         description="desc",
         homepage="https://github.com/clibs/buffer",
@@ -420,7 +531,6 @@ def test_merge_detail_stale_source_name_replaced_not_duplicated() -> None:
     survives, avoiding duplicate catalog_sources entries.
     """
     existing = _existing_detail()
-    # Simulate the stale entry left by a previous manual rename
     # Simulate a stale entry: same index_path ("ports/abseil") but old source_name
     existing["catalog_sources"][0]["source_name"] = "vcpkg-source"
 
@@ -440,38 +550,41 @@ def test_merge_detail_stale_source_name_replaced_not_duplicated() -> None:
 
 
 def test_write_catalog_writes_catalog_json(tmp_path: Path) -> None:
+    """A catalog.json file is created in data_dir."""
     with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
         write_catalog(
             [_manifest()],
             tmp_path,
             source_name="vcpkg",
             label="vcpkg",
-            ports_path="ports",
+            registry_path="ports",
         )
     assert (tmp_path / "catalog.json").exists()
 
 
 def test_write_catalog_entry_in_catalog_json(tmp_path: Path) -> None:
+    """GitHub entries appear under github/org/repo keys in catalog.json."""
     with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
         write_catalog(
             [_manifest()],
             tmp_path,
             source_name="vcpkg",
             label="vcpkg",
-            ports_path="ports",
+            registry_path="ports",
         )
     catalog = json.loads((tmp_path / "catalog.json").read_text(encoding="utf-8"))
     assert "github/abseil/abseil-cpp" in catalog
 
 
 def test_write_catalog_writes_detail_json(tmp_path: Path) -> None:
+    """Detail JSON is written to data/github/org/repo.json for GitHub packages."""
     with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
         write_catalog(
             [_manifest()],
             tmp_path,
             source_name="vcpkg",
             label="vcpkg",
-            ports_path="ports",
+            registry_path="ports",
         )
     detail_path = tmp_path / "github" / "abseil" / "abseil-cpp.json"
     assert detail_path.exists()
@@ -481,8 +594,9 @@ def test_write_catalog_writes_detail_json(tmp_path: Path) -> None:
 
 
 def test_write_catalog_returns_added_count(tmp_path: Path) -> None:
+    """Two distinct packages each increment the added counter."""
     boost = _manifest(
-        port_name="boost",
+        entry_name="boost",
         package_name="boost",
         homepage="https://github.com/boostorg/boost",
         description="Boost C++ libraries",
@@ -493,40 +607,42 @@ def test_write_catalog_returns_added_count(tmp_path: Path) -> None:
             tmp_path,
             source_name="vcpkg",
             label="vcpkg",
-            ports_path="ports",
+            registry_path="ports",
         )
     assert added == 2
     assert updated == 0
 
 
 def test_write_catalog_returns_updated_count(tmp_path: Path) -> None:
+    """Processing the same package twice increments the updated counter."""
     with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
         write_catalog(
             [_manifest()],
             tmp_path,
             source_name="vcpkg",
             label="vcpkg",
-            ports_path="ports",
+            registry_path="ports",
         )
         added, updated = write_catalog(
             [_manifest()],
             tmp_path,
             source_name="vcpkg",
             label="vcpkg",
-            ports_path="ports",
+            registry_path="ports",
         )
     assert added == 0
     assert updated == 1
 
 
 def test_write_catalog_skips_manifest_without_homepage(tmp_path: Path) -> None:
+    """Manifests with no homepage at all are silently skipped."""
     with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
         added, updated = write_catalog(
             [_manifest(homepage=None)],
             tmp_path,
             source_name="vcpkg",
             label="vcpkg",
-            ports_path="ports",
+            registry_path="ports",
         )
     catalog = json.loads((tmp_path / "catalog.json").read_text(encoding="utf-8"))
     assert len(catalog) == 0
@@ -534,19 +650,44 @@ def test_write_catalog_skips_manifest_without_homepage(tmp_path: Path) -> None:
     assert updated == 0
 
 
-def test_write_catalog_skips_non_github_homepage(tmp_path: Path) -> None:
+def test_write_catalog_skips_unrecognized_url(tmp_path: Path) -> None:
+    """Manifests whose homepage cannot be parsed as host/owner/repo are skipped."""
     with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
         added, updated = write_catalog(
-            [_manifest(homepage="https://gitlab.com/org/repo")],
+            [_manifest(homepage="https://example.com/not-a-repo")],
             tmp_path,
             source_name="vcpkg",
             label="vcpkg",
-            ports_path="ports",
+            registry_path="ports",
         )
     catalog = json.loads((tmp_path / "catalog.json").read_text(encoding="utf-8"))
     assert len(catalog) == 0
     assert added == 0
     assert updated == 0
+
+
+def test_write_catalog_accepts_gitlab_homepage(tmp_path: Path) -> None:
+    """GitLab-hosted packages are written under the gitlab/ directory."""
+    gitlab_manifest = _manifest(
+        entry_name="mylib",
+        package_name="mylib",
+        homepage="https://gitlab.com/myorg/mylib",
+        description="A library on GitLab",
+    )
+    with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
+        added, updated = write_catalog(
+            [gitlab_manifest],
+            tmp_path,
+            source_name="some-source",
+            label="some-source",
+            registry_path="packages",
+        )
+    catalog = json.loads((tmp_path / "catalog.json").read_text(encoding="utf-8"))
+    assert "gitlab/myorg/mylib" in catalog
+    assert added == 1
+    assert updated == 0
+    detail_path = tmp_path / "gitlab" / "myorg" / "mylib.json"
+    assert detail_path.exists()
 
 
 def test_write_catalog_merges_across_two_sources(tmp_path: Path) -> None:
@@ -557,14 +698,14 @@ def test_write_catalog_merges_across_two_sources(tmp_path: Path) -> None:
             tmp_path,
             source_name="vcpkg",
             label="vcpkg",
-            ports_path="ports",
+            registry_path="ports",
         )
         write_catalog(
             [_manifest()],
             tmp_path,
             source_name="conan",
             label="conan",
-            ports_path="recipes",
+            registry_path="recipes",
         )
     catalog = json.loads((tmp_path / "catalog.json").read_text(encoding="utf-8"))
     entry = catalog["github/abseil/abseil-cpp"]
@@ -573,20 +714,21 @@ def test_write_catalog_merges_across_two_sources(tmp_path: Path) -> None:
 
 
 def test_write_catalog_detail_json_has_both_sources(tmp_path: Path) -> None:
+    """Detail JSON lists both sources after two write_catalog calls."""
     with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
         write_catalog(
             [_manifest()],
             tmp_path,
             source_name="vcpkg",
             label="vcpkg",
-            ports_path="ports",
+            registry_path="ports",
         )
         write_catalog(
             [_manifest()],
             tmp_path,
             source_name="conan",
             label="conan",
-            ports_path="recipes",
+            registry_path="recipes",
         )
     detail = json.loads(
         (tmp_path / "github" / "abseil" / "abseil-cpp.json").read_text(encoding="utf-8")

@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import textwrap
-from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import patch
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 import pytest
 
 from dfetch_hub.catalog.sources.clib import (
-    CLibPackage,
     _build_package,
     parse_packages_md,
 )
@@ -28,14 +30,14 @@ _PACKAGES_MD = textwrap.dedent(
 
     ## Math
      - [micha/jsawk](https://github.com/micha/jsawk) - like awk, for JSON
-     - [user/notgithub](https://gitlab.com/user/notgithub) - should be skipped
+     - [user/notgithub](https://gitlab.com/user/notgithub) - non-GitHub entry
 
     ## Networking
      - [nicowillis/http-parser](https://github.com/nicowillis/http-parser) - HTTP request/response parser
     """
 )
 
-_PACKAGE_JSON_BUFFER = {
+_PACKAGE_JSON_BUFFER: dict[str, object] = {
     "name": "buffer",
     "version": "0.4.0",
     "repo": "clibs/buffer",
@@ -44,7 +46,7 @@ _PACKAGE_JSON_BUFFER = {
     "license": "MIT",
 }
 
-_PACKAGE_JSON_STRSPLIT = {
+_PACKAGE_JSON_STRSPLIT: dict[str, object] = {
     "name": "strsplit",
     "version": "1.0.0",
     "repo": "jwerle/strsplit.h",
@@ -58,13 +60,15 @@ _SAMPLE_README = "# buffer\n\nA tiny C string library.\n"
 
 @pytest.fixture
 def packages_md_file(tmp_path: Path) -> Path:
+    """Write _PACKAGES_MD to a temporary file and return its path."""
     p = tmp_path / "Packages.md"
     p.write_text(_PACKAGES_MD, encoding="utf-8")
     return p
 
 
-def _mock_pkg_json(owner: str, repo: str) -> dict | None:
-    data = {
+def _mock_pkg_json(owner: str, repo: str) -> dict[str, object] | None:
+    """Return canned package.json data keyed by (owner, repo)."""
+    data: dict[tuple[str, str], dict[str, object]] = {
         ("clibs", "buffer"): _PACKAGE_JSON_BUFFER,
         ("jwerle", "strsplit.h"): _PACKAGE_JSON_STRSPLIT,
     }
@@ -76,7 +80,8 @@ def _mock_pkg_json(owner: str, repo: str) -> dict | None:
 # ---------------------------------------------------------------------------
 
 
-def test_build_package_uses_github_url_when_no_homepage_in_json() -> None:
+def test_build_package_uses_vcs_url_when_no_homepage_in_json() -> None:
+    """Falls back to the VCS repo URL when package.json has no homepage."""
     with (
         patch(
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
@@ -85,13 +90,18 @@ def test_build_package_uses_github_url_when_no_homepage_in_json() -> None:
         patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
         pkg = _build_package(
-            "clibs", "buffer", "tiny c-string library", "String manipulation"
+            "github.com",
+            "clibs",
+            "buffer",
+            "tiny c-string library",
+            "String manipulation",
         )
 
     assert pkg.homepage == "https://github.com/clibs/buffer"
 
 
 def test_build_package_uses_json_homepage_as_canonical_url() -> None:
+    """Prefers the explicit homepage from package.json over the VCS URL."""
     pkg_json = {**_PACKAGE_JSON_BUFFER, "homepage": "https://example.com/buffer"}
     with (
         patch(
@@ -99,19 +109,37 @@ def test_build_package_uses_json_homepage_as_canonical_url() -> None:
         ),
         patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
-        pkg = _build_package("clibs", "buffer", "desc", "Strings")
+        pkg = _build_package("github.com", "clibs", "buffer", "desc", "Strings")
 
     assert pkg.homepage == "https://example.com/buffer"
 
 
-def test_build_package_falls_back_to_github_url_when_no_package_json() -> None:
+def test_build_package_falls_back_to_vcs_url_when_no_package_json() -> None:
+    """Uses the VCS URL as homepage when no package.json is found."""
     with (
         patch("dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=None),
         patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
-        pkg = _build_package("owner", "repo", "a tagline", "Cat")
+        pkg = _build_package("github.com", "owner", "repo", "a tagline", "Cat")
 
     assert pkg.homepage == "https://github.com/owner/repo"
+
+
+def test_build_package_non_github_uses_vcs_url() -> None:
+    """Non-GitHub entries use their own VCS URL as homepage."""
+    with (
+        patch(
+            "dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=None
+        ) as mock_pkg_json,
+        patch(
+            "dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None
+        ) as mock_readme,
+    ):
+        pkg = _build_package("gitlab.com", "myorg", "myrepo", "a gitlab lib", "Tools")
+    mock_pkg_json.assert_not_called()
+    mock_readme.assert_not_called()
+
+    assert pkg.homepage == "https://gitlab.com/myorg/myrepo"
 
 
 # ---------------------------------------------------------------------------
@@ -120,6 +148,7 @@ def test_build_package_falls_back_to_github_url_when_no_package_json() -> None:
 
 
 def test_build_package_stores_fetched_readme() -> None:
+    """readme_content is populated from the fetched README for GitHub packages."""
     with (
         patch(
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
@@ -129,17 +158,35 @@ def test_build_package_stores_fetched_readme() -> None:
             "dfetch_hub.catalog.sources.clib.fetch_readme", return_value=_SAMPLE_README
         ),
     ):
-        pkg = _build_package("clibs", "buffer", "desc", "Strings")
+        pkg = _build_package("github.com", "clibs", "buffer", "desc", "Strings")
 
     assert pkg.readme_content == _SAMPLE_README
 
 
 def test_build_package_readme_none_when_not_found() -> None:
+    """readme_content is None when the upstream README cannot be fetched."""
     with (
         patch("dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=None),
         patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
-        pkg = _build_package("owner", "repo", "desc", "Cat")
+        pkg = _build_package("github.com", "owner", "repo", "desc", "Cat")
+
+    assert pkg.readme_content is None
+
+
+def test_build_package_non_github_readme_is_none() -> None:
+    """Non-GitHub packages always have readme_content=None (raw URL not available)."""
+    with (
+        patch(
+            "dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=None
+        ) as mock_pkg_json,
+        patch(
+            "dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None
+        ) as mock_readme,
+    ):
+        pkg = _build_package("gitlab.com", "org", "repo", "desc", "Cat")
+    mock_pkg_json.assert_not_called()
+    mock_readme.assert_not_called()
 
     assert pkg.readme_content is None
 
@@ -150,6 +197,7 @@ def test_build_package_readme_none_when_not_found() -> None:
 
 
 def test_build_package_basic_fields() -> None:
+    """entry_name, package_name, version, license and keywords are set correctly."""
     with (
         patch(
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
@@ -158,10 +206,14 @@ def test_build_package_basic_fields() -> None:
         patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
         pkg = _build_package(
-            "clibs", "buffer", "tiny c-string library", "String manipulation"
+            "github.com",
+            "clibs",
+            "buffer",
+            "tiny c-string library",
+            "String manipulation",
         )
 
-    assert pkg.port_name == "clibs/buffer"
+    assert pkg.entry_name == "github.com/clibs/buffer"
     assert pkg.package_name == "buffer"
     assert pkg.version == "0.4.0"
     assert pkg.license == "MIT"
@@ -170,6 +222,7 @@ def test_build_package_basic_fields() -> None:
 
 
 def test_build_package_tagline_preferred_over_json_description() -> None:
+    """The wiki tagline takes priority over the package.json description."""
     with (
         patch(
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
@@ -177,12 +230,13 @@ def test_build_package_tagline_preferred_over_json_description() -> None:
         ),
         patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
-        pkg = _build_package("clibs", "buffer", "my custom tagline", "")
+        pkg = _build_package("github.com", "clibs", "buffer", "my custom tagline", "")
 
     assert pkg.description == "my custom tagline"
 
 
 def test_build_package_falls_back_to_json_description_when_no_tagline() -> None:
+    """Falls back to package.json description when the tagline is empty."""
     with (
         patch(
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
@@ -190,17 +244,18 @@ def test_build_package_falls_back_to_json_description_when_no_tagline() -> None:
         ),
         patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
-        pkg = _build_package("clibs", "buffer", "", "String manipulation")
+        pkg = _build_package("github.com", "clibs", "buffer", "", "String manipulation")
 
     assert pkg.description == "Higher level C-string utilities"
 
 
 def test_build_package_no_package_json() -> None:
+    """Missing package.json produces a minimal entry from the tagline only."""
     with (
         patch("dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=None),
         patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
-        pkg = _build_package("owner", "repo", "a tagline", "Category")
+        pkg = _build_package("github.com", "owner", "repo", "a tagline", "Category")
 
     assert pkg.package_name == "repo"
     assert pkg.license is None
@@ -209,6 +264,7 @@ def test_build_package_no_package_json() -> None:
 
 
 def test_build_package_category_not_duplicated_in_keywords() -> None:
+    """Category keyword that already appears in package.json keywords is not duplicated."""
     pkg_json = {**_PACKAGE_JSON_BUFFER, "keywords": ["String manipulation", "buffer"]}
     with (
         patch(
@@ -216,7 +272,9 @@ def test_build_package_category_not_duplicated_in_keywords() -> None:
         ),
         patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
-        pkg = _build_package("clibs", "buffer", "desc", "String manipulation")
+        pkg = _build_package(
+            "github.com", "clibs", "buffer", "desc", "String manipulation"
+        )
 
     assert pkg.keywords.count("String manipulation") == 1
 
@@ -226,7 +284,8 @@ def test_build_package_category_not_duplicated_in_keywords() -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_parse_packages_md_skips_non_github_urls(packages_md_file: Path) -> None:
+def test_parse_packages_md_includes_non_github_vcs_urls(packages_md_file: Path) -> None:
+    """Non-GitHub VCS URLs (e.g. gitlab.com) are included with basic metadata."""
     with (
         patch(
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
@@ -237,12 +296,15 @@ def test_parse_packages_md_skips_non_github_urls(packages_md_file: Path) -> None
         pkgs = parse_packages_md(packages_md_file)
 
     urls = [p.homepage for p in pkgs]
-    assert all(
-        "github.com" in (u or "") for u in urls
-    ), f"Non-GitHub URL slipped in: {urls}"
+    assert any(
+        "gitlab.com" in (u or "") for u in urls
+    ), "Expected GitLab entry to be included"
 
 
-def test_parse_packages_md_category_becomes_keyword(packages_md_file: Path) -> None:
+def test_parse_packages_md_non_github_entry_has_no_readme(
+    packages_md_file: Path,
+) -> None:
+    """Non-GitHub entries have readme_content=None since raw URLs are unavailable."""
     with (
         patch(
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
@@ -252,15 +314,30 @@ def test_parse_packages_md_category_becomes_keyword(packages_md_file: Path) -> N
     ):
         pkgs = parse_packages_md(packages_md_file)
 
-    buffer_pkg = next(p for p in pkgs if p.port_name == "clibs/buffer")
+    gitlab_pkg = next(p for p in pkgs if "gitlab.com" in (p.homepage or ""))
+    assert gitlab_pkg.readme_content is None
+
+
+def test_parse_packages_md_category_becomes_keyword(packages_md_file: Path) -> None:
+    """Each package carries the nearest section heading as a keyword."""
+    with (
+        patch(
+            "dfetch_hub.catalog.sources.clib._fetch_package_json",
+            side_effect=_mock_pkg_json,
+        ),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
+    ):
+        pkgs = parse_packages_md(packages_md_file)
+
+    buffer_pkg = next(p for p in pkgs if p.entry_name == "github.com/clibs/buffer")
     assert "String manipulation" in buffer_pkg.keywords
 
-    jsawk_pkg = next(p for p in pkgs if p.port_name == "micha/jsawk")
+    jsawk_pkg = next(p for p in pkgs if p.entry_name == "github.com/micha/jsawk")
     assert "Math" in jsawk_pkg.keywords
 
 
 def test_parse_packages_md_correct_package_count(packages_md_file: Path) -> None:
-    """4 GitHub entries in _PACKAGES_MD (1 non-GitHub skipped)."""
+    """All 5 entries in _PACKAGES_MD are returned (4 GitHub + 1 GitLab)."""
     with (
         patch(
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
@@ -270,7 +347,7 @@ def test_parse_packages_md_correct_package_count(packages_md_file: Path) -> None
     ):
         pkgs = parse_packages_md(packages_md_file)
 
-    assert len(pkgs) == 4
+    assert len(pkgs) == 5
 
 
 # ---------------------------------------------------------------------------
@@ -280,6 +357,7 @@ def test_parse_packages_md_correct_package_count(packages_md_file: Path) -> None
 
 @pytest.mark.parametrize("limit", [1, 2, 3])
 def test_parse_packages_md_limit(packages_md_file: Path, limit: int) -> None:
+    """limit=N returns exactly N packages."""
     with (
         patch(
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
@@ -293,6 +371,7 @@ def test_parse_packages_md_limit(packages_md_file: Path, limit: int) -> None:
 
 
 def test_parse_packages_md_limit_none_returns_all(packages_md_file: Path) -> None:
+    """limit=None returns all 5 packages."""
     with (
         patch(
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
@@ -302,10 +381,11 @@ def test_parse_packages_md_limit_none_returns_all(packages_md_file: Path) -> Non
     ):
         pkgs = parse_packages_md(packages_md_file, limit=None)
 
-    assert len(pkgs) == 4
+    assert len(pkgs) == 5
 
 
 def test_parse_packages_md_limit_larger_than_total(packages_md_file: Path) -> None:
+    """A limit larger than the total count returns all 5 packages."""
     with (
         patch(
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
@@ -315,7 +395,7 @@ def test_parse_packages_md_limit_larger_than_total(packages_md_file: Path) -> No
     ):
         pkgs = parse_packages_md(packages_md_file, limit=100)
 
-    assert len(pkgs) == 4
+    assert len(pkgs) == 5
 
 
 def test_parse_packages_md_limit_zero_returns_empty(packages_md_file: Path) -> None:
