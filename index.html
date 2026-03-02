@@ -861,8 +861,8 @@ function renderDetail(c){
   // Aside
   const aLinks=document.getElementById('aLinks');
   aLinks.innerHTML='';
-  if(c.url&&isSafeHttpUrl(c.url))aLinks.innerHTML+=`<a class="aside-link" href="${esc(c.url)}" target="_blank" rel="noopener">↗ Repository</a>`;
-  if(c.manifests?.[0]?.homepage&&isSafeHttpUrl(c.manifests[0].homepage))aLinks.innerHTML+=`<a class="aside-link" href="${esc(c.manifests[0].homepage)}" target="_blank" rel="noopener">↗ Homepage</a>`;
+  const pkgUrls=c.urls&&Object.keys(c.urls).length?Object.entries(c.urls):(c.url&&isSafeHttpUrl(c.url)?[['Repository',c.url]]:[]);
+  pkgUrls.filter(([,v])=>isSafeHttpUrl(v)).forEach(([lbl,href])=>{aLinks.innerHTML+=`<a class="aside-link" href="${esc(href)}" target="_blank" rel="noopener">↗ ${esc(lbl)}</a>`;});
   const aDets=document.getElementById('aDets');
   aDets.innerHTML='';
   [['License',c.license&&c.license!=='UNKNOWN'?c.license:'—'],['Stars',c.stars!=null?fmt(c.stars):'—'],['VCS',c.source_type||'—'],['Default branch',c.default_branch||'—'],...(c.subfolder_path?[['Index path',c.subfolder_path]]:[])].forEach(([k,v])=>{
