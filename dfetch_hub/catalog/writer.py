@@ -200,6 +200,7 @@ def _merge_detail(  # pylint: disable=too-many-arguments,too-many-positional-arg
         "branches": [
             {"name": "main", "is_tag": False, "commit_sha": None, "date": None},
         ],
+        "urls": {},
         "license_text": None,
         "fetched_at": _now_iso(),
     }
@@ -207,6 +208,9 @@ def _merge_detail(  # pylint: disable=too-many-arguments,too-many-positional-arg
     # When we have a real upstream README, always overwrite the placeholder
     if fetched_readme:
         detail["readme"] = fetched_readme
+
+    # Merge named URLs from this manifest into the detail's url map
+    detail.setdefault("urls", {}).update(getattr(manifest, "urls", {}))
 
     # Update or add the catalog source for this label.
     # First, purge any stale entries that share the same index_path but carry an

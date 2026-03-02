@@ -260,3 +260,27 @@ def test_parse_vcpkg_json_is_vcpkg_manifest_instance(tmp_path: Path) -> None:
     result = parse_vcpkg_json(pkg)
 
     assert isinstance(result, VcpkgManifest)
+
+
+def test_parse_vcpkg_json_urls_contains_homepage(tmp_path: Path) -> None:
+    """urls dict contains 'Homepage' when vcpkg.json has a homepage field."""
+    pkg = tmp_path / "abseil"
+    pkg.mkdir()
+    (pkg / "vcpkg.json").write_text(json.dumps(_VCPKG_JSON), encoding="utf-8")
+
+    result = parse_vcpkg_json(pkg)
+
+    assert result is not None
+    assert result.urls.get("Homepage") == "https://github.com/abseil/abseil-cpp"
+
+
+def test_parse_vcpkg_json_urls_empty_without_homepage(tmp_path: Path) -> None:
+    """urls dict is empty when vcpkg.json has no homepage field."""
+    pkg = tmp_path / "pkg"
+    pkg.mkdir()
+    (pkg / "vcpkg.json").write_text(json.dumps({"name": "pkg"}), encoding="utf-8")
+
+    result = parse_vcpkg_json(pkg)
+
+    assert result is not None
+    assert result.urls == {}

@@ -111,6 +111,10 @@ def parse_vcpkg_json(entry_dir: Path) -> VcpkgManifest | None:
     raw_name = data.get("name")
     package_name = str(raw_name) if isinstance(raw_name, str) else entry_dir.name
 
+    urls: dict[str, str] = {}
+    if homepage:
+        urls["Homepage"] = homepage
+
     return VcpkgManifest(
         entry_name=entry_dir.name,
         package_name=package_name,
@@ -120,4 +124,5 @@ def parse_vcpkg_json(entry_dir: Path) -> VcpkgManifest | None:
         version=_extract_version(data),
         dependencies=_extract_dependencies(data),
         readme_content=fetch_readme_for_homepage(homepage),
+        urls=urls,
     )

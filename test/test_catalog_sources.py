@@ -6,11 +6,45 @@ from unittest.mock import MagicMock, patch
 from urllib.error import URLError
 
 from dfetch_hub.catalog.sources import (
+    BaseManifest,
     _fetch_raw,
     _raw_url,
     fetch_readme,
     fetch_readme_for_homepage,
 )
+
+# ---------------------------------------------------------------------------
+# BaseManifest
+# ---------------------------------------------------------------------------
+
+
+def test_base_manifest_urls_defaults_to_empty_dict() -> None:
+    """urls field defaults to an empty dict when not supplied."""
+    m = BaseManifest(
+        entry_name="pkg",
+        package_name="pkg",
+        description="desc",
+        homepage=None,
+        license=None,
+        version=None,
+    )
+    assert m.urls == {}
+
+
+def test_base_manifest_urls_accepts_populated_dict() -> None:
+    """urls field stores the supplied mapping unchanged."""
+    m = BaseManifest(
+        entry_name="pkg",
+        package_name="pkg",
+        description="desc",
+        homepage="https://example.com",
+        license=None,
+        version=None,
+        urls={"Homepage": "https://example.com", "Source": "https://github.com/x/y"},
+    )
+    assert m.urls["Homepage"] == "https://example.com"
+    assert m.urls["Source"] == "https://github.com/x/y"
+
 
 # ---------------------------------------------------------------------------
 # _raw_url

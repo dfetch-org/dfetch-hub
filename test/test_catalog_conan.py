@@ -336,3 +336,37 @@ def test_find_conanfile_returns_none_on_iterdir_oserror(tmp_path: Path) -> None:
         result = _find_conanfile(tmp_path, "preferred")
 
     assert result is None
+
+
+# ---------------------------------------------------------------------------
+# parse_conan_recipe — urls dict
+# ---------------------------------------------------------------------------
+
+
+def test_parse_conan_recipe_urls_contains_homepage(recipe_dir: Path) -> None:
+    """urls dict includes 'Homepage' when conanfile.py has a homepage attribute."""
+    m = parse_conan_recipe(recipe_dir)
+    assert m is not None
+    assert m.urls.get("Homepage") == "https://github.com/abseil/abseil-cpp"
+
+
+def test_parse_conan_recipe_urls_contains_source(recipe_dir: Path) -> None:
+    """urls dict includes 'Source' when conanfile.py has a url attribute."""
+    m = parse_conan_recipe(recipe_dir)
+    assert m is not None
+    assert m.urls.get("Source") == "https://github.com/conan-io/conan-center-index"
+
+
+def test_parse_conan_recipe_urls_empty_without_homepage(tmp_path: Path) -> None:
+    """urls dict is empty when conanfile.py has no homepage or url attributes."""
+    minimal = 'from conan import ConanFile\n\nclass Pkg(ConanFile):\n    name = "pkg"\n'
+    all_dir = tmp_path / "all"
+    all_dir.mkdir()
+    (all_dir / "conanfile.py").write_text(minimal, encoding="utf-8")
+    (tmp_path / "config.yml").write_text(
+        'versions:\n  "1.0":\n    folder: all\n', encoding="utf-8"
+    )
+
+    m = parse_conan_recipe(tmp_path)
+    assert m is not None
+    assert m.urls == {}
