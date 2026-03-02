@@ -137,6 +137,9 @@ ignore = "H021,H031"  # H021: inline styles intentional in single-file app; H031
 [tool.doc8]
 max-line-length = 120
 extension = [".md", ".rst"]
+ignore-path = ["*.egg-info/*", "build/*", "dist/*", ".venv/*"]
+show-source = true
+strict = true
 
 [tool.pydocstyle]
 convention = "google"
