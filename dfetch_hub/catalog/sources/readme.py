@@ -70,8 +70,8 @@ def parse_readme_dir(entry_dir: Path) -> BaseManifest | None:
     minimal :class:`~dfetch_hub.catalog.sources.BaseManifest` using the folder
     name as both ``entry_name`` and ``package_name``.
 
-    This parser is the building-block for the ``readme-only`` strategy, where
-    packages have no structured manifest file — only a README.
+    This parser is used with the ``subfolders`` strategy (``manifest = "readme"``)
+    for repositories where packages have no structured manifest file — only a README.
 
     Args:
         entry_dir: Directory to scan.

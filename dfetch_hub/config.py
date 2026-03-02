@@ -12,7 +12,7 @@ class SourceConfig:
 
     Attributes:
         name:              Unique name for this source.
-        strategy:          Discovery strategy (``subfolders``, ``readme-only``, ``git-wiki``).
+        strategy:          Discovery strategy (``subfolders``, ``git-wiki``).
         url:               URL of the remote repository or registry.
         path:              Subfolder inside the remote repo to fetch (e.g. ``ports``).
         manifest:          Manifest filename inside each subfolder (e.g. ``vcpkg.json``).

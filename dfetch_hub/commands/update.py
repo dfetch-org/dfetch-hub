@@ -30,6 +30,7 @@ _DEFAULT_DATA_DIR = _PACKAGE_DIR / "data"
 _MANIFEST_PARSERS = {
     "vcpkg.json": parse_vcpkg_json,
     "conandata.yml": parse_conan_recipe,
+    "readme": parse_readme_dir,
 }
 
 
@@ -122,6 +123,10 @@ def _process_subfolders_source(
             if m is None:
                 skipped += 1
             else:
+                if m.homepage is None:
+                    hp = _subfolder_homepage(source)
+                    if hp is not None:
+                        m.homepage = hp
                 manifests.append(m)
 
         if skipped:
@@ -191,72 +196,6 @@ def _process_git_wiki_source(
         )
 
 
-def _process_readme_only_source(
-    source: SourceConfig,
-    data_dir: Path,
-    limit: int | None,
-) -> None:
-    """Handle strategy='readme-only': index subfolders using only their README.
-
-    Clones the repository, iterates every immediate subdirectory, and for each
-    one builds a :class:`~dfetch_hub.catalog.sources.BaseManifest` from the
-    README file found there — no structured manifest file is required.
-
-    A homepage URL pointing to the subfolder on the repository VCS host is
-    derived from *source.url* when possible and injected into each manifest.
-
-    Sentinel filtering (``ignore_if_present``) is applied before the limit.
-
-    Args:
-        source:   Source configuration.
-        data_dir: Catalog output directory.
-        limit:    Maximum number of subfolders to process (``None`` = unlimited).
-
-    """
-    logger.print_info_line(
-        source.name, f"Fetching {source.url} (src: {source.path}) ..."
-    )
-    with tempfile.TemporaryDirectory(prefix="dfetch-hub-") as tmp:
-        tmp_path = Path(tmp)
-        fetched_dir = clone_source(source, tmp_path)
-
-        entry_dirs = sorted(d for d in fetched_dir.iterdir() if d.is_dir())
-        entry_dirs = _filter_sentinel(source, entry_dirs)
-        if limit is not None:
-            entry_dirs = entry_dirs[:limit]
-
-        logger.print_info_line(source.name, f"Parsing {len(entry_dirs)} package(s) ...")
-        manifests: list[BaseManifest] = []
-        skipped = 0
-        for entry_dir in entry_dirs:
-            m = parse_readme_dir(entry_dir)
-            if m is None:
-                skipped += 1
-                continue
-            homepage = _subfolder_homepage(source)
-            if homepage is not None:
-                m.homepage = homepage
-            manifests.append(m)
-
-        if skipped:
-            logger.print_warning_line(
-                source.name,
-                f"Skipped {skipped} package(s) with no README",
-            )
-
-        _added, _updated = write_catalog(
-            manifests,
-            data_dir,
-            source_name=source.name,
-            label=source.label or source.name,
-            registry_path=source.path or source.name,
-        )
-        logger.print_info_line(
-            source.name,
-            f"Done — {_added} added, {_updated} updated ({len(manifests) - _added - _updated} skipped/no-vcs-url)",
-        )
-
-
 def _process_source(
     source: SourceConfig,
     data_dir: Path,
@@ -266,8 +205,6 @@ def _process_source(
         _process_subfolders_source(source, data_dir, limit)
     elif source.strategy == "git-wiki":
         _process_git_wiki_source(source, data_dir, limit)
-    elif source.strategy == "readme-only":
-        _process_readme_only_source(source, data_dir, limit)
     else:
         logger.warning(
             "%s: strategy '%s' not yet supported — skipped",
