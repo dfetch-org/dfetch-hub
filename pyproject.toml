@@ -154,10 +154,9 @@ venvPath = "."
 venv = ".venv"
 include = ["dfetch_hub"]
 reportMissingTypeStubs = "none"
-reportUnknownVariableType = "none"
-reportUnknownArgumentType = "none"
-reportUnknownMemberType = "none"
-
+reportUnknownVariableType = "warning"
+reportUnknownArgumentType = "warning"
+reportUnknownMemberType = "warning"
 [tool.pytest.ini_options]
 testpaths = ["test"]
 addopts = "--cov=dfetch_hub --cov-report=term-missing"
