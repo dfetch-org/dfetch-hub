@@ -127,9 +127,13 @@ def _process_subfolders_source(
                     hp = _subfolder_homepage(source)
                     if hp is not None:
                         m.homepage = hp
-                m.subfolder_path = (
-                    f"{source.path}/{entry_dir.name}" if source.path else entry_dir.name
-                )
+                    # The canonical URL is the source repo; the package is a subfolder.
+                    m.subfolder_path = (
+                        f"{source.path}/{entry_dir.name}" if source.path else entry_dir.name
+                    )
+                else:
+                    # The parser found the package's own upstream repo; it lives at the root.
+                    m.subfolder_path = "."
                 manifests.append(m)
 
         if skipped:
