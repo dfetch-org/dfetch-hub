@@ -658,6 +658,36 @@ def test_merge_detail_urls_empty_when_manifest_has_no_urls() -> None:
     assert detail["urls"] == {}
 
 
+def test_merge_detail_subfolder_path_set_for_new_detail() -> None:
+    """subfolder_path from the manifest is stored in a new detail record."""
+    m = _manifest()
+    m.subfolder_path = "ports/abseil"
+    with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
+        detail = _merge_detail(None, m, "abseil", "abseil-cpp", "vcpkg", "vcpkg", "ports")
+    assert detail["subfolder_path"] == "ports/abseil"
+
+
+def test_merge_detail_subfolder_path_updated_on_existing_detail() -> None:
+    """subfolder_path from the manifest overwrites None in an existing detail."""
+    existing = _existing_detail()  # subfolder_path is None
+    m = _manifest()
+    m.subfolder_path = "ports/abseil"
+    with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
+        detail = _merge_detail(
+            existing, m, "abseil", "abseil-cpp", "vcpkg", "vcpkg", "ports"
+        )
+    assert detail["subfolder_path"] == "ports/abseil"
+
+
+def test_merge_detail_subfolder_path_none_when_not_set() -> None:
+    """subfolder_path stays None when the manifest does not carry one."""
+    with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
+        detail = _merge_detail(
+            None, _manifest(), "abseil", "abseil-cpp", "vcpkg", "vcpkg", "ports"
+        )
+    assert detail["subfolder_path"] is None
+
+
 def test_merge_detail_urls_merged_across_sources() -> None:
     """URLs from a second source are merged into the existing urls dict."""
     existing = _existing_detail()

@@ -140,6 +140,9 @@ class BaseManifest:
                         ``pyproject.toml``.  Parsers populate this with every URL
                         they can discover; the catalog detail JSON exposes the full
                         dict so the frontend can render all links.
+        subfolder_path: Path within the remote repository where this package lives
+                        (e.g. ``"ports/abseil"``).  Set by the ``subfolders``
+                        strategy after parsing; ``None`` for top-level packages.
     """
 
     entry_name: str
@@ -150,3 +153,4 @@ class BaseManifest:
     version: str | None
     readme_content: str | None = None
     urls: dict[str, str] = field(default_factory=dict)
+    subfolder_path: str | None = None

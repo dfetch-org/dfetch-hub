@@ -187,11 +187,12 @@ def _merge_detail(  # pylint: disable=too-many-arguments,too-many-positional-arg
 ) -> dict[str, Any]:
     """Create or update a per-project detail JSON."""
     fetched_readme: str | None = getattr(manifest, "readme_content", None)
+    manifest_subfolder: str | None = getattr(manifest, "subfolder_path", None)
     detail: dict[str, Any] = existing or {
         "canonical_url": manifest.homepage or "",
         "org": org,
         "repo": repo,
-        "subfolder_path": None,
+        "subfolder_path": manifest_subfolder,
         "catalog_sources": [],
         "manifests": [],
         "readme": fetched_readme
@@ -208,6 +209,10 @@ def _merge_detail(  # pylint: disable=too-many-arguments,too-many-positional-arg
     # When we have a real upstream README, always overwrite the placeholder
     if fetched_readme:
         detail["readme"] = fetched_readme
+
+    # Always update subfolder_path when the manifest provides one
+    if manifest_subfolder is not None:
+        detail["subfolder_path"] = manifest_subfolder
 
     # Merge named URLs from this manifest into the detail's url map
     detail.setdefault("urls", {}).update(getattr(manifest, "urls", {}))

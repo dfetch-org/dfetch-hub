@@ -127,6 +127,9 @@ def _process_subfolders_source(
                     hp = _subfolder_homepage(source)
                     if hp is not None:
                         m.homepage = hp
+                m.subfolder_path = (
+                    f"{source.path}/{entry_dir.name}" if source.path else entry_dir.name
+                )
                 manifests.append(m)
 
         if skipped:
