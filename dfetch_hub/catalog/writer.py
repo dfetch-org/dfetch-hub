@@ -45,8 +45,23 @@ def _vcs_host_label(host: str) -> str:
     return _VCS_HOST_ALIASES.get(host, host)
 
 
-def _catalog_id(vcs_host: str, org: str, repo: str) -> str:
-    return f"{vcs_host.lower()}/{org.lower()}/{repo.lower()}"
+def _catalog_id(vcs_host: str, org: str, repo: str, subpath: str | None = None) -> str:
+    """Return the catalog ID string for a package.
+
+    Args:
+        vcs_host: Short VCS host label (e.g. ``"github"``).
+        org:      Organisation or owner name.
+        repo:     Repository name.
+        subpath:  Subdirectory within the repo for monorepo components, or
+                  ``None`` for repository-root packages.
+
+    Returns:
+        A slash-separated ID such as ``"github/org/repo"`` or, for monorepo
+        components, ``"github/org/repo/subpath"``.
+
+    """
+    base = f"{vcs_host.lower()}/{org.lower()}/{repo.lower()}"
+    return f"{base}/{subpath.lower()}" if subpath else base
 
 
 def _fetch_upstream_tags(url: str) -> list[dict[str, Any]]:
@@ -148,9 +163,10 @@ def _merge_catalog_entry(  # pylint: disable=too-many-arguments,too-many-positio
     label: str,
 ) -> dict[str, Any]:
     """Create or update a catalog.json entry for this package."""
+    subpath: str | None = manifest.subpath
     topics: list[str] = list(getattr(manifest, "topics", []))
     entry: dict[str, Any] = existing or {
-        "id": _catalog_id(vcs_host, org, repo),
+        "id": _catalog_id(vcs_host, org, repo, subpath),
         "name": manifest.package_name,
         "description": manifest.description,
         "url": manifest.homepage or "",
@@ -250,7 +266,7 @@ def _merge_detail(  # pylint: disable=too-many-arguments,too-many-positional-arg
         "canonical_url": manifest.homepage or "",
         "org": org,
         "repo": repo,
-        "subfolder_path": None,
+        "subfolder_path": manifest.subpath,
         "catalog_sources": [],
         "manifests": [],
         "readme": fetched_readme or _generate_readme(manifest, repo, manifest.homepage or ""),
@@ -322,6 +338,7 @@ def _write_detail_json(  # pylint: disable=too-many-arguments,too-many-positiona
     vcs_host: str,
     org: str,
     repo: str,
+    subpath: str | None,
     manifest: BaseManifest,
     source_name: str,
     label: str,
@@ -334,12 +351,19 @@ def _write_detail_json(  # pylint: disable=too-many-arguments,too-many-positiona
         vcs_host:      Short VCS host label (e.g. ``"github"``).
         org:           Repository owner / organisation (lowercased).
         repo:          Repository name (lowercased).
+        subpath:       Optional subpath in repo
         manifest:      Package manifest supplying metadata.
         source_name:   Internal name of the catalog source.
         label:         Human-readable label for the source.
         registry_path: Sub-path used to build the ``index_path``.
     """
-    detail_path = data_dir / vcs_host / org / f"{repo}.json"
+    # Per-project detail JSON — monorepo components get their own file
+    # inside a <repo>/ subdirectory so each sub-component is kept separate.
+    if subpath:
+        detail_path = data_dir / vcs_host / org / repo / f"{subpath}.json"
+    else:
+        detail_path = data_dir / vcs_host / org / f"{repo}.json"
+
     _save_json(
         detail_path,
         _merge_detail(
@@ -385,13 +409,13 @@ def _process_manifest(  # pylint: disable=too-many-arguments,too-many-positional
         logger.warning("skipping entry without recognized VCS URL: %s", manifest.homepage)
         return False, False
 
-    host, org, repo = parsed
-    vcs_host = _vcs_host_label(host)
-    existing_entry = catalog.get(_catalog_id(vcs_host, org, repo))
-    catalog[_catalog_id(vcs_host, org, repo)] = _merge_catalog_entry(
-        existing_entry, manifest, vcs_host, org, repo, label
-    )
-    _write_detail_json(data_dir, vcs_host, org, repo, manifest, source_name, label, registry_path)
+    vcs_host, org, repo = parsed
+    vcs_host = _vcs_host_label(vcs_host)
+    cat_id = _catalog_id(vcs_host, org, repo, manifest.subpath)
+
+    existing_entry = catalog.get(cat_id)
+    catalog[cat_id] = _merge_catalog_entry(existing_entry, manifest, vcs_host, org, repo, label)
+    _write_detail_json(data_dir, vcs_host, org, repo, manifest.subpath, manifest, source_name, label, registry_path)
     return existing_entry is None, existing_entry is not None
 
 

@@ -43,6 +43,7 @@ def _manifest(  # pylint: disable=too-many-arguments,too-many-positional-argumen
     homepage: str | None = "https://github.com/abseil/abseil-cpp",
     license_: str | None = "Apache-2.0",
     version: str | None = "20240116.2",
+    subpath: str | None = None,
 ) -> BaseManifest:
     """Build a minimal BaseManifest with sensible defaults for testing."""
     return BaseManifest(
@@ -52,6 +53,7 @@ def _manifest(  # pylint: disable=too-many-arguments,too-many-positional-argumen
         homepage=homepage,
         license=license_,
         version=version,
+        subpath=subpath,
     )
 
 
@@ -179,6 +181,21 @@ def test_catalog_id_lowercases_inputs() -> None:
 def test_catalog_id_gitlab() -> None:
     """Works for non-GitHub VCS hosts."""
     assert _catalog_id("gitlab", "org", "repo") == "gitlab/org/repo"
+
+
+def test_catalog_id_with_subpath() -> None:
+    """Monorepo component includes the subpath segment."""
+    assert _catalog_id("github", "org", "repo", "mylib") == "github/org/repo/mylib"
+
+
+def test_catalog_id_with_subpath_lowercases() -> None:
+    """All components including subpath are lowercased."""
+    assert _catalog_id("GitHub", "Org", "Repo", "MyLib") == "github/org/repo/mylib"
+
+
+def test_catalog_id_none_subpath_omitted() -> None:
+    """Passing subpath=None produces the same result as omitting it."""
+    assert _catalog_id("github", "org", "repo", None) == "github/org/repo"
 
 
 # ---------------------------------------------------------------------------
@@ -793,3 +810,100 @@ def test_write_catalog_detail_json_has_both_sources(tmp_path: Path) -> None:
     source_names = [s["source_name"] for s in detail["catalog_sources"]]
     assert "vcpkg" in source_names
     assert "conan" in source_names
+
+
+# ---------------------------------------------------------------------------
+# Monorepo subpath
+# ---------------------------------------------------------------------------
+
+_MONOREPO_URL = "https://github.com/myorg/mymonorepo"
+
+
+def _monorepo_manifest(name: str) -> BaseManifest:
+    """Build a manifest for a sub-component of *_MONOREPO_URL*."""
+    return _manifest(
+        entry_name=name,
+        package_name=name,
+        homepage=_MONOREPO_URL,
+        subpath=name,
+    )
+
+
+def test_write_catalog_monorepo_components_get_distinct_ids(tmp_path: Path) -> None:
+    """Two components from the same repo with different subpaths get distinct catalog IDs."""
+    foo = _monorepo_manifest("foo")
+    bar = _monorepo_manifest("bar")
+    with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
+        added, updated = write_catalog(
+            [foo, bar],
+            tmp_path,
+            source_name="readme",
+            label="readme",
+            registry_path="packages",
+        )
+    catalog = json.loads((tmp_path / "catalog.json").read_text(encoding="utf-8"))
+    assert "github/myorg/mymonorepo/foo" in catalog
+    assert "github/myorg/mymonorepo/bar" in catalog
+    assert added == 2
+    assert updated == 0
+
+
+def test_write_catalog_monorepo_components_get_distinct_detail_paths(tmp_path: Path) -> None:
+    """Each monorepo component is written to its own detail JSON file."""
+    foo = _monorepo_manifest("foo")
+    bar = _monorepo_manifest("bar")
+    with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
+        write_catalog(
+            [foo, bar],
+            tmp_path,
+            source_name="readme",
+            label="readme",
+            registry_path="packages",
+        )
+    foo_path = tmp_path / "github" / "myorg" / "mymonorepo" / "foo.json"
+    bar_path = tmp_path / "github" / "myorg" / "mymonorepo" / "bar.json"
+    assert foo_path.exists(), "foo detail JSON must exist"
+    assert bar_path.exists(), "bar detail JSON must exist"
+
+
+def test_write_catalog_monorepo_detail_contains_subfolder_path(tmp_path: Path) -> None:
+    """The detail JSON for a monorepo component stores its subfolder_path."""
+    foo = _monorepo_manifest("foo")
+    with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
+        write_catalog(
+            [foo],
+            tmp_path,
+            source_name="readme",
+            label="readme",
+            registry_path="packages",
+        )
+    detail = json.loads((tmp_path / "github" / "myorg" / "mymonorepo" / "foo.json").read_text(encoding="utf-8"))
+    assert detail["subfolder_path"] == "foo"
+
+
+def test_write_catalog_non_monorepo_detail_path_unchanged(tmp_path: Path) -> None:
+    """Packages without a subpath continue to use the flat <repo>.json path."""
+    with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
+        write_catalog(
+            [_manifest()],
+            tmp_path,
+            source_name="vcpkg",
+            label="vcpkg",
+            registry_path="ports",
+        )
+    assert (tmp_path / "github" / "abseil" / "abseil-cpp.json").exists()
+
+
+def test_write_catalog_monorepo_catalog_id_in_entry(tmp_path: Path) -> None:
+    """The ``id`` field inside the catalog entry includes the subpath."""
+    foo = _monorepo_manifest("foo")
+    with patch("dfetch_hub.catalog.writer._fetch_upstream_tags", return_value=[]):
+        write_catalog(
+            [foo],
+            tmp_path,
+            source_name="readme",
+            label="readme",
+            registry_path="packages",
+        )
+    catalog = json.loads((tmp_path / "catalog.json").read_text(encoding="utf-8"))
+    assert catalog["github/myorg/mymonorepo/foo"]["id"] == "github/myorg/mymonorepo/foo"

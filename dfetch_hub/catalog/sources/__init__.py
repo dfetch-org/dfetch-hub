@@ -134,7 +134,7 @@ def fetch_readme_for_homepage(homepage: str | None) -> str | None:
 
 
 @dataclass
-class BaseManifest:
+class BaseManifest:  # pylint: disable=too-many-instance-attributes
     """Shared base fields for all catalog manifest dataclasses.
 
     Attributes:
@@ -150,6 +150,12 @@ class BaseManifest:
                         ``pyproject.toml``.  Parsers populate this with every URL
                         they can discover; the catalog detail JSON exposes the full
                         dict so the frontend can render all links.
+        subpath:        Subdirectory path within the source repository for this
+                        component (e.g. ``"mylib"`` for a monorepo package at
+                        ``repo/mylib``).  ``None`` when the manifest represents
+                        the repository root.  Used to disambiguate catalog IDs and
+                        detail-file paths for monorepos that contain multiple
+                        components sharing the same repository URL.
     """
 
     entry_name: str
@@ -160,3 +166,4 @@ class BaseManifest:
     version: str | None
     readme_content: str | None = None
     urls: dict[str, str] = field(default_factory=dict)
+    subpath: str | None = None
