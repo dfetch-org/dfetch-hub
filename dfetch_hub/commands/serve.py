@@ -17,7 +17,8 @@ logger = get_logger(__name__)
 def _port_type(value: str) -> int:
     """Parse *value* as a TCP port number (1-65535)."""
     port = int(value)
-    if not 1 <= port <= 65535:
+    max_port = 65535
+    if not 1 <= port <= max_port:
         raise argparse.ArgumentTypeError("--port must be between 1 and 65535")
     return port
 

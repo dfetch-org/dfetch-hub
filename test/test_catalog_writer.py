@@ -371,8 +371,8 @@ _FULL_SHA = "a" * 40  # realistic 40-char hex SHA
 def test_fetch_upstream_tags_returns_tag_entries() -> None:
     """Tags are extracted from refs/tags/* entries returned by ls-remote."""
     ls_remote = {
-        f"refs/tags/v1.0.0": _FULL_SHA,
-        f"refs/tags/v2.0.0": "b" * 40,
+        "refs/tags/v1.0.0": _FULL_SHA,
+        "refs/tags/v2.0.0": "b" * 40,
         "refs/heads/main": "c" * 40,  # branches must be excluded
     }
     with patch("dfetch_hub.catalog.writer.GitRemote._ls_remote", return_value=ls_remote):

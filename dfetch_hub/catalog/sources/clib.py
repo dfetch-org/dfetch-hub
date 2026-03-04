@@ -121,7 +121,7 @@ def _enrich_from_pkg_json(
         ``(package_name, description, license, version, keywords, canonical_url)``
     """
     package_name = str(pkg_json.get("name") or repo)
-    description = tagline or str(pkg_json.get("description") or "")
+    description = _str_or_none(pkg_json.get("description")) or tagline or ""
     license_val = _str_or_none(pkg_json.get("license"))
     version_val = _str_or_none(pkg_json.get("version"))
     json_kws = _pkg_json_keywords(pkg_json.get("keywords"))

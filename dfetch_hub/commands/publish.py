@@ -28,9 +28,9 @@ _DEFAULT_OUTPUT = Path("public")
 def _minify_json(src: Path, dst: Path) -> None:
     """Read *src*, minify JSON, write to *dst*."""
     dst.parent.mkdir(parents=True, exist_ok=True)
-    with Path.open(src, encoding="utf-8") as fh:
+    with src.open(encoding="utf-8") as fh:
         data = json.load(fh)
-    with Path.open(dst, "w", encoding="utf-8") as fh:
+    with dst.open("w", encoding="utf-8") as fh:
         json.dump(data, fh, separators=(",", ":"), ensure_ascii=False)
 
 
@@ -105,9 +105,13 @@ def _cmd_publish(parsed: argparse.Namespace) -> None:
     _validate_output_dir(data_dir, output)
 
     if output.exists():
-        logger.print_info_line("publish", f"Removing existing '{output}' ...")
-        shutil.rmtree(output)
-    output.mkdir(parents=True)
+        if output.is_dir():
+            logger.print_info_line("publish", f"Removing existing '{output}' ...")
+            shutil.rmtree(output)
+        else:
+            logger.error("Output path '%s' exists and is not a directory", output)
+            sys.exit(1)
+    output.mkdir(parents=True, exist_ok=True)
 
     logger.print_info_line("publish", "Copying site assets ...")
     _copy_assets(_SITE_DIR, output)

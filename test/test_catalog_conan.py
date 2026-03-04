@@ -9,7 +9,6 @@ from unittest.mock import patch
 import pytest
 
 from dfetch_hub.catalog.sources.conan import (
-    ConanManifest,
     _attr_literal,
     _extract_str_attr,
     _extract_tuple_attr,

@@ -57,7 +57,17 @@ RAW_BRANCHES = ("main", "master")
 
 
 def raw_url(owner: str, repo: str, branch: str, filename: str) -> str:
-    """Build a raw.githubusercontent.com URL for a specific file."""
+    """Build a raw.githubusercontent.com URL for a specific file.
+
+    Args:
+        owner: Repository owner or organization.
+        repo: Repository name.
+        branch: Branch name to fetch from.
+        filename: Filename within the repository root.
+
+    Returns:
+        Raw GitHub content
+    """
     return f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{filename}"
 
 
