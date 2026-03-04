@@ -63,7 +63,6 @@ def create_manifest(source: SourceConfig, dest_dir: Path) -> Path:
         src=source.path,
         branch=source.branch or "",
         revision="",
-        repo_path="",
         vcs="git",
     )
     manifest_dict = ManifestDict(
