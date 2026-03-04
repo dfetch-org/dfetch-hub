@@ -35,3 +35,4 @@ jobs:
       - run: pydocstyle dfetch_hub                                       # Docstrings (config: [tool.pydocstyle])
       - run: doc8                                                        # Doc style (config: [tool.doc8])
       - run: pytest                                                      # Tests (config: [tool.pytest.ini_options])
+      - run: codespell                                                   # spelling (config: [tool.codespell])

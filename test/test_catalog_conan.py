@@ -288,7 +288,7 @@ def test_attr_literal_returns_none_for_non_string_non_paren_value() -> None:
 
 def test_attr_literal_returns_none_on_literal_eval_failure() -> None:
     """Returns None when ast.literal_eval raises (e.g. unclosed string)."""
-    # No closing quote → end_q == -1 → value_text is unparseable
+    # No closing quote → end_q == -1 → value_text is unparsable
     assert _attr_literal('    name = "unclosed', "name") is None
 
 

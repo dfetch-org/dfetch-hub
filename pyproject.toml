@@ -34,6 +34,7 @@ dependencies = [
 development = [
     "bandit[toml]==1.9.4",
     "black==25.1.0",
+    "codespell==2.4.1",
     "djlint==1.36.4",
     "doc8==2.0.0",
     "isort==6.0.0",
@@ -173,3 +174,6 @@ exclude_lines = [
     "raise NotImplementedError",
 ]
 
+
+[tool.codespell]
+skip = "./dfetch_hub/data/*"

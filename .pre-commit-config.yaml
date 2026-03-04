@@ -73,3 +73,10 @@ repos:
       entry: doc8 --max-line-length 120 --extension .md
       language: python
       types_or: [rst, markdown]
+  -   id: codespell
+      name: codespell
+      description: Checks for common misspellings in text files.
+      entry: codespell --toml pyproject.toml
+      language: python
+      types: [text]
+      exclude: ^dfetch_hub/data/
