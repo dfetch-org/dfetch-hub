@@ -303,15 +303,21 @@ def _generate_readme(manifest: BaseManifest, repo: str, url: str) -> str:
     """Generate a minimal installation README for a package.
 
     Args:
-        manifest: Package metadata supplying name, description, and version.
-        repo:     Repository name used as the local checkout directory name.
+        manifest: Package metadata supplying name, description, version, and
+                  optional subpath (for monorepo components).
+        repo:     Repository name used as the local checkout directory name
+                  when *manifest.subpath* is not set.
         url:      Full VCS URL to embed in the dfetch.yaml snippet.
 
     Returns:
         A Markdown string with a package heading, description, and dfetch
-        installation snippet.
+        installation snippet.  Monorepo components (those with a non-``None``
+        ``manifest.subpath``) include a ``src:`` line that selects the correct
+        subdirectory, and use the subpath name as the local checkout name.
 
     """
+    local_name = manifest.subpath or repo
+    src_line = f"\n    src: {manifest.subpath}" if manifest.subpath else ""
     version_line = f"\n    tag: {manifest.version}" if manifest.version else ""
     return (
         f"# {manifest.package_name}\n\n"
@@ -320,11 +326,11 @@ def _generate_readme(manifest: BaseManifest, repo: str, url: str) -> str:
         "Add to your `dfetch.yaml`:\n\n"
         "```yaml\n"
         "projects:\n"
-        f"  - name: ext/{repo}\n"
-        f"    url: {url}{version_line}\n"
+        f"  - name: ext/{local_name}\n"
+        f"    url: {url}{src_line}{version_line}\n"
         "```\n\n"
         "## Usage\n\n"
-        f"After running `dfetch update`, the library will be available at `ext/{repo}/`.\n"
+        f"After running `dfetch update`, the library will be available at `ext/{local_name}/`.\n"
     )
 
 

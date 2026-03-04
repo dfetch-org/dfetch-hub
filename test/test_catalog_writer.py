@@ -378,6 +378,27 @@ def test_generate_readme_uses_provided_url() -> None:
     assert "https://gitlab.com/myorg/myrepo" in readme
 
 
+def test_generate_readme_monorepo_includes_src_line() -> None:
+    """Monorepo components include a 'src:' line with the subpath."""
+    m = _manifest(subpath="mylib")
+    readme = _generate_readme(m, "mymonorepo", "https://github.com/org/mymonorepo")
+    assert "src: mylib" in readme
+
+
+def test_generate_readme_monorepo_uses_subpath_as_local_name() -> None:
+    """The local checkout name (ext/<name>) uses subpath, not the repo name."""
+    m = _manifest(subpath="mylib")
+    readme = _generate_readme(m, "mymonorepo", "https://github.com/org/mymonorepo")
+    assert "ext/mylib" in readme
+    assert "ext/mymonorepo" not in readme
+
+
+def test_generate_readme_no_subpath_no_src_line() -> None:
+    """Packages without a subpath do not emit a 'src:' line."""
+    readme = _generate_readme(_manifest(), "abseil-cpp", "https://github.com/abseil/abseil-cpp")
+    assert "src:" not in readme
+
+
 # ---------------------------------------------------------------------------
 # _fetch_upstream_tags
 # ---------------------------------------------------------------------------
