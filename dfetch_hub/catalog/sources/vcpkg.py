@@ -57,6 +57,12 @@ def _extract_description(data: dict[str, object]) -> str:
     return str(desc) if desc else ""
 
 
+def _extract_str_field(data: dict[str, object], key: str) -> str | None:
+    """Return the string value for *key* in *data*, or ``None`` if absent or non-string."""
+    val = data.get(key)
+    return str(val) if isinstance(val, str) else None
+
+
 def _extract_dependencies(data: dict[str, object]) -> list[str]:
     """Return a flat list of dependency names from *data*.
 
@@ -93,7 +99,7 @@ def parse_vcpkg_json(entry_dir: Path) -> VcpkgManifest | None:
         return None
 
     try:
-        with open(manifest_path, encoding="utf-8") as fh:
+        with manifest_path.open(encoding="utf-8") as fh:
             loaded = json.load(fh)
     except (json.JSONDecodeError, OSError) as exc:
         logger.warning("Could not parse %s: %s", manifest_path, exc)
@@ -104,12 +110,9 @@ def parse_vcpkg_json(entry_dir: Path) -> VcpkgManifest | None:
         return None
 
     data: dict[str, object] = loaded
-    raw_homepage = data.get("homepage")
-    homepage: str | None = str(raw_homepage) if isinstance(raw_homepage, str) else None
-    raw_license = data.get("license")
-    license_val: str | None = str(raw_license) if isinstance(raw_license, str) else None
-    raw_name = data.get("name")
-    package_name = str(raw_name) if isinstance(raw_name, str) else entry_dir.name
+    homepage = _extract_str_field(data, "homepage")
+    license_val = _extract_str_field(data, "license")
+    package_name = _extract_str_field(data, "name") or entry_dir.name
 
     urls: dict[str, str] = {}
     if homepage:

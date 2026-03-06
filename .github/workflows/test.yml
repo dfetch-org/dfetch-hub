@@ -18,20 +18,19 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install dependencies
+      - name: Create & Activate virtualenv and install dependencies
         run: |
+          python -m venv .venv
+          source .venv/bin/activate
+          pip install --upgrade pip
           pip install .[development]
 
-      - run: isort --diff dfetch_hub                                                      # Checks import order
-      - run: black --check dfetch_hub                                                     # Checks code style
-      - run: ruff check dfetch_hub                                                        # Fast linter (bugbear, comprehensions, naming, …)
-      - run: pylint dfetch_hub                                                            # Deep static analysis
-      - run: mypy --strict dfetch_hub                                                     # mypy type check (strict)
-      - run: pyright dfetch_hub                                                           # pyright type check (standard)
-      - run: bandit -c pyproject.toml -r dfetch_hub                                      # Security linting
-      - run: xenon --max-absolute C --max-modules B --max-average A dfetch_hub           # Cyclomatic complexity
-      - run: pyroma --directory --min 9 .                                                 # Package metadata quality
-      - run: djlint --lint dfetch_hub                                                     # HTML linting
-      - run: pydocstyle --convention=google dfetch_hub                                    # Docstring style (Google convention)
-      - run: doc8 --extension .md --max-line-length 120 README.md                          # Documentation prose style
-      - run: pytest --cov=dfetch_hub test                                                 # Run tests with coverage
+      - name: Run pre-commit
+        run: |
+          source .venv/bin/activate
+          pre-commit run --all-files
+
+      - name: Run tests
+        run: |
+          source .venv/bin/activate
+          pytest

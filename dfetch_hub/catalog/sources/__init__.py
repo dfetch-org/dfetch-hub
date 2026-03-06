@@ -53,15 +53,25 @@ def parse_vcs_slug(url: str) -> tuple[str, str, str] | None:
 
 _HEADERS = {"User-Agent": "dfetch-hub/0.0.1"}
 _README_NAMES = ("README.md", "readme.md", "Readme.md", "README.rst", "README")
-_RAW_BRANCHES = ("main", "master")
+RAW_BRANCHES = ("main", "master")
 
 
-def _raw_url(owner: str, repo: str, branch: str, filename: str) -> str:
-    """Build a raw.githubusercontent.com URL for a specific file."""
+def raw_url(owner: str, repo: str, branch: str, filename: str) -> str:
+    """Build a raw.githubusercontent.com URL for a specific file.
+
+    Args:
+        owner: Repository owner or organization.
+        repo: Repository name.
+        branch: Branch name to fetch from.
+        filename: Filename within the repository root.
+
+    Returns:
+        Raw GitHub content
+    """
     return f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{filename}"
 
 
-def _fetch_raw(url: str) -> str | None:
+def fetch_raw(url: str) -> str | None:
     """GET *url* and return the response body as a string, or ``None`` on failure."""
     try:
         req = Request(url, headers=_HEADERS)
@@ -85,9 +95,9 @@ def fetch_readme(owner: str, repo: str) -> str | None:
         The raw README text on success, or ``None`` if nothing is found.
 
     """
-    for branch in _RAW_BRANCHES:
+    for branch in RAW_BRANCHES:
         for name in _README_NAMES:
-            content = _fetch_raw(_raw_url(owner, repo, branch, name))
+            content = fetch_raw(raw_url(owner, repo, branch, name))
             if content is not None:
                 logger.debug("Fetched %s for %s/%s from %s", name, owner, repo, branch)
                 return content

@@ -36,9 +36,7 @@ _VCPKG_JSON: dict[str, object] = {
 @pytest.fixture(autouse=True)
 def _mock_readme() -> object:
     """Prevent real network calls in all vcpkg tests."""
-    with patch(
-        "dfetch_hub.catalog.sources.vcpkg.fetch_readme_for_homepage", return_value=None
-    ):
+    with patch("dfetch_hub.catalog.sources.vcpkg.fetch_readme_for_homepage", return_value=None):
         yield
 
 
@@ -78,10 +76,7 @@ def test_extract_description_plain_string() -> None:
 
 def test_extract_description_list_joined() -> None:
     """List description elements are joined with a space."""
-    assert (
-        _extract_description({"description": ["Summary.", "Detail."]})
-        == "Summary. Detail."
-    )
+    assert _extract_description({"description": ["Summary.", "Detail."]}) == "Summary. Detail."
 
 
 def test_extract_description_missing_returns_empty() -> None:
@@ -106,9 +101,7 @@ def test_extract_dependencies_dict_items() -> None:
 
 def test_extract_dependencies_mixed() -> None:
     """Mixed string/dict entries are flattened; dicts without 'name' are skipped."""
-    result = _extract_dependencies(
-        {"dependencies": ["a", {"name": "b"}, {"other": "x"}]}
-    )
+    result = _extract_dependencies({"dependencies": ["a", {"name": "b"}, {"other": "x"}]})
     assert result == ["a", "b"]
 
 
@@ -184,9 +177,7 @@ def test_parse_vcpkg_json_uses_dir_name_when_no_name_field(tmp_path: Path) -> No
     """Falls back to the directory name when vcpkg.json has no 'name' field."""
     pkg = tmp_path / "mylib"
     pkg.mkdir()
-    (pkg / "vcpkg.json").write_text(
-        json.dumps({"description": "A library"}), encoding="utf-8"
-    )
+    (pkg / "vcpkg.json").write_text(json.dumps({"description": "A library"}), encoding="utf-8")
 
     result = parse_vcpkg_json(pkg)
 
@@ -214,9 +205,7 @@ def test_parse_vcpkg_json_version_date_key(tmp_path: Path) -> None:
     """version-date is used when version-semver is absent."""
     pkg = tmp_path / "pkg"
     pkg.mkdir()
-    (pkg / "vcpkg.json").write_text(
-        json.dumps({"name": "pkg", "version-date": "2024-01-16"}), encoding="utf-8"
-    )
+    (pkg / "vcpkg.json").write_text(json.dumps({"name": "pkg", "version-date": "2024-01-16"}), encoding="utf-8")
 
     result = parse_vcpkg_json(pkg)
 

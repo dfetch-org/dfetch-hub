@@ -52,7 +52,7 @@ def _catalog_id(vcs_host: str, org: str, repo: str) -> str:
 def _fetch_upstream_tags(url: str) -> list[dict[str, Any]]:
     """Return git tags from *url* using dfetch's GitRemote."""
     try:
-        info = GitRemote._ls_remote(url)  # pylint: disable=protected-access
+        info = GitRemote._ls_remote(url)  # pylint: disable=protected-access  # pyright: ignore[reportPrivateUsage]
     except Exception as exc:  # pylint: disable=broad-exception-caught
         logger.warning("Could not list tags for %s: %s", url, exc)  # pragma: no cover
         return []  # pragma: no cover
@@ -76,14 +76,14 @@ def _fetch_upstream_tags(url: str) -> list[dict[str, Any]]:
 
 def _load_json(path: Path) -> Any:
     if path.exists():
-        with open(path, encoding="utf-8") as fh:
+        with path.open(encoding="utf-8") as fh:
             return json.load(fh)
     return None
 
 
 def _save_json(path: Path, data: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w", encoding="utf-8") as fh:
+    with path.open("w", encoding="utf-8") as fh:
         json.dump(data, fh, indent=2, ensure_ascii=False)
         fh.write("\n")
 
@@ -95,6 +95,48 @@ def _now_iso() -> str:
 # ---------------------------------------------------------------------------
 # Catalog entry (catalog.json)
 # ---------------------------------------------------------------------------
+
+
+def _ensure_version_tag(tags: list[dict[str, Any]], version: str) -> None:
+    """Add *version* to *tags* if not already present.
+
+    Normalises by stripping a leading ``"v"`` so ``"6.4.0"`` matches ``"v6.4.0"``.
+
+    Args:
+        tags:    Mutable tag list to update in-place.
+        version: Version string to ensure is present.
+    """
+    tag_names_normalised = {str(t.get("name") or "").lstrip("v") for t in tags}
+    if version.lstrip("v") not in tag_names_normalised:
+        tags.insert(
+            0,
+            {
+                "name": version,
+                "is_tag": True,
+                "commit_sha": None,
+                "date": None,
+            },
+        )
+
+
+def _merge_topics(
+    entry: dict[str, Any],
+    existing: dict[str, Any] | None,
+    topics: list[str],
+) -> None:
+    """Merge *topics* into ``entry["topics"]`` when updating an existing entry.
+
+    No-op when *existing* is ``None`` (newly created entry already has the topics
+    embedded in the initial dict) or *topics* is empty.
+
+    Args:
+        entry:    Catalog entry dict to update in-place.
+        existing: Previous value of the entry, or ``None`` if newly created.
+        topics:   Topics from the current manifest to add.
+    """
+    if existing and topics:
+        existing_topics: list[str] = entry.setdefault("topics", [])
+        existing_topics.extend(t for t in topics if t not in existing_topics)
 
 
 def _merge_catalog_entry(  # pylint: disable=too-many-arguments,too-many-positional-arguments
@@ -122,10 +164,7 @@ def _merge_catalog_entry(  # pylint: disable=too-many-arguments,too-many-positio
         "tags": [],
     }
 
-    # Merge in topics from the current source if the entry already existed
-    if existing and topics:
-        existing_topics: list[str] = entry.setdefault("topics", [])
-        existing_topics.extend(t for t in topics if t not in existing_topics)
+    _merge_topics(entry, existing, topics)
 
     # Update fields that the manifest knows about and the catalog may be stale on
     if manifest.description and not entry.get("description"):
@@ -138,21 +177,8 @@ def _merge_catalog_entry(  # pylint: disable=too-many-arguments,too-many-positio
     if label not in labels:
         labels.append(label)
 
-    # Add a version tag if we have one and it's not already listed.
-    # Normalise by stripping a leading "v" so "6.4.0" matches "v6.4.0".
     if manifest.version:
-        tags: list[dict[str, Any]] = entry.setdefault("tags", [])
-        tag_names_normalised = {str(t.get("name") or "").lstrip("v") for t in tags}
-        if manifest.version.lstrip("v") not in tag_names_normalised:
-            tags.insert(
-                0,
-                {
-                    "name": manifest.version,
-                    "is_tag": True,
-                    "commit_sha": None,
-                    "date": None,
-                },
-            )
+        _ensure_version_tag(entry.setdefault("tags", []), manifest.version)
 
     return entry
 
@@ -176,6 +202,39 @@ def _catalog_source_entry(
     }
 
 
+def _merge_catalog_sources(
+    detail: dict[str, Any],
+    manifest: BaseManifest,
+    source_name: str,
+    label: str,
+    registry_path: str,
+) -> None:
+    """Update the ``catalog_sources`` list in *detail* for this manifest.
+
+    Purges stale entries that share the same ``index_path`` but carry an
+    outdated ``source_name`` (e.g. after a source rename in ``dfetch-hub.toml``),
+    then upserts the current source entry.
+
+    Args:
+        detail:        Per-project detail dict to update in-place.
+        manifest:      Package manifest supplying entry metadata.
+        source_name:   Internal name of the catalog source.
+        label:         Human-readable label for the source.
+        registry_path: Sub-path used to build the ``index_path``.
+    """
+    sources: list[dict[str, Any]] = detail.setdefault("catalog_sources", [])
+    new_source = _catalog_source_entry(manifest, source_name, label, registry_path)
+    new_index_path = new_source["index_path"]
+    detail["catalog_sources"] = sources = [
+        s for s in sources if not (s.get("index_path") == new_index_path and s.get("source_name") != source_name)
+    ]
+    existing_source = next((s for s in sources if s.get("source_name") == source_name), None)
+    if existing_source is None:
+        sources.append(new_source)
+    else:
+        existing_source.update(new_source)
+
+
 def _merge_detail(  # pylint: disable=too-many-arguments,too-many-positional-arguments
     existing: dict[str, Any] | None,
     manifest: BaseManifest,
@@ -194,8 +253,7 @@ def _merge_detail(  # pylint: disable=too-many-arguments,too-many-positional-arg
         "subfolder_path": None,
         "catalog_sources": [],
         "manifests": [],
-        "readme": fetched_readme
-        or _generate_readme(manifest, repo, manifest.homepage or ""),
+        "readme": fetched_readme or _generate_readme(manifest, repo, manifest.homepage or ""),
         "tags": [],
         "branches": [
             {"name": "main", "is_tag": False, "commit_sha": None, "date": None},
@@ -212,47 +270,15 @@ def _merge_detail(  # pylint: disable=too-many-arguments,too-many-positional-arg
     # Merge named URLs from this manifest into the detail's url map
     detail.setdefault("urls", {}).update(getattr(manifest, "urls", {}))
 
-    # Update or add the catalog source for this label.
-    # First, purge any stale entries that share the same index_path but carry an
-    # outdated source_name (e.g. after a source rename in dfetch-hub.toml).
-    sources: list[dict[str, Any]] = detail.setdefault("catalog_sources", [])
-    new_source = _catalog_source_entry(manifest, source_name, label, registry_path)
-    new_index_path = new_source["index_path"]
-    detail["catalog_sources"] = sources = [
-        s
-        for s in sources
-        if not (
-            s.get("index_path") == new_index_path
-            and s.get("source_name") != source_name
-        )
-    ]
-    existing_source = next(
-        (s for s in sources if s.get("source_name") == source_name), None
-    )
-    if existing_source is None:
-        sources.append(new_source)
-    else:
-        existing_source.update(new_source)
+    _merge_catalog_sources(detail, manifest, source_name, label, registry_path)
 
     # Populate tags from the upstream repo when the list is empty
     tags: list[dict[str, Any]] = detail.setdefault("tags", [])
     if not tags and manifest.homepage:
         tags.extend(_fetch_upstream_tags(manifest.homepage))
 
-    # Ensure the current version appears in the tag list.
-    # Normalise by stripping a leading "v" so that "6.4.0" matches "v6.4.0".
     if manifest.version:
-        tag_names_normalised = {t.get("name", "").lstrip("v") for t in tags}
-        if manifest.version.lstrip("v") not in tag_names_normalised:
-            tags.insert(
-                0,
-                {
-                    "name": manifest.version,
-                    "is_tag": True,
-                    "commit_sha": None,
-                    "date": None,
-                },
-            )
+        _ensure_version_tag(tags, manifest.version)
 
     return detail
 
@@ -291,7 +317,85 @@ def _generate_readme(manifest: BaseManifest, repo: str, url: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-def write_catalog(  # pylint: disable=too-many-locals
+def _write_detail_json(  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    data_dir: Path,
+    vcs_host: str,
+    org: str,
+    repo: str,
+    manifest: BaseManifest,
+    source_name: str,
+    label: str,
+    registry_path: str,
+) -> None:
+    """Write or update the per-project detail JSON for one package.
+
+    Args:
+        data_dir:      Root of the catalog data directory.
+        vcs_host:      Short VCS host label (e.g. ``"github"``).
+        org:           Repository owner / organisation (lowercased).
+        repo:          Repository name (lowercased).
+        manifest:      Package manifest supplying metadata.
+        source_name:   Internal name of the catalog source.
+        label:         Human-readable label for the source.
+        registry_path: Sub-path used to build the ``index_path``.
+    """
+    detail_path = data_dir / vcs_host / org / f"{repo}.json"
+    _save_json(
+        detail_path,
+        _merge_detail(
+            _load_json(detail_path),
+            manifest,
+            org,
+            repo,
+            source_name,
+            label,
+            registry_path,
+        ),
+    )
+
+
+def _process_manifest(  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    manifest: BaseManifest,
+    catalog: dict[str, Any],
+    data_dir: Path,
+    source_name: str,
+    label: str,
+    registry_path: str,
+) -> tuple[bool, bool]:
+    """Update *catalog* and write the detail JSON for one manifest.
+
+    Args:
+        manifest:      Package manifest to process.
+        catalog:       Mutable catalog dict to update in-place.
+        data_dir:      Root of the catalog data directory.
+        source_name:   Internal name of the catalog source.
+        label:         Human-readable source label.
+        registry_path: Sub-path used to build the ``index_path``.
+
+    Returns:
+        ``(added, updated)`` booleans — exactly one is ``True`` when the manifest
+        was successfully written; both are ``False`` when the manifest is skipped.
+    """
+    if not manifest.homepage:
+        logger.warning("cannot determine upstream repo without a URL of %s", manifest.entry_name)
+        return False, False
+
+    parsed = parse_vcs_slug(manifest.homepage)
+    if not parsed:
+        logger.warning("skipping entry without recognized VCS URL: %s", manifest.homepage)
+        return False, False
+
+    host, org, repo = parsed
+    vcs_host = _vcs_host_label(host)
+    existing_entry = catalog.get(_catalog_id(vcs_host, org, repo))
+    catalog[_catalog_id(vcs_host, org, repo)] = _merge_catalog_entry(
+        existing_entry, manifest, vcs_host, org, repo, label
+    )
+    _write_detail_json(data_dir, vcs_host, org, repo, manifest, source_name, label, registry_path)
+    return existing_entry is None, existing_entry is not None
+
+
+def write_catalog(
     manifests: list[BaseManifest],
     data_dir: Path,
     source_name: str,
@@ -313,56 +417,13 @@ def write_catalog(  # pylint: disable=too-many-locals
     """
     catalog_path = data_dir / "catalog.json"
     catalog: dict[str, Any] = _load_json(catalog_path) or {}
-
     added = 0
     updated = 0
 
     for manifest in manifests:
-        if not manifest.homepage:
-            logger.warning(
-                "cannot determine upstream repo without a URL of %s",
-                manifest.entry_name,
-            )
-            continue
-
-        parsed = parse_vcs_slug(manifest.homepage)
-        if not parsed:
-            logger.warning(
-                "skipping entry without recognized VCS URL: %s", manifest.homepage
-            )
-            continue
-
-        host, org, repo = parsed
-        vcs_host = _vcs_host_label(host)
-        cat_id = _catalog_id(vcs_host, org, repo)
-
-        existing_entry = catalog.get(cat_id)
-        catalog[cat_id] = _merge_catalog_entry(
-            existing_entry,
-            manifest,
-            vcs_host,
-            org,
-            repo,
-            label,
-        )
-        if existing_entry is None:
-            added += 1
-        else:
-            updated += 1
-
-        # Per-project detail JSON
-        detail_path = data_dir / vcs_host / org / f"{repo}.json"
-        existing_detail = _load_json(detail_path)
-        merged_detail = _merge_detail(
-            existing_detail,
-            manifest,
-            org,
-            repo,
-            source_name,
-            label,
-            registry_path,
-        )
-        _save_json(detail_path, merged_detail)
+        was_added, was_updated = _process_manifest(manifest, catalog, data_dir, source_name, label, registry_path)
+        added += was_added
+        updated += was_updated
 
     _save_json(catalog_path, catalog)
     return added, updated

@@ -106,9 +106,7 @@ def test_build_package_uses_json_homepage_as_canonical_url() -> None:
     """Prefers the explicit homepage from package.json over the VCS URL."""
     pkg_json = {**_PACKAGE_JSON_BUFFER, "homepage": "https://example.com/buffer"}
     with (
-        patch(
-            "dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=pkg_json
-        ),
+        patch("dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=pkg_json),
         patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
         pkg = _build_package("github.com", "clibs", "buffer", "desc", "Strings")
@@ -130,12 +128,8 @@ def test_build_package_falls_back_to_vcs_url_when_no_package_json() -> None:
 def test_build_package_non_github_uses_vcs_url() -> None:
     """Non-GitHub entries use their own VCS URL as homepage."""
     with (
-        patch(
-            "dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=None
-        ) as mock_pkg_json,
-        patch(
-            "dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None
-        ) as mock_readme,
+        patch("dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=None) as mock_pkg_json,
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None) as mock_readme,
     ):
         pkg = _build_package("gitlab.com", "myorg", "myrepo", "a gitlab lib", "Tools")
     mock_pkg_json.assert_not_called()
@@ -156,9 +150,7 @@ def test_build_package_stores_fetched_readme() -> None:
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
             return_value=_PACKAGE_JSON_BUFFER,
         ),
-        patch(
-            "dfetch_hub.catalog.sources.clib.fetch_readme", return_value=_SAMPLE_README
-        ),
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=_SAMPLE_README),
     ):
         pkg = _build_package("github.com", "clibs", "buffer", "desc", "Strings")
 
@@ -179,12 +171,8 @@ def test_build_package_readme_none_when_not_found() -> None:
 def test_build_package_non_github_readme_is_none() -> None:
     """Non-GitHub packages always have readme_content=None (raw URL not available)."""
     with (
-        patch(
-            "dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=None
-        ) as mock_pkg_json,
-        patch(
-            "dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None
-        ) as mock_readme,
+        patch("dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=None) as mock_pkg_json,
+        patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None) as mock_readme,
     ):
         pkg = _build_package("gitlab.com", "org", "repo", "desc", "Cat")
     mock_pkg_json.assert_not_called()
@@ -223,8 +211,8 @@ def test_build_package_basic_fields() -> None:
     assert "buffer" in pkg.keywords
 
 
-def test_build_package_tagline_preferred_over_json_description() -> None:
-    """The wiki tagline takes priority over the package.json description."""
+def test_json_description_preferred_over_build_package_tagline() -> None:
+    """The package.json description takes priority over the wiki tagline."""
     with (
         patch(
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
@@ -234,7 +222,7 @@ def test_build_package_tagline_preferred_over_json_description() -> None:
     ):
         pkg = _build_package("github.com", "clibs", "buffer", "my custom tagline", "")
 
-    assert pkg.description == "my custom tagline"
+    assert pkg.description == "Higher level C-string utilities"
 
 
 def test_build_package_falls_back_to_json_description_when_no_tagline() -> None:
@@ -269,14 +257,10 @@ def test_build_package_category_not_duplicated_in_keywords() -> None:
     """Category keyword that already appears in package.json keywords is not duplicated."""
     pkg_json = {**_PACKAGE_JSON_BUFFER, "keywords": ["String manipulation", "buffer"]}
     with (
-        patch(
-            "dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=pkg_json
-        ),
+        patch("dfetch_hub.catalog.sources.clib._fetch_package_json", return_value=pkg_json),
         patch("dfetch_hub.catalog.sources.clib.fetch_readme", return_value=None),
     ):
-        pkg = _build_package(
-            "github.com", "clibs", "buffer", "desc", "String manipulation"
-        )
+        pkg = _build_package("github.com", "clibs", "buffer", "desc", "String manipulation")
 
     assert pkg.keywords.count("String manipulation") == 1
 
@@ -298,9 +282,7 @@ def test_parse_packages_md_includes_non_github_vcs_urls(packages_md_file: Path) 
         pkgs = parse_packages_md(packages_md_file)
 
     urls = [p.homepage for p in pkgs]
-    assert any(
-        "gitlab.com" in (u or "") for u in urls
-    ), "Expected GitLab entry to be included"
+    assert any("gitlab.com" in (u or "") for u in urls), "Expected GitLab entry to be included"
 
 
 def test_parse_packages_md_non_github_entry_has_no_readme(
@@ -422,9 +404,7 @@ def test_parse_packages_md_limit_zero_returns_empty(packages_md_file: Path) -> N
 def test_fetch_package_json_returns_dict_on_valid_response() -> None:
     """Returns the parsed dict when the raw response is valid JSON."""
     data = {"name": "buffer", "version": "0.4.0"}
-    with patch(
-        "dfetch_hub.catalog.sources.clib._fetch_raw", return_value=json.dumps(data)
-    ):
+    with patch("dfetch_hub.catalog.sources.clib.fetch_raw", return_value=json.dumps(data)):
         result = _fetch_package_json("clibs", "buffer")
 
     assert result == data
@@ -432,7 +412,7 @@ def test_fetch_package_json_returns_dict_on_valid_response() -> None:
 
 def test_fetch_package_json_returns_none_when_fetch_fails() -> None:
     """Returns None when every HTTP fetch attempt fails."""
-    with patch("dfetch_hub.catalog.sources.clib._fetch_raw", return_value=None):
+    with patch("dfetch_hub.catalog.sources.clib.fetch_raw", return_value=None):
         result = _fetch_package_json("owner", "repo")
 
     assert result is None
@@ -440,7 +420,7 @@ def test_fetch_package_json_returns_none_when_fetch_fails() -> None:
 
 def test_fetch_package_json_returns_none_on_bad_json() -> None:
     """Returns None when the response body is not valid JSON."""
-    with patch("dfetch_hub.catalog.sources.clib._fetch_raw", return_value="not json"):
+    with patch("dfetch_hub.catalog.sources.clib.fetch_raw", return_value="not json"):
         result = _fetch_package_json("owner", "repo")
 
     assert result is None
@@ -449,7 +429,7 @@ def test_fetch_package_json_returns_none_on_bad_json() -> None:
 def test_fetch_package_json_returns_none_for_non_object_json() -> None:
     """Returns None when the JSON root is not an object (e.g. a list)."""
     with patch(
-        "dfetch_hub.catalog.sources.clib._fetch_raw",
+        "dfetch_hub.catalog.sources.clib.fetch_raw",
         return_value=json.dumps([1, 2, 3]),
     ):
         result = _fetch_package_json("owner", "repo")
@@ -464,7 +444,7 @@ def test_fetch_package_json_falls_back_to_master_branch() -> None:
     def _side_effect(url: str) -> str | None:
         return json.dumps(data) if "master" in url else None
 
-    with patch("dfetch_hub.catalog.sources.clib._fetch_raw", side_effect=_side_effect):
+    with patch("dfetch_hub.catalog.sources.clib.fetch_raw", side_effect=_side_effect):
         result = _fetch_package_json("owner", "repo")
 
     assert result == data

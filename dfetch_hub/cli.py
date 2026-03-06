@@ -32,9 +32,7 @@ def main(args: list[str] | None = None) -> None:
         logger.debug("Could not determine package version: %s", exc)
         pkg_version = "unknown"
 
-    root_logger.info(
-        "[bold blue]Dfetch:[white]hub[/white] (%s)[/bold blue]", pkg_version
-    )
+    root_logger.info("[bold blue]Dfetch:[white]hub[/white] (%s)[/bold blue]", pkg_version)
 
     parser = argparse.ArgumentParser(
         prog="dfetch-hub",

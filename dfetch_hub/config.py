@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import tomllib
 from dataclasses import dataclass, field, fields
+from pathlib import Path
 
 
 @dataclass
@@ -82,27 +83,26 @@ def load_config(path: str = "dfetch-hub.toml") -> HubConfig:
     Raises:
         FileNotFoundError: If *path* does not exist.
         tomllib.TOMLDecodeError: If the file is not valid TOML.
+        TypeError: If ``[settings]`` is not a TOML table, or if ``[[source]]``
+            is not an array of TOML tables.
 
     """
-    with open(path, "rb") as fh:
+    with Path(path).open("rb") as fh:
         data = tomllib.load(fh)
 
     raw_settings_obj = data.get("settings", {})
     if not isinstance(raw_settings_obj, dict):
-        raise ValueError("`[settings]` must be a TOML table")
+        raise TypeError("`[settings]` must be a TOML table")
 
     raw_sources_obj = data.get("source", [])
-    if not isinstance(raw_sources_obj, list) or any(
-        not isinstance(raw, dict) for raw in raw_sources_obj
-    ):
-        raise ValueError("`[[source]]` must be an array of TOML tables")
+    if not isinstance(raw_sources_obj, list) or any(not isinstance(raw, dict) for raw in raw_sources_obj):
+        raise TypeError("`[[source]]` must be an array of TOML tables")
 
     raw_settings = {k: v for k, v in raw_settings_obj.items() if k in _SETTINGS_FIELDS}
     settings = Settings(**raw_settings)
 
     sources: list[SourceConfig] = [
-        SourceConfig(**{k: v for k, v in raw.items() if k in _SOURCE_FIELDS})
-        for raw in raw_sources_obj
+        SourceConfig(**{k: v for k, v in raw.items() if k in _SOURCE_FIELDS}) for raw in raw_sources_obj
     ]
 
     return HubConfig(settings=settings, sources=sources)

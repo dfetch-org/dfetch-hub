@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.resources
 import json
 import re
 import shutil
@@ -18,43 +19,38 @@ if TYPE_CHECKING:
 
 logger = get_logger(__name__)
 
-_PACKAGE_DIR = Path(__file__).parent.parent
-_DEFAULT_DATA_DIR = _PACKAGE_DIR / "data"
-_SITE_DIR = _PACKAGE_DIR / "site"
+_PKG = importlib.resources.files("dfetch_hub")
+_DEFAULT_DATA_DIR: Path = Path(str(_PKG / "data"))
+_SITE_DIR: Path = Path(str(_PKG / "site"))
 _DEFAULT_OUTPUT = Path("public")
 
 
 def _minify_json(src: Path, dst: Path) -> None:
     """Read *src*, minify JSON, write to *dst*."""
     dst.parent.mkdir(parents=True, exist_ok=True)
-    with open(src, encoding="utf-8") as fh:
+    with src.open(encoding="utf-8") as fh:
         data = json.load(fh)
-    with open(dst, "w", encoding="utf-8") as fh:
+    with dst.open("w", encoding="utf-8") as fh:
         json.dump(data, fh, separators=(",", ":"), ensure_ascii=False)
 
 
-def _cmd_publish(parsed: argparse.Namespace) -> None:
-    """Build a deployable static site for GitHub Pages / GitLab Pages."""
-    output = Path(parsed.output)
-    _config, data_dir = load_config_with_data_dir(
-        parsed.config, parsed.data_dir, _DEFAULT_DATA_DIR
-    )
+def _validate_output_dir(data_dir: Path, output: Path) -> None:
+    """Validate that *data_dir* is populated and does not overlap *output*.
 
+    Logs an error and calls ``sys.exit(1)`` if any check fails.
+
+    Args:
+        data_dir: Catalog data directory that must contain JSON files.
+        output:   Intended output directory that must not overlap *data_dir*.
+    """
     if not data_dir.is_dir():
-        logger.error(
-            "Catalog data directory '%s' does not exist or is not a directory", data_dir
-        )
+        logger.error("Catalog data directory '%s' does not exist or is not a directory", data_dir)
         sys.exit(1)
     if not any(data_dir.rglob("*.json")):
         logger.error("Catalog data directory '%s' contains no JSON files", data_dir)
         sys.exit(1)
-    out_res = output.resolve()
-    src_res = data_dir.resolve()
-    if (
-        out_res == src_res
-        or out_res.is_relative_to(src_res)
-        or src_res.is_relative_to(out_res)
-    ):
+    out_res, src_res = output.resolve(), data_dir.resolve()
+    if out_res == src_res or out_res.is_relative_to(src_res) or src_res.is_relative_to(out_res):
         logger.error(
             "Output '%s' and data directory '%s' overlap — aborting to prevent data loss",
             output,
@@ -62,37 +58,68 @@ def _cmd_publish(parsed: argparse.Namespace) -> None:
         )
         sys.exit(1)
 
-    if output.exists():
-        logger.print_info_line("publish", f"Removing existing '{output}' ...")
-        shutil.rmtree(output)
-    output.mkdir(parents=True)
 
-    # Copy site assets; rewrite the two fetch() paths in index.html so that
-    # data/ is relative to the output root instead of ../data/ (the dev layout).
-    logger.print_info_line("publish", "Copying site assets ...")
-    for src in _SITE_DIR.rglob("*"):
+def _copy_assets(site_dir: Path, output: Path) -> None:
+    """Copy site assets from *site_dir* to *output*, rewriting data paths in ``index.html``.
+
+    The ``../data/`` prefix in ``index.html`` fetch calls is rewritten to ``data/``
+    so that paths are relative to the output root rather than the dev layout.
+
+    Args:
+        site_dir: Source directory containing site assets.
+        output:   Destination directory for the published site.
+    """
+    for src in site_dir.rglob("*"):
         if not src.is_file():
             continue
-        relative = src.relative_to(_SITE_DIR)
-        dst = output / relative
+        dst = output / src.relative_to(site_dir)
         dst.parent.mkdir(parents=True, exist_ok=True)
         if src.name == "index.html":
             text = src.read_text(encoding="utf-8")
-            text = re.sub(r"(['\"`])\.\.\/data\/", r"\1data/", text)
-            dst.write_text(text, encoding="utf-8")
+            dst.write_text(re.sub(r"(['\"`])\.\.\/data\/", r"\1data/", text), encoding="utf-8")
         else:
             shutil.copy2(src, dst)
 
-    # Copy and minify all JSON from the data directory.
+
+def _minify_catalog(data_dir: Path, output: Path) -> int:
+    """Copy and minify all JSON files from *data_dir* into ``output/data/``.
+
+    Args:
+        data_dir: Source catalog data directory.
+        output:   Destination output directory.
+
+    Returns:
+        The number of JSON files processed.
+    """
     json_files = sorted(data_dir.rglob("*.json"))
     logger.print_info_line("publish", f"Minifying {len(json_files)} JSON file(s) ...")
     for src in json_files:
-        dst = output / "data" / src.relative_to(data_dir)
-        _minify_json(src, dst)
+        _minify_json(src, output / "data" / src.relative_to(data_dir))
+    return len(json_files)
 
+
+def _cmd_publish(parsed: argparse.Namespace) -> None:
+    """Build a deployable static site for GitHub Pages / GitLab Pages."""
+    output = Path(parsed.output)
+    _config, data_dir = load_config_with_data_dir(parsed.config, parsed.data_dir, _DEFAULT_DATA_DIR)
+    _validate_output_dir(data_dir, output)
+
+    if output.exists():
+        if output.is_dir():
+            logger.print_info_line("publish", f"Removing existing '{output}' ...")
+            shutil.rmtree(output)
+        else:
+            logger.error("Output path '%s' exists and is not a directory", output)
+            sys.exit(1)
+    output.mkdir(parents=True, exist_ok=True)
+
+    logger.print_info_line("publish", "Copying site assets ...")
+    _copy_assets(_SITE_DIR, output)
+
+    count = _minify_catalog(data_dir, output)
     logger.print_info_line(
         "publish",
-        f"Done — static site written to '{output}' ({len(json_files)} JSON file(s) minified)",
+        f"Done — static site written to '{output}' ({count} JSON file(s) minified)",
     )
 
 

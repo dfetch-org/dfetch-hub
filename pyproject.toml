@@ -34,6 +34,7 @@ dependencies = [
 development = [
     "bandit[toml]==1.9.4",
     "black==25.1.0",
+    "codespell==2.4.1",
     "djlint==1.36.4",
     "doc8==2.0.0",
     "isort==6.0.0",
@@ -67,6 +68,9 @@ dfetch_hub = [
     "data/**/*.json",
 ]
 
+[tool.black]
+line-length = 120
+
 [tool.isort]
 profile = "black"
 line_length = 120
@@ -76,11 +80,19 @@ max-line-length = "120"
 
 [tool.pylint.design]
 max-attributes = 8
+max-branches = 8
+max-locals = 12
+max-returns = 4
+max-statements = 25
+max-bool-expr = 3
+max-module-lines = 500
 
 [tool.mypy]
 files = "dfetch_hub"
-ignore_missing_imports = true
+ignore_missing_imports = false
+follow_untyped_imports = true
 strict = true
+warn_unreachable = true
 
 [tool.ruff]
 line-length = 120
@@ -89,23 +101,42 @@ target-version = "py311"
 [tool.ruff.lint]
 select = [
     "A",    # flake8-builtins: shadowing built-ins
+    # "ANN",  # require type annotations everywhere
+    "ARG",  # flake8-unused-arguments
     "B",    # flake8-bugbear: likely bugs and design issues
     "C4",   # flake8-comprehensions: unnecessary comprehension forms
+    "DTZ",  # forbid naive datetimes
     "E",    # pycodestyle errors
+    "ERA",  # remove commented-out code
     "F",    # pyflakes: undefined names, unused imports
+    "G",    # flake8-logging-format: correct logging API usage
+    "ICN",  # enforce import conventions
     "N",    # pep8-naming
+    "PERF", # perflint: performance anti-patterns
     "PIE",  # flake8-pie: misc lint improvements
+    # "PL",   # pylint rules via ruff
+    "PTH",  # flake8-use-pathlib: prefer pathlib over os.path / open()
+    "RET",  # flake8-return: return statement hygiene
+    "RSE",  # flake8-raise: raise statement hygiene
     "RUF",  # ruff-specific rules
+    # "S",    # flake8-bandit security checks (if not duplicating bandit)
     "SIM",  # flake8-simplify
+    "T20",  # flake8-print: no print() in production code
     "TCH",  # flake8-type-checking: move imports to TYPE_CHECKING
+    "TRY",  # tryceratops: exception-handling hygiene
     "UP",   # pyupgrade: use modern Python syntax
     "W",    # pycodestyle warnings
 ]
 ignore = [
-    "E501",   # line length: enforced by pylint at 120 chars
-    "UP037",  # remove `from __future__ import annotations`: kept per project convention
-    "SIM108", # ternary operator: readability preference
+    "E501",    # line length: enforced by pylint at 120 chars
+    "UP037",   # remove `from __future__ import annotations`: kept per project convention
+    "SIM108",  # ternary operator: readability preference
+    "TRY003",  # long exception messages in raise: acceptable for clarity
+    "TRY300",  # return-in-try: acceptable pattern
+    "RET505",  # superfluous else-after-return: readability preference
 ]
+[tool.ruff.lint.per-file-ignores]
+"test/*.py" = ["S101", "PL"] # Allow usage of assert statements in test files
 
 [tool.ruff.lint.isort]
 known-first-party = ["dfetch_hub"]
@@ -116,19 +147,29 @@ ignore = "H021,H031"  # H021: inline styles intentional in single-file app; H031
 [tool.doc8]
 max-line-length = 120
 extension = [".md", ".rst"]
+ignore-path = ["*.egg-info/*", "build/*", "dist/*", ".venv/*"]
+show-source = true
+strict = true
 
 [tool.pydocstyle]
 convention = "google"
 
 [tool.bandit]
 targets = ["dfetch_hub"]
+skips = []
+severity = "LOW"
+confidence = "LOW"
 
 [tool.pyright]
 pythonVersion = "3.11"
-typeCheckingMode = "standard"
+typeCheckingMode = "strict"
 venvPath = "."
 venv = ".venv"
-
+include = ["dfetch_hub"]
+reportMissingTypeStubs = "none"
+reportUnknownVariableType = "warning"
+reportUnknownArgumentType = "warning"
+reportUnknownMemberType = "warning"
 [tool.pytest.ini_options]
 testpaths = ["test"]
 addopts = "--cov=dfetch_hub --cov-report=term-missing"
@@ -145,3 +186,6 @@ exclude_lines = [
     "raise NotImplementedError",
 ]
 
+
+[tool.codespell]
+skip = "./dfetch_hub/data/*"

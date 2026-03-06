@@ -9,7 +9,6 @@ from unittest.mock import patch
 import pytest
 
 from dfetch_hub.catalog.sources.conan import (
-    ConanManifest,
     _attr_literal,
     _extract_str_attr,
     _extract_tuple_attr,
@@ -71,9 +70,7 @@ _CONFIG_YML = textwrap.dedent(
 @pytest.fixture(autouse=True)
 def _mock_fetch_readme() -> object:
     """Prevent real network calls to fetch_readme in all conan tests."""
-    with patch(
-        "dfetch_hub.catalog.sources.conan.fetch_readme_for_homepage", return_value=None
-    ):
+    with patch("dfetch_hub.catalog.sources.conan.fetch_readme_for_homepage", return_value=None):
         yield
 
 
@@ -97,10 +94,7 @@ def test_extract_str_attr_simple() -> None:
 
 
 def test_extract_str_attr_homepage() -> None:
-    assert (
-        _extract_str_attr(_CONANFILE_SIMPLE, "homepage")
-        == "https://github.com/abseil/abseil-cpp"
-    )
+    assert _extract_str_attr(_CONANFILE_SIMPLE, "homepage") == "https://github.com/abseil/abseil-cpp"
 
 
 def test_extract_str_attr_license() -> None:
@@ -189,18 +183,14 @@ def test_parse_conan_recipe_entry_name_is_dir_name(recipe_dir: Path) -> None:
 
 
 def test_parse_conan_recipe_no_conanfile_returns_none(tmp_path: Path) -> None:
-    (tmp_path / "config.yml").write_text(
-        'versions:\n  "1.0":\n    folder: all\n', encoding="utf-8"
-    )
+    (tmp_path / "config.yml").write_text('versions:\n  "1.0":\n    folder: all\n', encoding="utf-8")
     # No conanfile.py created
     assert parse_conan_recipe(tmp_path) is None
 
 
 def test_parse_conan_recipe_falls_back_to_any_subfolder(tmp_path: Path) -> None:
     """When config.yml points to a missing folder, fall back to scanning subdirs."""
-    (tmp_path / "config.yml").write_text(
-        'versions:\n  "1.0":\n    folder: 1.x\n', encoding="utf-8"
-    )
+    (tmp_path / "config.yml").write_text('versions:\n  "1.0":\n    folder: 1.x\n', encoding="utf-8")
     other_dir = tmp_path / "other"
     other_dir.mkdir()
     (other_dir / "conanfile.py").write_text(_CONANFILE_SIMPLE, encoding="utf-8")
@@ -214,9 +204,7 @@ def test_parse_conan_recipe_multiline_description(tmp_path: Path) -> None:
     all_dir = tmp_path / "all"
     all_dir.mkdir()
     (all_dir / "conanfile.py").write_text(_CONANFILE_MULTILINE_DESC, encoding="utf-8")
-    (tmp_path / "config.yml").write_text(
-        'versions:\n  "1.3.1":\n    folder: all\n', encoding="utf-8"
-    )
+    (tmp_path / "config.yml").write_text('versions:\n  "1.3.1":\n    folder: all\n', encoding="utf-8")
 
     m = parse_conan_recipe(tmp_path)
     assert m is not None
@@ -299,7 +287,7 @@ def test_attr_literal_returns_none_for_non_string_non_paren_value() -> None:
 
 def test_attr_literal_returns_none_on_literal_eval_failure() -> None:
     """Returns None when ast.literal_eval raises (e.g. unclosed string)."""
-    # No closing quote → end_q == -1 → value_text is unparseable
+    # No closing quote → end_q == -1 → value_text is unparsable
     assert _attr_literal('    name = "unclosed', "name") is None
 
 
@@ -363,9 +351,7 @@ def test_parse_conan_recipe_urls_empty_without_homepage(tmp_path: Path) -> None:
     all_dir = tmp_path / "all"
     all_dir.mkdir()
     (all_dir / "conanfile.py").write_text(minimal, encoding="utf-8")
-    (tmp_path / "config.yml").write_text(
-        'versions:\n  "1.0":\n    folder: all\n', encoding="utf-8"
-    )
+    (tmp_path / "config.yml").write_text('versions:\n  "1.0":\n    folder: all\n', encoding="utf-8")
 
     m = parse_conan_recipe(tmp_path)
     assert m is not None

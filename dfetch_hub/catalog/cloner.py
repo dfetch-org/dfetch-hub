@@ -63,7 +63,6 @@ def create_manifest(source: SourceConfig, dest_dir: Path) -> Path:
         src=source.path,
         branch=source.branch or "",
         revision="",
-        repo_path="",
         vcs="git",
     )
     manifest_dict = ManifestDict(
@@ -108,12 +107,8 @@ def clone_source(source: SourceConfig, dest_dir: Path) -> Path:
 
     cloned = dest_dir / source.name
     if not cloned.resolve().is_relative_to(dest_dir.resolve()):
-        raise RuntimeError(
-            f"Source name {source.name!r} resolves outside dest_dir {dest_dir}"
-        )
+        raise RuntimeError(f"Source name {source.name!r} resolves outside dest_dir {dest_dir}")
     if not cloned.is_dir():
-        raise RuntimeError(
-            f"Expected dfetch output directory {cloned} not found after update"
-        )
+        raise RuntimeError(f"Expected dfetch output directory {cloned} not found after update")
     logger.debug("Clone complete: %s", cloned)
     return cloned
