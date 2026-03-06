@@ -211,8 +211,8 @@ def test_build_package_basic_fields() -> None:
     assert "buffer" in pkg.keywords
 
 
-def test_build_package_tagline_preferred_over_json_description() -> None:
-    """The wiki tagline takes priority over the package.json description."""
+def test_json_description_preferred_over_build_package_tagline() -> None:
+    """The package.json description takes priority over the wiki tagline."""
     with (
         patch(
             "dfetch_hub.catalog.sources.clib._fetch_package_json",
@@ -222,7 +222,7 @@ def test_build_package_tagline_preferred_over_json_description() -> None:
     ):
         pkg = _build_package("github.com", "clibs", "buffer", "my custom tagline", "")
 
-    assert pkg.description == "my custom tagline"
+    assert pkg.description == "Higher level C-string utilities"
 
 
 def test_build_package_falls_back_to_json_description_when_no_tagline() -> None:
