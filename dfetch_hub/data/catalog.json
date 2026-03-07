@@ -785,6 +785,29 @@
       }
     ]
   },
+  "github/faburaya/3fd": {
+    "id": "github/faburaya/3fd",
+    "name": "3fd",
+    "description": "C++ Framework For Fast Development",
+    "url": "https://github.com/faburaya/3fd",
+    "source_type": "github",
+    "default_branch": "main",
+    "license": null,
+    "topics": [],
+    "stars": 0,
+    "last_updated": "2026-03-07T21:34:13.599616+00:00",
+    "source_labels": [
+      "vcpkg"
+    ],
+    "tags": [
+      {
+        "name": "2.6.3",
+        "is_tag": true,
+        "commit_sha": null,
+        "date": null
+      }
+    ]
+  },
   "github/bakeruk/modern-typescript-monorepo-example/typescript-example-1": {
     "id": "github/bakeruk/modern-typescript-monorepo-example/typescript-example-1",
     "name": "typescript-example-1",
