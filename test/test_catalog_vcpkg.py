@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 
 import pytest
 
+from dfetch_hub.catalog.sources.vcpkg import _github_url_from_portfile  # noqa: PLC2701
 from dfetch_hub.catalog.sources.vcpkg import (
     VcpkgManifest,
     _extract_dependencies,
@@ -265,7 +266,7 @@ def test_parse_vcpkg_json_urls_contains_homepage(tmp_path: Path) -> None:
 
 
 def test_parse_vcpkg_json_urls_empty_without_homepage(tmp_path: Path) -> None:
-    """urls dict is empty when vcpkg.json has no homepage field."""
+    """urls dict is empty when vcpkg.json has no homepage field and no portfile."""
     pkg = tmp_path / "pkg"
     pkg.mkdir()
     (pkg / "vcpkg.json").write_text(json.dumps({"name": "pkg"}), encoding="utf-8")
@@ -274,3 +275,109 @@ def test_parse_vcpkg_json_urls_empty_without_homepage(tmp_path: Path) -> None:
 
     assert result is not None
     assert result.urls == {}
+
+
+# ---------------------------------------------------------------------------
+# _github_url_from_portfile
+# ---------------------------------------------------------------------------
+
+_PORTFILE_WITH_GITHUB = """\
+vcpkg_from_github(
+    OUT_SOURCE_PATH SOURCE_PATH
+    REPO faburaya/3fd
+    REF 3a0fe606268721d1560b88dcca8647c67c0b275c # v2.6.3 (Stable)
+    SHA512 70630291b4055de2044ad76ef21e99d6ab6fd3468de
+    HEAD_REF master
+)
+"""
+
+_PORTFILE_WITHOUT_GITHUB = """\
+vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
+vcpkg_from_gitlab(
+    GITLAB_URL https://gitlab.com
+    OUT_SOURCE_PATH SOURCE_PATH
+    REPO myorg/mylib
+    REF v1.0
+    SHA512 abc123
+)
+"""
+
+
+def test_github_url_from_portfile_returns_url(tmp_path: Path) -> None:
+    """Extracts a https://github.com/owner/repo URL from vcpkg_from_github(REPO ...)."""
+    pkg = tmp_path / "3fd"
+    pkg.mkdir()
+    (pkg / "portfile.cmake").write_text(_PORTFILE_WITH_GITHUB, encoding="utf-8")
+
+    assert _github_url_from_portfile(pkg) == "https://github.com/faburaya/3fd"
+
+
+def test_github_url_from_portfile_returns_none_when_no_portfile(tmp_path: Path) -> None:
+    """Returns None when neither portfile.cmake nor port.cmake exists."""
+    pkg = tmp_path / "pkg"
+    pkg.mkdir()
+
+    assert _github_url_from_portfile(pkg) is None
+
+
+def test_github_url_from_portfile_returns_none_when_no_vcpkg_from_github(tmp_path: Path) -> None:
+    """Returns None when portfile.cmake exists but has no vcpkg_from_github call."""
+    pkg = tmp_path / "pkg"
+    pkg.mkdir()
+    (pkg / "portfile.cmake").write_text(_PORTFILE_WITHOUT_GITHUB, encoding="utf-8")
+
+    assert _github_url_from_portfile(pkg) is None
+
+
+def test_github_url_from_portfile_supports_port_cmake_name(tmp_path: Path) -> None:
+    """Falls back to port.cmake when portfile.cmake is absent."""
+    pkg = tmp_path / "3fd"
+    pkg.mkdir()
+    (pkg / "port.cmake").write_text(_PORTFILE_WITH_GITHUB, encoding="utf-8")
+
+    assert _github_url_from_portfile(pkg) == "https://github.com/faburaya/3fd"
+
+
+# ---------------------------------------------------------------------------
+# parse_vcpkg_json — portfile fallback
+# ---------------------------------------------------------------------------
+
+
+def test_parse_vcpkg_json_uses_portfile_when_no_homepage(tmp_path: Path) -> None:
+    """homepage is extracted from portfile.cmake when vcpkg.json has none."""
+    pkg = tmp_path / "3fd"
+    pkg.mkdir()
+    (pkg / "vcpkg.json").write_text(json.dumps({"name": "3fd", "description": "A lib"}), encoding="utf-8")
+    (pkg / "portfile.cmake").write_text(_PORTFILE_WITH_GITHUB, encoding="utf-8")
+
+    result = parse_vcpkg_json(pkg)
+
+    assert result is not None
+    assert result.homepage == "https://github.com/faburaya/3fd"
+    assert result.urls.get("Homepage") == "https://github.com/faburaya/3fd"
+
+
+def test_parse_vcpkg_json_prefers_vcpkg_json_homepage_over_portfile(tmp_path: Path) -> None:
+    """vcpkg.json homepage takes priority; portfile.cmake is not consulted."""
+    pkg = tmp_path / "abseil"
+    pkg.mkdir()
+    (pkg / "vcpkg.json").write_text(json.dumps(_VCPKG_JSON), encoding="utf-8")
+    (pkg / "portfile.cmake").write_text(_PORTFILE_WITH_GITHUB, encoding="utf-8")
+
+    result = parse_vcpkg_json(pkg)
+
+    assert result is not None
+    assert result.homepage == "https://github.com/abseil/abseil-cpp"
+
+
+def test_parse_vcpkg_json_homepage_none_when_portfile_has_no_github(tmp_path: Path) -> None:
+    """homepage stays None when portfile.cmake has no vcpkg_from_github call."""
+    pkg = tmp_path / "pkg"
+    pkg.mkdir()
+    (pkg / "vcpkg.json").write_text(json.dumps({"name": "pkg", "description": "a lib"}), encoding="utf-8")
+    (pkg / "portfile.cmake").write_text(_PORTFILE_WITHOUT_GITHUB, encoding="utf-8")
+
+    result = parse_vcpkg_json(pkg)
+
+    assert result is not None
+    assert result.homepage is None
