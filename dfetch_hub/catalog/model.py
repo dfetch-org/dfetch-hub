@@ -76,6 +76,7 @@ class FetchMetadata:
         return cls(fetched_at=data.get("fetched_at", ""))
 
 
+@dataclass
 class Tag:
     """Represents a Git tag or branch reference from a remote repository.
 
@@ -83,25 +84,10 @@ class Tag:
     of development. Both are fetched via ``git ls-remote`` when updating the catalog.
     """
 
-    def __init__(
-        self,
-        name: str,
-        is_tag: bool = True,
-        commit_sha: str | None = None,
-        date: str | None = None,
-    ) -> None:
-        """Initialize a Tag.
-
-        Args:
-            name: The tag or branch name.
-            is_tag: True for tags, False for branches. Defaults to True.
-            commit_sha: Full 40-character SHA of the commit. Defaults to None.
-            date: ISO-formatted date string. Defaults to None.
-        """
-        self.name = name
-        self.is_tag = is_tag
-        self.commit_sha = commit_sha
-        self.date = date
+    name: str
+    is_tag: bool = True
+    commit_sha: str | None = None
+    date: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Return a dict representation of this Tag."""
@@ -123,6 +109,7 @@ class Tag:
         )
 
 
+@dataclass
 class CatalogSource:
     """Represents a package source within a project's detail JSON.
 
@@ -130,25 +117,10 @@ class CatalogSource:
     This tracks which sources include the library and where their registry entry lives.
     """
 
-    def __init__(
-        self,
-        source_name: str,
-        label: str,
-        index_path: str,
-        registry_version: str | None = None,
-    ) -> None:
-        """Initialize a CatalogSource.
-
-        Args:
-            source_name: The name of the package source.
-            label: A human-readable label for the source.
-            index_path: Path to the package definition within the registry.
-            registry_version: The version in this registry. Defaults to None.
-        """
-        self.source_name = source_name
-        self.label = label
-        self.index_path = index_path
-        self.registry_version = registry_version
+    source_name: str
+    label: str
+    index_path: str
+    registry_version: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Return a dict representation of this CatalogSource."""

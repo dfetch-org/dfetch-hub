@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from pathlib import Path
+    pass
 
 from dfetch_hub.catalog.entry import CatalogEntry
 from dfetch_hub.catalog.model import Tag

@@ -167,3 +167,36 @@ class BaseManifest:  # pylint: disable=too-many-instance-attributes
     readme_content: str | None = None
     urls: dict[str, str] = field(default_factory=dict)
     subpath: str | None = None
+
+    @property
+    def sanitized_subpath(self) -> str | None:
+        """Return the sanitized subpath to prevent path traversal.
+
+        Returns:
+            The sanitized subpath, or None if invalid.
+        """
+        return self.sanitize_subpath(self.subpath)
+
+    @staticmethod
+    def sanitize_subpath(subpath: str | None) -> str | None:
+        """Validate and sanitize a subpath to prevent path traversal.
+
+        Args:
+            subpath: The subpath to validate.
+
+        Returns:
+            The sanitized subpath, or None if invalid.
+        """
+        if not subpath:
+            return None
+
+        subpath = subpath.strip("/")
+
+        if not subpath or subpath.startswith("."):
+            return None
+
+        parts = subpath.replace("\\", "/").split("/")
+        if any(part == ".." for part in parts):
+            return None
+
+        return subpath

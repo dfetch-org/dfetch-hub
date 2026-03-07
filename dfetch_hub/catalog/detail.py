@@ -10,11 +10,10 @@ from dfetch.log import get_logger
 from dfetch.vcs.git import GitRemote
 
 from dfetch_hub.catalog.model import CatalogSource, FetchMetadata, GitRefs, PackageContent, Tag, VCSLocation
+from dfetch_hub.catalog.sources import BaseManifest
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-    from dfetch_hub.catalog.sources import BaseManifest
 
 logger = get_logger(__name__)
 
@@ -210,6 +209,8 @@ class CatalogDetail:  # pylint: disable=too-many-instance-attributes
         self, data_dir: Path, vcs_host: str, org: str, repo: str, subpath: str | None
     ) -> None:
         """Write this detail to the appropriate JSON file."""
+        subpath = BaseManifest.sanitize_subpath(subpath)
+
         if subpath:
             detail_path = data_dir / vcs_host / org / repo / f"{subpath}.json"
         else:

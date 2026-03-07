@@ -4,12 +4,24 @@ from __future__ import annotations
 
 import json
 from typing import TYPE_CHECKING
+from unittest.mock import patch
+
+import pytest
 
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from dfetch_hub.catalog.sources import BaseManifest
+
 from dfetch_hub.catalog.entry import CatalogEntry
 from dfetch_hub.catalog.writer import Catalog, CatalogWriter
+
+
+@pytest.fixture(autouse=True)
+def mock_fetch_tags():
+    """Mock fetch_upstream_tags to prevent network access in all tests."""
+    with patch("dfetch_hub.catalog.detail.CatalogDetail.fetch_upstream_tags", return_value=[]):
+        yield
 
 
 def _manifest(
@@ -20,7 +32,7 @@ def _manifest(
     license_: str | None = "Apache-2.0",
     version: str | None = "20240116.2",
     subpath: str | None = None,
-):
+) -> "BaseManifest":
     from dfetch_hub.catalog.sources import BaseManifest
 
     return BaseManifest(
@@ -34,7 +46,7 @@ def _manifest(
     )
 
 
-def _monorepo_manifest(name: str):
+def _monorepo_manifest(name: str) -> "BaseManifest":
     """Build a manifest for a sub-component of a monorepo."""
     return _manifest(
         entry_name=name,
@@ -269,3 +281,24 @@ def test_write_catalog_monorepo_catalog_id_in_entry(tmp_path: Path) -> None:
     writer.write([foo])
     catalog = json.loads((tmp_path / "catalog.json").read_text(encoding="utf-8"))
     assert catalog["github/myorg/mymonorepo/foo"]["id"] == "github/myorg/mymonorepo/foo"
+
+
+def test_write_catalog_nested_subpath(tmp_path: Path) -> None:
+    """Nested subpath like 'libs/foo' is preserved in catalog ID and detail file."""
+    m = _manifest(
+        entry_name="libs/foo",
+        package_name="foo",
+        homepage="https://github.com/myorg/mymonorepo",
+        subpath="libs/foo",
+    )
+    writer = CatalogWriter(tmp_path, "readme", "readme", "packages")
+    writer.write([m])
+
+    catalog = json.loads((tmp_path / "catalog.json").read_text(encoding="utf-8"))
+    assert "github/myorg/mymonorepo/libs/foo" in catalog
+    assert catalog["github/myorg/mymonorepo/libs/foo"]["id"] == "github/myorg/mymonorepo/libs/foo"
+
+    detail_path = tmp_path / "github" / "myorg" / "mymonorepo" / "libs" / "foo.json"
+    assert detail_path.exists()
+    detail = json.loads(detail_path.read_text(encoding="utf-8"))
+    assert detail["subfolder_path"] == "libs/foo"

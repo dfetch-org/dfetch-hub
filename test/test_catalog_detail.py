@@ -11,7 +11,7 @@ from dfetch_hub.catalog.detail import CatalogDetail
 from dfetch_hub.catalog.model import CatalogSource
 
 if TYPE_CHECKING:
-    from pathlib import Path
+    pass
 
 
 def _manifest(

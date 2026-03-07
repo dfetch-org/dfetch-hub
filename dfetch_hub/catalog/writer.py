@@ -57,19 +57,40 @@ class Catalog:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> Catalog:
-        """Create a Catalog from a dict."""
+        """Create a Catalog from a dict.
+
+        Args:
+            data: Dictionary representation of the catalog.
+
+        Returns:
+            A new Catalog instance.
+        """
         return cls(entries={k: CatalogEntry.from_dict(v) for k, v in data.items()})
 
     @classmethod
     def load(cls, path: Path) -> Catalog:
-        """Load a Catalog from a JSON file, or return empty if it doesn't exist."""
+        """Load a Catalog from a JSON file, or return empty if it doesn't exist.
+
+        Args:
+            path: Path to the catalog.json file.
+
+        Returns:
+            A Catalog instance, or an empty catalog if the file doesn't exist.
+        """
         if not path.exists():
             return cls()
         with path.open(encoding="utf-8") as fh:
             return cls.from_dict(json.load(fh))
 
     def dump(self, path: Path) -> None:
-        """Save this Catalog to a JSON file."""
+        """Save this Catalog to a JSON file.
+
+        Args:
+            path: Path to write the catalog.json file.
+
+        Raises:
+            OSError: If the file cannot be written.
+        """
         path.parent.mkdir(parents=True, exist_ok=True)
         with path.open("w", encoding="utf-8") as fh:
             json.dump(self.to_dict(), fh, indent=2, ensure_ascii=False)
@@ -85,8 +106,15 @@ class Catalog:
     ) -> tuple[CatalogEntry, bool]:
         """Get or create a catalog entry for this manifest.
 
+        Args:
+            manifest: The package manifest containing metadata.
+            vcs_host: The VCS host (e.g., "github").
+            org: The organization/owner.
+            repo: The repository name.
+            label: The source label.
+
         Returns:
-            (entry, is_new) tuple where is_new is True if entry was newly created.
+            A tuple of (entry, is_new) where is_new is True if entry was newly created.
         """
         cat_id = CatalogEntry.catalog_id(vcs_host, org, repo, manifest.subpath)
         existing = self.entries.get(cat_id)
@@ -97,6 +125,26 @@ class Catalog:
         entry = CatalogEntry.from_manifest(manifest, vcs_host, org, repo, label)
         self.entries[cat_id] = entry
         return entry, True
+
+    def remove_entry(self, vcs_host: str, org: str, repo: str) -> bool:
+        """Remove a catalog entry for a repo-root (no subpath).
+
+        This is used when migrating from a repo-root entry to a subpath entry
+        for monorepo packages.
+
+        Args:
+            vcs_host: The VCS host (e.g., "github").
+            org: The organization/owner.
+            repo: The repository name.
+
+        Returns:
+            True if an entry was removed, False otherwise.
+        """
+        root_id = CatalogEntry.catalog_id(vcs_host, org, repo, None)
+        if root_id in self.entries:
+            del self.entries[root_id]
+            return True
+        return False
 
 
 # ---------------------------------------------------------------------------
@@ -160,6 +208,10 @@ class CatalogWriter:
         vcs_host, org, repo = parsed
         vcs_host = CatalogEntry.vcs_host_label(vcs_host)
 
+        sanitized = manifest.sanitized_subpath
+        if sanitized:
+            catalog.remove_entry(vcs_host, org, repo)
+
         _, is_new = catalog.get_or_create_entry(manifest, vcs_host, org, repo, self.label)
 
         self._write_detail(vcs_host, org, repo, manifest)
@@ -174,8 +226,10 @@ class CatalogWriter:
         manifest: BaseManifest,
     ) -> None:
         """Write the detail JSON for a manifest."""
-        if manifest.subpath:
-            detail_path = self.data_dir / vcs_host / org / repo / f"{manifest.subpath}.json"
+        subpath = manifest.sanitized_subpath
+
+        if subpath:
+            detail_path = self.data_dir / vcs_host / org / repo / f"{subpath}.json"
         else:
             detail_path = self.data_dir / vcs_host / org / f"{repo}.json"
 
@@ -186,4 +240,4 @@ class CatalogWriter:
             detail = CatalogDetail.from_manifest(manifest, org, repo, self.source_name, self.label, self.registry_path)
 
         detail.update_from_manifest(manifest, repo, self.source_name, self.label, self.registry_path)
-        detail.dump(self.data_dir, vcs_host, org, repo, manifest.subpath)
+        detail.dump(self.data_dir, vcs_host, org, repo, subpath)

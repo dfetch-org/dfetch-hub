@@ -111,6 +111,7 @@ def _parse_entry_dirs(
         else:
             if m.homepage is None and fallback_homepage is not None:
                 m.homepage = fallback_homepage
+            if fallback_homepage is not None:
                 m.subpath = entry_dir.name
             manifests.append(m)
     return manifests, skipped
