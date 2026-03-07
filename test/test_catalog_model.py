@@ -1,8 +1,32 @@
-"""Tests for dfetch_hub.catalog.model: Tag and CatalogSource."""
+"""Tests for dfetch_hub.catalog.model: Tag, CatalogSource, and VCSLocation."""
 
 from __future__ import annotations
 
-from dfetch_hub.catalog.model import CatalogSource, Tag
+from dfetch_hub.catalog.model import CatalogSource, Tag, VCSLocation
+
+
+def test_vcs_location_catalog_id() -> None:
+    """VCSLocation produces correct catalog ID."""
+    loc = VCSLocation("github", "abseil", "abseil-cpp")
+    assert loc.catalog_id == "github/abseil/abseil-cpp"
+
+
+def test_vcs_location_catalog_id_with_subpath() -> None:
+    """VCSLocation includes subpath in catalog ID."""
+    loc = VCSLocation("github", "org", "repo", "mylib")
+    assert loc.catalog_id == "github/org/repo/mylib"
+
+
+def test_vcs_location_catalog_id_lowercases() -> None:
+    """VCSLocation lowercases all components."""
+    loc = VCSLocation("GITHUB", "Abseil", "Abseil-CPP")
+    assert loc.catalog_id == "github/abseil/abseil-cpp"
+
+
+def test_vcs_location_catalog_id_subpath_lowercases() -> None:
+    """VCSLocation lowercases subpath."""
+    loc = VCSLocation("github", "org", "repo", "MyLib")
+    assert loc.catalog_id == "github/org/repo/mylib"
 
 
 def test_tag_to_dict_roundtrip() -> None:

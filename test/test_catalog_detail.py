@@ -69,9 +69,10 @@ def test_catalog_detail_from_dict_roundtrip() -> None:
 
 def test_catalog_detail_add_source_updates_existing() -> None:
     """add_source updates existing source."""
+    from dfetch_hub.catalog.model import VCSLocation
+
     detail = CatalogDetail(
-        org="org",
-        repo="repo",
+        location=VCSLocation(host="", org="org", repo="repo"),
         catalog_sources=[CatalogSource(source_name="src1", label="label1", index_path="path1")],
     )
     detail.add_source(_manifest(version="2.0"), "src1", "label1", "newpath")
@@ -81,9 +82,10 @@ def test_catalog_detail_add_source_updates_existing() -> None:
 
 def test_catalog_detail_add_source_appends_new() -> None:
     """add_source appends new source."""
+    from dfetch_hub.catalog.model import VCSLocation
+
     detail = CatalogDetail(
-        org="org",
-        repo="repo",
+        location=VCSLocation(host="", org="org", repo="repo"),
         catalog_sources=[CatalogSource(source_name="src1", label="label1", index_path="path1")],
     )
     detail.add_source(_manifest(), "src2", "label2", "path2")
