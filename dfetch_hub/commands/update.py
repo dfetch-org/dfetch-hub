@@ -16,7 +16,7 @@ from dfetch_hub.catalog.sources.clib import CLibPackage, parse_packages_md
 from dfetch_hub.catalog.sources.conan import parse_conan_recipe
 from dfetch_hub.catalog.sources.readme import parse_readme_dir
 from dfetch_hub.catalog.sources.vcpkg import parse_vcpkg_json
-from dfetch_hub.catalog.writer import write_catalog
+from dfetch_hub.catalog.writer import CatalogWriter
 from dfetch_hub.commands import load_config_with_data_dir
 
 if TYPE_CHECKING:
@@ -156,13 +156,13 @@ def _process_subfolders_source(
                 f"Skipped {skipped} package(s) with no manifest",
             )
 
-        _added, _updated = write_catalog(
-            manifests,
+        writer = CatalogWriter(
             data_dir,
-            source_name=source.name,
-            label=source.label or source.name,
-            registry_path=source.path or source.name,
+            source.name,
+            source.label or source.name,
+            source.path or source.name,
         )
+        _added, _updated = writer.write(manifests)
         logger.print_info_line(
             source.name,
             f"Done — {_added} added, {_updated} updated ({len(manifests) - _added - _updated} skipped/no-vcs-url)",
@@ -202,13 +202,13 @@ def _process_git_wiki_source(
         packages: list[CLibPackage] = parse_packages_md(index_file, limit=limit)
 
         logger.print_info_line(source.name, f"Fetched metadata for {len(packages)} package(s)")
-        _added, _updated = write_catalog(
-            packages,  # type: ignore[arg-type]
+        writer = CatalogWriter(
             data_dir,
-            source_name=source.name,
-            label=source.label or source.name,
-            registry_path=source.path or source.name,
+            source.name,
+            source.label or source.name,
+            source.path or source.name,
         )
+        _added, _updated = writer.write(packages)  # type: ignore[arg-type]
         logger.print_info_line(
             source.name,
             f"Done — {_added} added, {_updated} updated ({len(packages) - _added - _updated} skipped/no-vcs-url)",
