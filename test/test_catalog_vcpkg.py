@@ -135,6 +135,7 @@ def test_parse_vcpkg_json_basic_fields(tmp_path: Path) -> None:
     assert result.homepage == "https://github.com/abseil/abseil-cpp"
     assert result.license == "Apache-2.0"
     assert result.entry_name == "abseil"
+    assert result.in_project_repo is False
 
 
 def test_parse_vcpkg_json_dependencies(tmp_path: Path) -> None:

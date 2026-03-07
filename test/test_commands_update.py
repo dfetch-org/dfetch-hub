@@ -23,6 +23,7 @@ _FALLBACK_URL = "https://github.com/org/monorepo"
 def _make_manifest(
     subpath: str | None = None,
     homepage: str | None = _FALLBACK_URL,
+    in_project_repo: bool = False,
 ) -> BaseManifest:
     """Return a minimal BaseManifest for use in parse_fn stubs."""
     return BaseManifest(
@@ -33,6 +34,7 @@ def _make_manifest(
         license=None,
         version=None,
         subpath=subpath,
+        in_project_repo=in_project_repo,
     )
 
 
@@ -41,32 +43,55 @@ def _make_manifest(
 # ---------------------------------------------------------------------------
 
 
-def test_parse_entry_dirs_assigns_dir_name_as_subpath_when_none(tmp_path: Path) -> None:
-    """entry_dir.name is used as subpath when manifest.subpath is None and fallback_homepage is set."""
+def test_parse_entry_dirs_assigns_dir_name_as_subpath_when_in_project_repo(tmp_path: Path) -> None:
+    """entry_dir.name is used as subpath when the parser signals in_project_repo=True."""
     pkg_dir = tmp_path / "zlib"
     pkg_dir.mkdir()
 
-    def parse_fn(p: Path) -> BaseManifest | None:
-        return _make_manifest(subpath=None)
+    def parse_fn(_p: Path) -> BaseManifest | None:
+        return _make_manifest(subpath=None, in_project_repo=True)
 
     manifests, skipped = _parse_entry_dirs([pkg_dir], parse_fn, _FALLBACK_URL)
 
     assert skipped == 0
     assert len(manifests) == 1
+    assert manifests[0].in_project_repo is True
     assert manifests[0].subpath == "zlib"
 
 
 def test_parse_entry_dirs_preserves_parser_provided_subpath(tmp_path: Path) -> None:
-    """Parser-provided subpath is not overwritten when fallback_homepage is set."""
+    """Parser-provided subpath is not overwritten even when in_project_repo=True."""
     pkg_dir = tmp_path / "zlib"
     pkg_dir.mkdir()
 
-    def parse_fn(p: Path) -> BaseManifest | None:
-        return _make_manifest(subpath="deep/zlib")
+    def parse_fn(_p: Path) -> BaseManifest | None:
+        return _make_manifest(subpath="deep/zlib", in_project_repo=True)
 
     manifests, _ = _parse_entry_dirs([pkg_dir], parse_fn, _FALLBACK_URL)
 
+    assert manifests[0].in_project_repo is True
     assert manifests[0].subpath == "deep/zlib"
+
+
+def test_parse_entry_dirs_does_not_assign_subpath_when_not_in_project_repo(tmp_path: Path) -> None:
+    """Subpath is not set when the parser signals in_project_repo=False (registry entry).
+
+    A registry entry (e.g. a vcpkg port or a conan recipe) whose manifest does not
+    live in the project's own repository must not receive a subfolder_path derived
+    from the containing directory name.
+    """
+    pkg_dir = tmp_path / "7bitdi"
+    pkg_dir.mkdir()
+    own_homepage = "https://github.com/7bitcoder/7bitDI"
+
+    def parse_fn(_p: Path) -> BaseManifest | None:
+        return _make_manifest(subpath=None, homepage=own_homepage, in_project_repo=False)
+
+    manifests, _ = _parse_entry_dirs([pkg_dir], parse_fn, _FALLBACK_URL)
+
+    assert manifests[0].homepage == own_homepage
+    assert manifests[0].in_project_repo is False
+    assert manifests[0].subpath is None
 
 
 def test_parse_entry_dirs_does_not_assign_subpath_without_fallback(tmp_path: Path) -> None:
@@ -74,11 +99,12 @@ def test_parse_entry_dirs_does_not_assign_subpath_without_fallback(tmp_path: Pat
     pkg_dir = tmp_path / "zlib"
     pkg_dir.mkdir()
 
-    def parse_fn(p: Path) -> BaseManifest | None:
-        return _make_manifest(subpath=None, homepage="https://github.com/madler/zlib")
+    def parse_fn(_p: Path) -> BaseManifest | None:
+        return _make_manifest(subpath=None, homepage="https://github.com/madler/zlib", in_project_repo=False)
 
     manifests, _ = _parse_entry_dirs([pkg_dir], parse_fn, None)
 
+    assert manifests[0].in_project_repo is False
     assert manifests[0].subpath is None
 
 
@@ -92,12 +118,13 @@ def test_parse_entry_dirs_fills_homepage_from_fallback_when_none(tmp_path: Path)
     pkg_dir = tmp_path / "zlib"
     pkg_dir.mkdir()
 
-    def parse_fn(p: Path) -> BaseManifest | None:
-        return _make_manifest(homepage=None)
+    def parse_fn(_p: Path) -> BaseManifest | None:
+        return _make_manifest(homepage=None, in_project_repo=True)
 
     manifests, _ = _parse_entry_dirs([pkg_dir], parse_fn, _FALLBACK_URL)
 
     assert manifests[0].homepage == _FALLBACK_URL
+    assert manifests[0].in_project_repo is True
 
 
 def test_parse_entry_dirs_does_not_overwrite_existing_homepage(tmp_path: Path) -> None:
@@ -106,12 +133,13 @@ def test_parse_entry_dirs_does_not_overwrite_existing_homepage(tmp_path: Path) -
     pkg_dir.mkdir()
     upstream = "https://github.com/madler/zlib"
 
-    def parse_fn(p: Path) -> BaseManifest | None:
-        return _make_manifest(homepage=upstream)
+    def parse_fn(_p: Path) -> BaseManifest | None:
+        return _make_manifest(homepage=upstream, in_project_repo=False)
 
     manifests, _ = _parse_entry_dirs([pkg_dir], parse_fn, _FALLBACK_URL)
 
     assert manifests[0].homepage == upstream
+    assert manifests[0].in_project_repo is False
 
 
 # ---------------------------------------------------------------------------

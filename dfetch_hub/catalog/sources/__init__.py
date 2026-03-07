@@ -138,24 +138,32 @@ class BaseManifest:  # pylint: disable=too-many-instance-attributes
     """Shared base fields for all catalog manifest dataclasses.
 
     Attributes:
-        entry_name:     Unique identifier within the source registry.
-        package_name:   Human-readable package name (may differ from entry_name).
-        description:    Short description of the package.
-        homepage:       Upstream project URL, or ``None`` if unknown.
-        license:        SPDX license expression, or ``None`` if unspecified.
-        version:        Latest version string, or ``None`` if unavailable.
-        readme_content: Raw README text fetched from the upstream repo, or ``None``.
-        urls:           Named URLs for the package (e.g. ``{"Homepage": "...",
-                        "Source": "..."``).  Modelled on ``[project.urls]`` in
-                        ``pyproject.toml``.  Parsers populate this with every URL
-                        they can discover; the catalog detail JSON exposes the full
-                        dict so the frontend can render all links.
-        subpath:        Subdirectory path within the source repository for this
-                        component (e.g. ``"mylib"`` for a monorepo package at
-                        ``repo/mylib``).  ``None`` when the manifest represents
-                        the repository root.  Used to disambiguate catalog IDs and
-                        detail-file paths for monorepos that contain multiple
-                        components sharing the same repository URL.
+        entry_name:          Unique identifier within the source registry.
+        package_name:        Human-readable package name (may differ from entry_name).
+        description:         Short description of the package.
+        homepage:            Upstream project URL, or ``None`` if unknown.
+        license:             SPDX license expression, or ``None`` if unspecified.
+        version:             Latest version string, or ``None`` if unavailable.
+        readme_content:      Raw README text fetched from the upstream repo, or ``None``.
+        urls:                Named URLs for the package (e.g. ``{"Homepage": "...",
+                             "Source": "..."``).  Modelled on ``[project.urls]`` in
+                             ``pyproject.toml``.  Parsers populate this with every URL
+                             they can discover; the catalog detail JSON exposes the full
+                             dict so the frontend can render all links.
+        subpath:             Subdirectory path within the source repository for this
+                             component (e.g. ``"mylib"`` for a monorepo package at
+                             ``repo/mylib``).  ``None`` when the manifest represents
+                             the repository root.  Used to disambiguate catalog IDs and
+                             detail-file paths for monorepos that contain multiple
+                             components sharing the same repository URL.
+        in_project_repo:     ``True`` when this manifest file resides within the same
+                             repository as the project it describes (e.g. a README that
+                             is part of the monorepo component it documents).  ``False``
+                             (default) when the manifest is a registry entry that points
+                             to an external project living in a separate repository (e.g.
+                             a ``vcpkg.json`` or ``conanfile.py`` in a central registry).
+                             Only manifests with ``in_project_repo=True`` should have
+                             their ``subpath`` derived from the containing directory name.
     """
 
     entry_name: str
@@ -167,6 +175,7 @@ class BaseManifest:  # pylint: disable=too-many-instance-attributes
     readme_content: str | None = None
     urls: dict[str, str] = field(default_factory=dict)
     subpath: str | None = None
+    in_project_repo: bool = False
 
     @property
     def sanitized_subpath(self) -> str | None:

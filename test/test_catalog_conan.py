@@ -168,6 +168,7 @@ def test_parse_conan_recipe_basic(recipe_dir: Path) -> None:
     assert m.license == "Apache-2.0"
     assert "algorithm" in m.topics
     assert "google" in m.topics
+    assert m.in_project_repo is False
 
 
 def test_parse_conan_recipe_latest_version(recipe_dir: Path) -> None:

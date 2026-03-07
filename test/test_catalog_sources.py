@@ -31,6 +31,19 @@ def test_base_manifest_urls_defaults_to_empty_dict() -> None:
     assert m.urls == {}
 
 
+def test_base_manifest_in_project_repo_defaults_to_false() -> None:
+    """in_project_repo defaults to False — manifests are external registry entries by default."""
+    m = BaseManifest(
+        entry_name="pkg",
+        package_name="pkg",
+        description="desc",
+        homepage=None,
+        license=None,
+        version=None,
+    )
+    assert m.in_project_repo is False
+
+
 def test_base_manifest_urls_accepts_populated_dict() -> None:
     """urls field stores the supplied mapping unchanged."""
     m = BaseManifest(

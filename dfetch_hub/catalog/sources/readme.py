@@ -97,6 +97,7 @@ def parse_readme_dir(entry_dir: Path) -> BaseManifest | None:
                 license=None,
                 version=None,
                 readme_content=text,
+                in_project_repo=True,
             )
     logger.debug("No README found in %s — skipped", entry_dir)
     return None

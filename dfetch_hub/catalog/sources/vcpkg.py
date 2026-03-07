@@ -128,4 +128,5 @@ def parse_vcpkg_json(entry_dir: Path) -> VcpkgManifest | None:
         dependencies=_extract_dependencies(data),
         readme_content=fetch_readme_for_homepage(homepage),
         urls=urls,
+        in_project_repo=False,
     )

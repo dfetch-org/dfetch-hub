@@ -284,4 +284,5 @@ def parse_conan_recipe(recipe_dir: Path) -> ConanManifest | None:
         topics=topics,
         readme_content=fetch_readme_for_homepage(homepage),
         urls=_build_conan_urls(homepage, _extract_str_attr(text, "url")),
+        in_project_repo=False,
     )

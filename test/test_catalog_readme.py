@@ -142,6 +142,7 @@ class TestParseReadmeDir:
         assert result.version is None
         assert result.readme_content is not None
         assert "A great package." in result.readme_content
+        assert result.in_project_repo is True
 
     def test_parses_readme_rst(self, tmp_path: Path) -> None:
         """Falls back to README.rst when README.md is absent."""
