@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -14,6 +15,16 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 logger = get_logger(__name__)
+
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+
+# Both naming conventions appear in the wild; check the standard name first.
+_PORTFILE_NAMES = ("portfile.cmake", "port.cmake")
+
+# Matches vcpkg_from_github(... REPO owner/repo ...) across multiple lines.
+_FROM_GITHUB_RE = re.compile(r"\bvcpkg_from_github\b.*?\bREPO\s+([\w.\-]+/[\w.\-]+)", re.DOTALL)
 
 
 @dataclass
@@ -83,6 +94,32 @@ def _extract_dependencies(data: dict[str, object]) -> list[str]:
     return deps
 
 
+def _github_url_from_portfile(entry_dir: Path) -> str | None:
+    """Extract the upstream GitHub repository URL from a vcpkg portfile.
+
+    Looks for a ``portfile.cmake`` (or ``port.cmake``) in *entry_dir* and scans
+    it for a ``vcpkg_from_github(REPO owner/repo …)`` call.
+
+    Args:
+        entry_dir: Port directory to scan (e.g. ``ports/abseil``).
+
+    Returns:
+        A ``https://github.com/owner/repo`` URL, or ``None`` if the portfile
+        is absent, unreadable, or contains no ``vcpkg_from_github`` call.
+    """
+    for name in _PORTFILE_NAMES:
+        portfile = entry_dir / name
+        if portfile.is_file():
+            try:
+                text = portfile.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                return None
+            match = _FROM_GITHUB_RE.search(text)
+            if match:
+                return f"https://github.com/{match.group(1)}"
+    return None
+
+
 def parse_vcpkg_json(entry_dir: Path) -> VcpkgManifest | None:
     """Parse the ``vcpkg.json`` inside *entry_dir*.
 
@@ -110,7 +147,7 @@ def parse_vcpkg_json(entry_dir: Path) -> VcpkgManifest | None:
         return None
 
     data: dict[str, object] = loaded
-    homepage = _extract_str_field(data, "homepage")
+    homepage = _extract_str_field(data, "homepage") or _github_url_from_portfile(entry_dir)
     license_val = _extract_str_field(data, "license")
     package_name = _extract_str_field(data, "name") or entry_dir.name
 
@@ -128,4 +165,5 @@ def parse_vcpkg_json(entry_dir: Path) -> VcpkgManifest | None:
         dependencies=_extract_dependencies(data),
         readme_content=fetch_readme_for_homepage(homepage),
         urls=urls,
+        in_project_repo=False,
     )

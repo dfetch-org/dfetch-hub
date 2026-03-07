@@ -31,6 +31,19 @@ def test_base_manifest_urls_defaults_to_empty_dict() -> None:
     assert m.urls == {}
 
 
+def test_base_manifest_in_project_repo_defaults_to_false() -> None:
+    """in_project_repo defaults to False — manifests are external registry entries by default."""
+    m = BaseManifest(
+        entry_name="pkg",
+        package_name="pkg",
+        description="desc",
+        homepage=None,
+        license=None,
+        version=None,
+    )
+    assert m.in_project_repo is False
+
+
 def test_base_manifest_urls_accepts_populated_dict() -> None:
     """urls field stores the supplied mapping unchanged."""
     m = BaseManifest(
@@ -174,3 +187,72 @@ def test_fetch_readme_for_homepage_delegates_to_fetch_readme_for_github() -> Non
 
     mock_fn.assert_called_once_with("myorg", "myrepo")
     assert result == "# content"
+
+
+# ---------------------------------------------------------------------------
+# BaseManifest.sanitize_subpath
+# ---------------------------------------------------------------------------
+
+
+def test_sanitize_subpath_returns_none_for_none() -> None:
+    """None input returns None."""
+    assert BaseManifest.sanitize_subpath(None) is None
+
+
+def test_sanitize_subpath_returns_none_for_empty_string() -> None:
+    """Empty string returns None."""
+    assert BaseManifest.sanitize_subpath("") is None
+
+
+def test_sanitize_subpath_returns_clean_path_unchanged() -> None:
+    """A valid forward-slash path is returned as-is."""
+    assert BaseManifest.sanitize_subpath("ports/zlib") == "ports/zlib"
+
+
+def test_sanitize_subpath_strips_leading_slash() -> None:
+    """A leading forward slash is stripped."""
+    assert BaseManifest.sanitize_subpath("/foo") == "foo"
+
+
+def test_sanitize_subpath_strips_trailing_slash() -> None:
+    """A trailing forward slash is stripped."""
+    assert BaseManifest.sanitize_subpath("foo/") == "foo"
+
+
+def test_sanitize_subpath_normalizes_backslash_to_forward_slash() -> None:
+    """Backslash separators are normalized to forward slashes and returned."""
+    assert BaseManifest.sanitize_subpath("foo\\bar") == "foo/bar"
+
+
+def test_sanitize_subpath_strips_leading_backslash() -> None:
+    """A leading backslash is treated as a path separator and stripped."""
+    assert BaseManifest.sanitize_subpath("\\foo") == "foo"
+
+
+def test_sanitize_subpath_rejects_dotdot_after_backslash_normalization() -> None:
+    """Backslash-encoded path traversal is blocked once backslashes are normalized."""
+    assert BaseManifest.sanitize_subpath("foo\\..\\bar") is None
+
+
+def test_sanitize_subpath_rejects_leading_dot() -> None:
+    """Paths starting with '.' are rejected."""
+    assert BaseManifest.sanitize_subpath(".hidden") is None
+
+
+def test_sanitize_subpath_rejects_dotdot_segment() -> None:
+    """Paths containing '..' segments are rejected."""
+    assert BaseManifest.sanitize_subpath("foo/../bar") is None
+
+
+def test_sanitize_subpath_property_returns_normalized_backslash_path() -> None:
+    """sanitized_subpath property on a manifest returns the backslash-normalized value."""
+    m = BaseManifest(
+        entry_name="pkg",
+        package_name="pkg",
+        description="",
+        homepage=None,
+        license=None,
+        version=None,
+        subpath="foo\\bar",
+    )
+    assert m.sanitized_subpath == "foo/bar"

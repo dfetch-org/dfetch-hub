@@ -100,6 +100,7 @@ def test_build_package_uses_vcs_url_when_no_homepage_in_json() -> None:
         )
 
     assert pkg.homepage == "https://github.com/clibs/buffer"
+    assert pkg.in_project_repo is True
 
 
 def test_build_package_uses_json_homepage_as_canonical_url() -> None:

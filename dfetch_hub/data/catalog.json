@@ -784,5 +784,60 @@
         "date": null
       }
     ]
+  },
+  "github/faburaya/3fd": {
+    "id": "github/faburaya/3fd",
+    "name": "3fd",
+    "description": "C++ Framework For Fast Development",
+    "url": "https://github.com/faburaya/3fd",
+    "source_type": "github",
+    "default_branch": "main",
+    "license": null,
+    "topics": [],
+    "stars": 0,
+    "last_updated": "2026-03-07T21:34:13.599616+00:00",
+    "source_labels": [
+      "vcpkg"
+    ],
+    "tags": [
+      {
+        "name": "2.6.3",
+        "is_tag": true,
+        "commit_sha": null,
+        "date": null
+      }
+    ]
+  },
+  "github/bakeruk/modern-typescript-monorepo-example/typescript-example-1": {
+    "id": "github/bakeruk/modern-typescript-monorepo-example/typescript-example-1",
+    "name": "typescript-example-1",
+    "description": "The first typescript example for the Monorepo example",
+    "url": "https://github.com/bakeruk/modern-typescript-monorepo-example",
+    "source_type": "github",
+    "default_branch": "main",
+    "license": null,
+    "topics": [],
+    "stars": 0,
+    "last_updated": "2026-03-07T21:34:24.325431+00:00",
+    "source_labels": [
+      "ts-monorepo"
+    ],
+    "tags": []
+  },
+  "github/bakeruk/modern-typescript-monorepo-example/typescript-example-2": {
+    "id": "github/bakeruk/modern-typescript-monorepo-example/typescript-example-2",
+    "name": "typescript-example-2",
+    "description": "The second typescript example for the Monorepo example",
+    "url": "https://github.com/bakeruk/modern-typescript-monorepo-example",
+    "source_type": "github",
+    "default_branch": "main",
+    "license": null,
+    "topics": [],
+    "stars": 0,
+    "last_updated": "2026-03-07T21:34:24.622203+00:00",
+    "source_labels": [
+      "ts-monorepo"
+    ],
+    "tags": []
   }
 }

@@ -96,8 +96,8 @@ label    = "clib"
 # label    = "npm"
 
 # # ── EXAMPLE: git-regex — find all repos referenced in a config file ───────────
-# # Clone (shallow) one "index repo" and extract all git URLs from files
-# # matching `file_glob`. Useful for Awesome-lists, PlatformIO registries, etc.
+# Clone (shallow) one "index repo" and extract all git URLs from files
+# matching `file_glob`. Useful for Awesome-lists, PlatformIO registries, etc.
 # [[source]]
 # name       = "awesome-embedded"
 # strategy   = "git-regex"
@@ -107,6 +107,17 @@ label    = "clib"
 # label      = "awesome-embedded"
 # # Optionally restrict to repos whose path matches:
 # # path_filter = ".*"
+
+# ── EXAMPLE: subfolders — monorepo with readme manifests ───────────────────────
+# A monorepo where packages live in a `packages/` subfolder, each with a README.
+# The `manifest = "readme"` tells dfetch-hub to scan for README.* files.
+[[source]]
+name        = "ts-monorepo"
+strategy    = "subfolders"
+url         = "https://github.com/bakeruk/modern-typescript-monorepo-example"
+path        = "packages"
+manifest    = "readme"
+label       = "ts-monorepo"
 
 # # ── EXAMPLE: SVN — single repo ────────────────────────────────────────────────
 # [[source]]

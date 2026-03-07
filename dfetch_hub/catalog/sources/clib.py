@@ -179,6 +179,7 @@ def _build_package(  # pylint: disable=too-many-locals
         keywords=keywords,
         readme_content=fetch_readme(owner, repo) if is_github else None,
         urls=_build_urls(vcs_url, canonical_url),
+        in_project_repo=is_github,
     )
 
 
