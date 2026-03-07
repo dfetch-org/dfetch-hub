@@ -248,11 +248,14 @@ def _cmd_update(parsed: argparse.Namespace) -> None:
         _process_source(source, data_dir, parsed.limit)
 
 
+_LIMIT_ERROR_MSG = "--limit must be >= 0"
+
+
 def _non_negative_int(value: str) -> int:
     """Parse *value* as a non-negative integer for ``--limit``."""
     parsed = int(value)
     if parsed < 0:
-        raise argparse.ArgumentTypeError("--limit must be >= 0")
+        raise argparse.ArgumentTypeError(_LIMIT_ERROR_MSG)
     return parsed
 
 

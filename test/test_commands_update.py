@@ -29,7 +29,7 @@ def _make_manifest(
     return BaseManifest(
         entry_name="pkg",
         package_name="pkg",
-        description=None,
+        description="",
         homepage=homepage,
         license=None,
         version=None,

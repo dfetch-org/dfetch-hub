@@ -249,7 +249,7 @@ def test_sanitize_subpath_property_returns_normalized_backslash_path() -> None:
     m = BaseManifest(
         entry_name="pkg",
         package_name="pkg",
-        description=None,
+        description="",
         homepage=None,
         license=None,
         version=None,

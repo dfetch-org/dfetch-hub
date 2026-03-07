@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass, field
 from urllib.error import URLError
+from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 from dfetch.log import get_logger
@@ -16,13 +16,9 @@ logger = get_logger(__name__)
 # VCS URL helpers
 # ---------------------------------------------------------------------------
 
-# Matches any https://host/[groups.../]repo[.git] URL regardless of hosting provider.
-# The owner group captures everything between the host and the final path segment,
-# so GitLab nested groups (group/subgroup/…) are preserved intact.
-_VCS_URL_RE = re.compile(
-    r"https?://([^/]+)/(.+)/([^/\s#?]+?)(?:\.git)?/?$",
-    re.IGNORECASE,
-)
+# Path segments that signal the end of the ``owner/repo`` portion of a VCS URL.
+# For example ``/tree/``, ``/blob/``, ``/src/``, or GitLab's ``/-/`` separator.
+_TRAILING_MARKERS: frozenset[str] = frozenset({"tree", "blob", "src", "-"})
 
 
 def parse_vcs_slug(url: str) -> tuple[str, str, str] | None:
@@ -32,6 +28,9 @@ def parse_vcs_slug(url: str) -> tuple[str, str, str] | None:
     Bitbucket, and company-hosted instances.  For GitLab (and similar hosts)
     the *owner* component may contain slashes representing nested groups, e.g.
     ``"group/subgroup"`` for ``https://gitlab.com/group/subgroup/repo``.
+    Trailing path components that indicate sub-tree navigation (``/tree/``,
+    ``/blob/``, ``/src/``, ``/-/``) are stripped so that component URLs like
+    ``https://github.com/owner/repo/tree/main/src`` are correctly parsed.
     Lowercasing ensures the catalog ID, the detail-file path, and the JSON
     fields are all consistent.
 
@@ -43,8 +42,29 @@ def parse_vcs_slug(url: str) -> tuple[str, str, str] | None:
         the expected ``https://host/…/repo`` pattern.
 
     """
-    m = _VCS_URL_RE.match(url.strip())
-    return (m.group(1).lower(), m.group(2).lower(), m.group(3).lower()) if m else None
+    parsed = urlparse(url.strip())
+    if parsed.scheme not in ("http", "https"):
+        return None
+    netloc = parsed.netloc.lower()
+    if not netloc:
+        return None
+
+    segments = [s for s in parsed.path.split("/") if s]
+    if len(segments) < 2:
+        return None
+
+    # Truncate at the first trailing marker (e.g. /tree/, /blob/, /-/).
+    # Only look from index 2 onwards so owner and repo are always present.
+    repo_end = len(segments)
+    for i in range(2, len(segments)):
+        if segments[i] in _TRAILING_MARKERS:
+            repo_end = i
+            break
+
+    path_segments = segments[:repo_end]
+    repo = path_segments[-1].removesuffix(".git")
+    owner = "/".join(path_segments[:-1])
+    return netloc, owner.lower(), repo.lower()
 
 
 # ---------------------------------------------------------------------------
@@ -73,6 +93,10 @@ def raw_url(owner: str, repo: str, branch: str, filename: str) -> str:
 
 def fetch_raw(url: str) -> str | None:
     """GET *url* and return the response body as a string, or ``None`` on failure."""
+    scheme = urlparse(url).scheme
+    if scheme not in ("http", "https"):
+        logger.debug("GET %s skipped: unsupported scheme %r", url, scheme)
+        return None
     try:
         req = Request(url, headers=_HEADERS)
         with urlopen(req, timeout=10) as resp:  # nosec B310
