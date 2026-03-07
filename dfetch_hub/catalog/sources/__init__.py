@@ -190,13 +190,12 @@ class BaseManifest:  # pylint: disable=too-many-instance-attributes
         if not subpath:
             return None
 
-        subpath = subpath.strip("/")
+        subpath = subpath.replace("\\", "/").strip("/")
 
         if not subpath or subpath.startswith("."):
             return None
 
-        parts = subpath.replace("\\", "/").split("/")
-        if any(part == ".." for part in parts):
+        if any(part == ".." for part in subpath.split("/")):
             return None
 
         return subpath

@@ -302,3 +302,51 @@ def test_write_catalog_nested_subpath(tmp_path: Path) -> None:
     assert detail_path.exists()
     detail = json.loads(detail_path.read_text(encoding="utf-8"))
     assert detail["subfolder_path"] == "libs/foo"
+
+
+# ---------------------------------------------------------------------------
+# Root-entry removal guard (regression for cross-source clobber)
+# ---------------------------------------------------------------------------
+
+
+def test_write_manifest_removes_stale_root_entry_from_same_source(tmp_path: Path) -> None:
+    """Root entry created by the same source is replaced by a subpath entry."""
+    catalog = Catalog()
+    catalog.entries["github/myorg/mymonorepo"] = CatalogEntry(
+        cat_id="github/myorg/mymonorepo",
+        name="mymonorepo",
+        source_labels=["vcpkg"],
+    )
+    foo = _monorepo_manifest("foo")
+    writer = CatalogWriter(tmp_path, "vcpkg", "vcpkg", "ports")
+    writer.write_manifest(foo, catalog)
+
+    assert "github/myorg/mymonorepo" not in catalog.entries
+    assert "github/myorg/mymonorepo/foo" in catalog.entries
+
+
+def test_write_manifest_preserves_root_entry_from_different_source(tmp_path: Path) -> None:
+    """Root entry created by a different source is not removed when a subpath manifest arrives."""
+    catalog = Catalog()
+    catalog.entries["github/myorg/mymonorepo"] = CatalogEntry(
+        cat_id="github/myorg/mymonorepo",
+        name="mymonorepo",
+        source_labels=["clib"],
+    )
+    foo = _monorepo_manifest("foo")
+    writer = CatalogWriter(tmp_path, "vcpkg", "vcpkg", "ports")
+    writer.write_manifest(foo, catalog)
+
+    assert "github/myorg/mymonorepo" in catalog.entries
+    assert "github/myorg/mymonorepo/foo" in catalog.entries
+
+
+def test_write_manifest_no_root_entry_is_a_noop(tmp_path: Path) -> None:
+    """Processing a subpath manifest when no root entry exists does not raise."""
+    catalog = Catalog()
+    foo = _monorepo_manifest("foo")
+    writer = CatalogWriter(tmp_path, "vcpkg", "vcpkg", "ports")
+    was_added, _ = writer.write_manifest(foo, catalog)
+
+    assert was_added
+    assert "github/myorg/mymonorepo/foo" in catalog.entries

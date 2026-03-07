@@ -210,7 +210,10 @@ class CatalogWriter:
 
         sanitized = manifest.sanitized_subpath
         if sanitized:
-            catalog.remove_entry(vcs_host, org, repo)
+            root_id = CatalogEntry.catalog_id(vcs_host, org, repo, None)
+            existing_root = catalog.entries.get(root_id)
+            if existing_root and self.label in existing_root.source_labels:
+                catalog.remove_entry(vcs_host, org, repo)
 
         _, is_new = catalog.get_or_create_entry(manifest, vcs_host, org, repo, self.label)
 
