@@ -290,6 +290,22 @@
     .vbadge-branch{background:#e8f4f8;color:#1a5276;border:1px solid #aed6f1}
     .vtable tbody tr{cursor:pointer}
     .vtable tbody tr.ver-selected td{background:rgba(0,113,188,.1)!important}
+    /* Hierarchical tag tree */
+    .vtree-group-hdr td{
+      background:var(--bg)!important;
+      cursor:pointer;
+      font-size:.8rem;
+      font-weight:700;
+      padding:.45rem .85rem;
+      color:var(--muted);
+      user-select:none;
+      border-bottom:1px solid var(--border)
+    }
+    .vtree-group-hdr:hover td{background:var(--border)!important}
+    .vtree-chevron{display:inline-block;width:1rem;font-size:.7rem}
+    .vtree-prefix{color:var(--text)}
+    .vtree-count{margin-left:.35rem;font-size:.72rem;font-weight:400;color:var(--subtle)}
+    .vtree-item td:first-child{padding-left:1.8rem}
     /* Version pill */
     .action-card{margin-bottom:.65rem}
     .ver-pill{display:flex;align-items:center;gap:.4rem;margin-top:.45rem;padding:.3rem .7rem;background:var(--bg);border:1px solid var(--border);border-radius:var(--rm)}
@@ -848,14 +864,8 @@ function renderDetail(c){
   allRefsCache=allRefs.slice(0,50);
   const firstTag=sortedTags.length?{name:sortedTags[0].name,kind:'tag'}:null;
   curVersion=firstTag||{name:c.default_branch||'main',kind:'branch'};
-  document.getElementById('vtbody').innerHTML=allRefsCache.length?allRefsCache.map((r,i)=>{
-    const sel=curVersion&&curVersion.name===r.name&&curVersion.kind===r.kind;
-    return `<tr class="${sel?'ver-selected':''}" onclick="selectVersion(${i})">
-    <td class="vtag-name">${esc(r.name)}${i===0&&r.kind==='tag'?'<span class="vtag-latest">latest</span>':''}</td>
-    <td><span class="vbadge vbadge-${r.kind}">${r.kind}</span></td>
-    <td class="vsha">${r.commit_sha?r.commit_sha.slice(0,10):'—'}</td>
-    <td style="font-size:.79rem;color:var(--subtle)">${r.date?r.date.slice(0,10):'—'}</td>
-  </tr>`;}).join(''):'<tr><td colspan="4" style="text-align:center;color:var(--subtle)">No version info</td></tr>';
+  const hasHierTags=allRefsCache.some(r=>r.kind==='tag'&&r.name.includes('/'));
+  document.getElementById('vtbody').innerHTML=allRefsCache.length?(hasHierTags?_renderVerTree(allRefsCache):_renderVerFlat(allRefsCache)):'<tr><td colspan="4" style="text-align:center;color:var(--subtle)">No version info</td></tr>';
   // Snippet
   document.getElementById('dSnip').innerHTML=buildSnipHtml(c,curVersion);
   // Aside
@@ -884,7 +894,13 @@ function selectVersion(i){
   const r=allRefsCache[i];if(!r)return;
   curVersion={name:r.name,kind:r.kind};
   _replaceURL({pkg:curPkg,v:r.name,vk:r.kind});
-  document.querySelectorAll('#vtbody tr').forEach((tr,idx)=>tr.classList.toggle('ver-selected',idx===i));
+  document.querySelectorAll('#vtbody tr[data-vidx]').forEach(tr=>tr.classList.toggle('ver-selected',+tr.dataset.vidx===i));
+  const selRow=document.querySelector(`#vtbody tr[data-vidx="${i}"]`);
+  if(selRow&&selRow.style.display==='none'){
+    let sib=selRow.previousElementSibling;
+    while(sib&&!sib.classList.contains('vtree-group-hdr'))sib=sib.previousElementSibling;
+    if(sib)toggleTreeGroup(sib);
+  }
   const c=curPkg?RAW[curPkg]:null;
   if(c)document.getElementById('dSnip').innerHTML=buildSnipHtml(c,curVersion);
   updSelVerInfo();
@@ -895,6 +911,50 @@ function updSelVerInfo(){
   document.getElementById('selVerName').textContent=curVersion.name;
   document.getElementById('selVerKind').textContent=curVersion.kind;
   el.style.display='';
+}
+function renderVersionRow(r,i){
+  const sel=curVersion&&curVersion.name===r.name&&curVersion.kind===r.kind;
+  return `<tr class="${sel?'ver-selected':''}" data-vidx="${i}" onclick="selectVersion(${i})"><td class="vtag-name">${esc(r.name)}${i===0&&r.kind==='tag'?'<span class="vtag-latest">latest</span>':''}</td><td><span class="vbadge vbadge-${r.kind}">${r.kind}</span></td><td class="vsha">${r.commit_sha?r.commit_sha.slice(0,10):'—'}</td><td style="font-size:.79rem;color:var(--subtle)">${r.date?r.date.slice(0,10):'—'}</td></tr>`;
+}
+function _renderVerFlat(refs){
+  return refs.map(renderVersionRow).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--subtle)">No version info</td></tr>';
+}
+function _renderVerTree(refs){
+  // Group tags whose names contain '/' by their prefix (part before first /)
+  const groups=new Map();
+  refs.forEach((r,i)=>{
+    if(r.kind!=='tag'||!r.name.includes('/'))return;
+    const pfx=r.name.slice(0,r.name.indexOf('/'));
+    if(!groups.has(pfx))groups.set(pfx,[]);
+    groups.get(pfx).push(i);
+  });
+  let html='';
+  // Render grouped tags — collapsed by default, open if selected version is inside
+  groups.forEach((idxs,pfx)=>{
+    const open=idxs.some(i=>curVersion&&refs[i].name===curVersion.name&&refs[i].kind===curVersion.kind);
+    html+=`<tr class="vtree-group-hdr" role="button" tabindex="0" aria-expanded="${open}" onclick="toggleTreeGroup(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleTreeGroup(this)}"><td colspan="4"><span class="vtree-chevron">${open?'▾':'▸'}</span><span class="vtree-prefix">${esc(pfx)}/</span><span class="vtree-count">(${idxs.length})</span></td></tr>`;
+    idxs.forEach(i=>{
+      const r=refs[i];const sel=curVersion&&r.name===curVersion.name&&r.kind===curVersion.kind;
+      const isLatest=i===0;
+      html+=`<tr class="vtree-item${sel?' ver-selected':''}" data-vidx="${i}" onclick="selectVersion(${i})"${open?'':' style="display:none"'}><td class="vtag-name">${esc(r.name.slice(pfx.length+1))}${isLatest?'<span class="vtag-latest">latest</span>':''}</td><td><span class="vbadge vbadge-tag">tag</span></td><td class="vsha">${r.commit_sha?r.commit_sha.slice(0,10):'—'}</td><td style="font-size:.79rem;color:var(--subtle)">${r.date?r.date.slice(0,10):'—'}</td></tr>`;
+    });
+  });
+  // Render ungrouped tags and branches
+  refs.forEach((r,i)=>{
+    if(r.kind==='tag'&&r.name.includes('/'))return;
+    const sel=curVersion&&r.name===curVersion.name&&r.kind===curVersion.kind;
+    const isLatest=i===0&&r.kind==='tag';
+    html+=`<tr class="${sel?'ver-selected':''}" data-vidx="${i}" onclick="selectVersion(${i})"><td class="vtag-name">${esc(r.name)}${isLatest?'<span class="vtag-latest">latest</span>':''}</td><td><span class="vbadge vbadge-${r.kind}">${r.kind}</span></td><td class="vsha">${r.commit_sha?r.commit_sha.slice(0,10):'—'}</td><td style="font-size:.79rem;color:var(--subtle)">${r.date?r.date.slice(0,10):'—'}</td></tr>`;
+  });
+  return html||'<tr><td colspan="4" style="text-align:center;color:var(--subtle)">No version info</td></tr>';
+}
+function toggleTreeGroup(hdr){
+  const chevron=hdr.querySelector('.vtree-chevron');
+  const open=chevron&&chevron.textContent==='▾';
+  if(chevron)chevron.textContent=open?'▸':'▾';
+  hdr.setAttribute('aria-expanded',String(!open));
+  let sib=hdr.nextElementSibling;
+  while(sib&&sib.classList.contains('vtree-item')){sib.style.display=open?'none':'';sib=sib.nextElementSibling;}
 }
 function switchTab(name){
   document.querySelectorAll('.tabbtn').forEach((b,i)=>{const ns=['readme','versions'];b.classList.toggle('active',ns[i]===name)});
