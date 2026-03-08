@@ -22,8 +22,7 @@ from dfetch_hub.catalog.sources.clib import (
 # Fixtures / shared data
 # ---------------------------------------------------------------------------
 
-_PACKAGES_MD = textwrap.dedent(
-    """\
+_PACKAGES_MD = textwrap.dedent("""\
     List of available packages.
 
     ## String manipulation
@@ -36,8 +35,7 @@ _PACKAGES_MD = textwrap.dedent(
 
     ## Networking
      - [nicowillis/http-parser](https://github.com/nicowillis/http-parser) - HTTP request/response parser
-    """
-)
+    """)
 
 _PACKAGE_JSON_BUFFER: dict[str, object] = {
     "name": "buffer",
@@ -490,13 +488,11 @@ def test_build_package_non_list_non_string_keywords_ignored() -> None:
 # parse_packages_md — skips URLs without recognized VCS host
 # ---------------------------------------------------------------------------
 
-_PACKAGES_MD_WITH_INVALID_URL = textwrap.dedent(
-    """\
+_PACKAGES_MD_WITH_INVALID_URL = textwrap.dedent("""\
     ## Tools
      - [good/repo](https://github.com/good/repo) - a valid entry
      - [bad entry](ftp://invalid.host/no/repo) - invalid URL scheme
-    """
-)
+    """)
 
 
 def test_parse_packages_md_skips_unrecognized_vcs_url(tmp_path: Path) -> None:

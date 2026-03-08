@@ -17,32 +17,25 @@ from dfetch_hub.catalog.sources.readme import _extract_description, parse_readme
 # ---------------------------------------------------------------------------
 
 _SIMPLE = "First meaningful line."
-_WITH_HEADING = textwrap.dedent(
-    """\
+_WITH_HEADING = textwrap.dedent("""\
     # My Package
 
     First meaningful line.
-    """
-)
-_WITH_BADGES = textwrap.dedent(
-    """\
+    """)
+_WITH_BADGES = textwrap.dedent("""\
     # My Package
 
     [![Build](https://img.shields.io/badge/build-passing-green)](https://example.com)
 
     First meaningful line.
-    """
-)
+    """)
 _EMPTY = ""
-_ONLY_HEADINGS = textwrap.dedent(
-    """\
+_ONLY_HEADINGS = textwrap.dedent("""\
     # Title
 
     ## Subtitle
-    """
-)
-_IN_CODE_BLOCK = textwrap.dedent(
-    """\
+    """)
+_IN_CODE_BLOCK = textwrap.dedent("""\
     # Title
 
     ```python
@@ -50,17 +43,14 @@ _IN_CODE_BLOCK = textwrap.dedent(
     ```
 
     After the code block.
-    """
-)
+    """)
 _LONG_LINE = "A" * 200
-_MULTILINE = textwrap.dedent(
-    """\
+_MULTILINE = textwrap.dedent("""\
     # Title
 
     First paragraph first line.
     Second line of first paragraph.
-    """
-)
+    """)
 
 
 # ---------------------------------------------------------------------------
