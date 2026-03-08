@@ -902,6 +902,12 @@ function selectVersion(i){
   curVersion={name:r.name,kind:r.kind};
   _replaceURL({pkg:curPkg,v:r.name,vk:r.kind});
   document.querySelectorAll('#vtbody tr[data-vidx]').forEach(tr=>tr.classList.toggle('ver-selected',+tr.dataset.vidx===i));
+  const selRow=document.querySelector(`#vtbody tr[data-vidx="${i}"]`);
+  if(selRow&&selRow.style.display==='none'){
+    let sib=selRow.previousElementSibling;
+    while(sib&&!sib.classList.contains('vtree-group-hdr'))sib=sib.previousElementSibling;
+    if(sib)toggleTreeGroup(sib);
+  }
   const c=curPkg?RAW[curPkg]:null;
   if(c)document.getElementById('dSnip').innerHTML=buildSnipHtml(c,curVersion);
   updSelVerInfo();
