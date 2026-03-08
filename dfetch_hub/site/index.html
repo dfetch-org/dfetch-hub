@@ -865,14 +865,7 @@ function renderDetail(c){
   const firstTag=sortedTags.length?{name:sortedTags[0].name,kind:'tag'}:null;
   curVersion=firstTag||{name:c.default_branch||'main',kind:'branch'};
   const hasHierTags=allRefsCache.some(r=>r.kind==='tag'&&r.name.includes('/'));
-  document.getElementById('vtbody').innerHTML=allRefsCache.length?(hasHierTags?_renderVerTree(allRefsCache):allRefsCache.map((r,i)=>{
-    const sel=curVersion&&curVersion.name===r.name&&curVersion.kind===r.kind;
-    return `<tr class="${sel?'ver-selected':''}" data-vidx="${i}" onclick="selectVersion(${i})">
-    <td class="vtag-name">${esc(r.name)}${i===0&&r.kind==='tag'?'<span class="vtag-latest">latest</span>':''}</td>
-    <td><span class="vbadge vbadge-${r.kind}">${r.kind}</span></td>
-    <td class="vsha">${r.commit_sha?r.commit_sha.slice(0,10):'—'}</td>
-    <td style="font-size:.79rem;color:var(--subtle)">${r.date?r.date.slice(0,10):'—'}</td>
-  </tr>`;}).join('')):'<tr><td colspan="4" style="text-align:center;color:var(--subtle)">No version info</td></tr>';
+  document.getElementById('vtbody').innerHTML=allRefsCache.length?(hasHierTags?_renderVerTree(allRefsCache):_renderVerFlat(allRefsCache)):'<tr><td colspan="4" style="text-align:center;color:var(--subtle)">No version info</td></tr>';
   // Snippet
   document.getElementById('dSnip').innerHTML=buildSnipHtml(c,curVersion);
   // Aside
@@ -919,6 +912,13 @@ function updSelVerInfo(){
   document.getElementById('selVerKind').textContent=curVersion.kind;
   el.style.display='';
 }
+function renderVersionRow(r,i){
+  const sel=curVersion&&curVersion.name===r.name&&curVersion.kind===r.kind;
+  return `<tr class="${sel?'ver-selected':''}" data-vidx="${i}" onclick="selectVersion(${i})"><td class="vtag-name">${esc(r.name)}${i===0&&r.kind==='tag'?'<span class="vtag-latest">latest</span>':''}</td><td><span class="vbadge vbadge-${r.kind}">${r.kind}</span></td><td class="vsha">${r.commit_sha?r.commit_sha.slice(0,10):'—'}</td><td style="font-size:.79rem;color:var(--subtle)">${r.date?r.date.slice(0,10):'—'}</td></tr>`;
+}
+function _renderVerFlat(refs){
+  return refs.map(renderVersionRow).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--subtle)">No version info</td></tr>';
+}
 function _renderVerTree(refs){
   // Group tags whose names contain '/' by their prefix (part before first /)
   const groups=new Map();
@@ -932,7 +932,7 @@ function _renderVerTree(refs){
   // Render grouped tags — collapsed by default, open if selected version is inside
   groups.forEach((idxs,pfx)=>{
     const open=idxs.some(i=>curVersion&&refs[i].name===curVersion.name&&refs[i].kind===curVersion.kind);
-    html+=`<tr class="vtree-group-hdr" onclick="toggleTreeGroup(this)"><td colspan="4"><span class="vtree-chevron">${open?'▾':'▸'}</span><span class="vtree-prefix">${esc(pfx)}/</span><span class="vtree-count">(${idxs.length})</span></td></tr>`;
+    html+=`<tr class="vtree-group-hdr" role="button" tabindex="0" aria-expanded="${open}" onclick="toggleTreeGroup(this)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleTreeGroup(this)}"><td colspan="4"><span class="vtree-chevron">${open?'▾':'▸'}</span><span class="vtree-prefix">${esc(pfx)}/</span><span class="vtree-count">(${idxs.length})</span></td></tr>`;
     idxs.forEach(i=>{
       const r=refs[i];const sel=curVersion&&r.name===curVersion.name&&r.kind===curVersion.kind;
       const isLatest=i===0;
@@ -952,6 +952,7 @@ function toggleTreeGroup(hdr){
   const chevron=hdr.querySelector('.vtree-chevron');
   const open=chevron&&chevron.textContent==='▾';
   if(chevron)chevron.textContent=open?'▸':'▾';
+  hdr.setAttribute('aria-expanded',String(!open));
   let sib=hdr.nextElementSibling;
   while(sib&&sib.classList.contains('vtree-item')){sib.style.display=open?'none':'';sib=sib.nextElementSibling;}
 }
