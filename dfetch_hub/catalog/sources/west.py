@@ -171,6 +171,68 @@ def _build_west_project(
 # ---------------------------------------------------------------------------
 
 
+def _extract_default_remote(manifest_dict: dict[str, object]) -> str:
+    """Return the default remote name from a west manifest dict, or an empty string."""
+    defaults = manifest_dict.get("defaults")
+    if isinstance(defaults, dict):
+        dr = defaults.get("remote", "")
+        return str(dr) if dr else ""
+    return ""
+
+
+def _collect_projects(
+    projects_raw: list[object],
+    remote_bases: dict[str, str],
+    default_remote: str,
+    limit: int | None,
+) -> list[WestProject]:
+    """Build :class:`WestProject` instances from a raw west project list.
+
+    Args:
+        projects_raw:   Raw ``manifest.projects`` list from west YAML.
+        remote_bases:   Mapping of remote name to base URL.
+        default_remote: Name of the manifest-level default remote.
+        limit:          Maximum number of projects to return (``None`` = unlimited).
+
+    Returns:
+        A list of :class:`WestProject` instances for projects with resolvable URLs.
+    """
+    projects: list[WestProject] = []
+    for entry in projects_raw:
+        if limit is not None and len(projects) >= limit:
+            break
+        if not isinstance(entry, dict):
+            continue
+        project = _build_west_project(entry, remote_bases, default_remote)
+        if project is not None:
+            projects.append(project)
+    return projects
+
+
+def _load_west_manifest(west_yaml: "Path") -> dict[str, object] | None:
+    """Load and validate a west YAML file, returning the ``manifest`` sub-dict.
+
+    Args:
+        west_yaml: Path to the ``west.yml`` file.
+
+    Returns:
+        The ``manifest`` mapping, or ``None`` on any parse or structural error.
+    """
+    try:
+        data: object = yaml.safe_load(west_yaml.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError) as exc:
+        logger.warning("Could not parse %s: %s", west_yaml, exc)
+        return None
+    if not isinstance(data, dict):
+        logger.warning("Ignoring non-mapping west YAML in %s", west_yaml)
+        return None
+    manifest = data.get("manifest")
+    if not isinstance(manifest, dict):
+        logger.warning("No 'manifest' key found in %s", west_yaml)
+        return None
+    return manifest
+
+
 def parse_west_yaml(west_yaml: "Path", limit: int | None = None) -> list[WestProject]:
     """Parse a ``west.yml`` manifest file into a list of :class:`WestProject`.
 
@@ -187,44 +249,18 @@ def parse_west_yaml(west_yaml: "Path", limit: int | None = None) -> list[WestPro
         A list of :class:`WestProject` instances, one per discovered project.
         Returns an empty list on parse errors.
     """
-    try:
-        raw_content = west_yaml.read_text(encoding="utf-8")
-        data: object = yaml.safe_load(raw_content)
-    except (OSError, yaml.YAMLError) as exc:
-        logger.warning("Could not parse %s: %s", west_yaml, exc)
-        return []
-
-    if not isinstance(data, dict):
-        logger.warning("Ignoring non-mapping west YAML in %s", west_yaml)
-        return []
-
-    manifest = data.get("manifest")
-    if not isinstance(manifest, dict):
-        logger.warning("No 'manifest' key found in %s", west_yaml)
+    manifest = _load_west_manifest(west_yaml)
+    if manifest is None:
         return []
 
     remote_bases = _build_remote_map(manifest.get("remotes", []))
-
-    defaults = manifest.get("defaults")
-    default_remote: str = ""
-    if isinstance(defaults, dict):
-        dr = defaults.get("remote", "")
-        default_remote = str(dr) if dr else ""
+    default_remote = _extract_default_remote(manifest)
 
     projects_raw = manifest.get("projects", [])
     if not isinstance(projects_raw, list):
         logger.warning("'manifest.projects' is not a list in %s", west_yaml)
         return []
 
-    projects: list[WestProject] = []
-    for entry in projects_raw:
-        if limit is not None and len(projects) >= limit:
-            break
-        if not isinstance(entry, dict):
-            continue
-        project = _build_west_project(entry, remote_bases, default_remote)
-        if project is not None:
-            projects.append(project)
-
+    projects = _collect_projects(projects_raw, remote_bases, default_remote, limit)
     logger.debug("Parsed %d project(s) from %s", len(projects), west_yaml)
     return projects

@@ -22,7 +22,8 @@ from dfetch_hub.catalog.sources.conan import (
 # Shared conanfile.py fixtures
 # ---------------------------------------------------------------------------
 
-_CONANFILE_SIMPLE = textwrap.dedent("""\
+_CONANFILE_SIMPLE = textwrap.dedent(
+    """\
     from conan import ConanFile
 
     class AbseilConan(ConanFile):
@@ -35,9 +36,11 @@ _CONANFILE_SIMPLE = textwrap.dedent("""\
 
         def build(self):
             pass
-    """)
+    """
+)
 
-_CONANFILE_MULTILINE_DESC = textwrap.dedent("""\
+_CONANFILE_MULTILINE_DESC = textwrap.dedent(
+    """\
     from conan import ConanFile
 
     class ZlibConan(ConanFile):
@@ -48,9 +51,11 @@ _CONANFILE_MULTILINE_DESC = textwrap.dedent("""\
         license = "Zlib"
         topics = ("compression", "deflate")
         url = "https://github.com/conan-io/conan-center-index"
-    """)
+    """
+)
 
-_CONFIG_YML = textwrap.dedent("""\
+_CONFIG_YML = textwrap.dedent(
+    """\
     versions:
       "1.0.0":
         folder: all
@@ -58,7 +63,8 @@ _CONFIG_YML = textwrap.dedent("""\
         folder: all
       "3.1.0":
         folder: all
-    """)
+    """
+)
 
 
 @pytest.fixture(autouse=True)

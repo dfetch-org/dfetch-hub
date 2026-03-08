@@ -6,6 +6,7 @@ import argparse
 import importlib.resources
 import sys
 import tempfile
+from dataclasses import replace as _dc_replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -21,7 +22,7 @@ from dfetch_hub.catalog.writer import CatalogWriter
 from dfetch_hub.commands import load_config_with_data_dir
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Sequence
 
     from dfetch_hub.catalog.sources import BaseManifest
     from dfetch_hub.config import SourceConfig
@@ -36,9 +37,9 @@ _MANIFEST_PARSERS = {
     "readme": parse_readme_dir,
 }
 
-# Parsers for strategy='git-wiki': one file in the repo root → list of entries.
+# Parsers for strategy='catalog-file': one file in the repo root → list of entries.
 # Each callable receives (path, limit) and returns a list of BaseManifest subclasses.
-_FILE_MANIFEST_PARSERS: dict[str, Callable[[Path, int | None], list[BaseManifest]]] = {
+_FILE_MANIFEST_PARSERS: dict[str, Callable[[Path, int | None], Sequence[BaseManifest]]] = {
     "Packages.md": parse_packages_md,
     "west.yml": parse_west_yaml,
 }
@@ -178,17 +179,18 @@ def _process_subfolders_source(
         )
 
 
-def _process_git_wiki_source(
+def _process_catalog_file_source(
     source: SourceConfig,
     data_dir: Path,
     limit: int | None,
 ) -> None:
-    """Handle strategy='git-wiki': clone a repo and parse a single manifest file.
+    """Handle strategy='catalog-file': fetch a single catalog file from a repo and parse it.
 
-    The repository is fetched via dfetch (shallow clone), then the file named
-    by ``source.manifest`` is looked up in ``_FILE_MANIFEST_PARSERS`` to
-    discover packages.  This strategy supports any manifest type registered in
-    that dict (e.g. ``Packages.md`` for clib, ``west.yml`` for Zephyr west).
+    Only the file named by ``source.manifest`` is fetched from the remote (via
+    dfetch's ``src:`` field), avoiding a full repository clone.  The file is
+    then looked up in ``_FILE_MANIFEST_PARSERS`` to discover packages.  This
+    strategy supports any manifest type registered in that dict (e.g.
+    ``Packages.md`` for clib, ``west.yml`` for Zephyr west).
     """
     parse_fn = _FILE_MANIFEST_PARSERS.get(source.manifest)
     if parse_fn is None:
@@ -196,15 +198,17 @@ def _process_git_wiki_source(
             logger.warning("%s: no 'manifest' configured — skipped", source.name)
         else:
             logger.warning(
-                "%s: manifest type '%s' not supported for git-wiki — skipped",
+                "%s: manifest type '%s' not supported for catalog-file — skipped",
                 source.name,
                 source.manifest,
             )
         return
 
-    logger.print_info_line(source.name, f"Fetching {source.url} ...")
+    logger.print_info_line(source.name, f"Fetching {source.url} (src: {source.manifest}) ...")
     with tempfile.TemporaryDirectory(prefix="dfetch-hub-") as tmp:
-        fetched_dir = clone_source(source, Path(tmp))
+        # Fetch only the single catalog file rather than the whole repository.
+        file_source = _dc_replace(source, path=source.manifest)
+        fetched_dir = clone_source(file_source, Path(tmp))
 
         index_file = fetched_dir / source.manifest
         if not index_file.exists():
@@ -238,8 +242,8 @@ def _process_source(
 ) -> None:
     if source.strategy == "subfolders":
         _process_subfolders_source(source, data_dir, limit)
-    elif source.strategy == "git-wiki":
-        _process_git_wiki_source(source, data_dir, limit)
+    elif source.strategy == "catalog-file":
+        _process_catalog_file_source(source, data_dir, limit)
     else:
         logger.warning(
             "%s: strategy '%s' not yet supported — skipped",
