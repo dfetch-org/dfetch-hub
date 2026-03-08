@@ -119,6 +119,19 @@ path        = "packages"
 manifest    = "readme"
 label       = "ts-monorepo"
 
+# ── EXAMPLE: west-manifest — Zephyr project dependencies ─────────────────────
+# Parses the west.yml in the Zephyr RTOS repository and catalogues every
+# project listed in manifest.projects (HAL modules, MCUboot, mbedTLS, …).
+# Each project becomes a separate catalog entry pointing to its upstream repo.
+# The 'manifest' field selects which file to parse (default: west.yml).
+# Only GitHub source URLs are supported (the YAML is fetched via raw HTTP).
+[[source]]
+name     = "zephyr-west"
+strategy = "west-manifest"
+url      = "https://github.com/zephyrproject-rtos/zephyr"
+manifest = "west.yml"
+label    = "zephyr"
+
 # # ── EXAMPLE: SVN — single repo ────────────────────────────────────────────────
 # [[source]]
 # name     = "my-svn-lib"

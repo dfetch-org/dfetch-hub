@@ -12,10 +12,12 @@ from typing import TYPE_CHECKING
 from dfetch.log import get_logger
 
 from dfetch_hub.catalog.cloner import clone_source
+from dfetch_hub.catalog.sources import RAW_BRANCHES, fetch_raw, parse_vcs_slug, raw_url
 from dfetch_hub.catalog.sources.clib import CLibPackage, parse_packages_md
 from dfetch_hub.catalog.sources.conan import parse_conan_recipe
 from dfetch_hub.catalog.sources.readme import parse_readme_dir
 from dfetch_hub.catalog.sources.vcpkg import parse_vcpkg_json
+from dfetch_hub.catalog.sources.west import parse_west_yaml
 from dfetch_hub.catalog.writer import CatalogWriter
 from dfetch_hub.commands import load_config_with_data_dir
 
@@ -216,6 +218,84 @@ def _process_git_wiki_source(
         )
 
 
+def _download_west_yaml(source: SourceConfig, manifest_filename: str, tmp_dir: Path) -> Path | None:
+    """Fetch a west YAML manifest file from a GitHub repository via HTTP.
+
+    Constructs a raw GitHub content URL from *source.url*, then tries the
+    configured branch (or ``main`` / ``master`` as fallbacks) until the file
+    is retrieved.  On success the content is written to *tmp_dir* and its
+    path is returned.
+
+    Args:
+        source:            Source configuration (provides ``url`` and ``branch``).
+        manifest_filename: Filename to fetch (e.g. ``"west.yml"``).
+        tmp_dir:           Temporary directory to write the downloaded file into.
+
+    Returns:
+        Path to the downloaded file on success, or ``None`` if the file could
+        not be retrieved or *source.url* is not a GitHub URL.
+    """
+    slug = parse_vcs_slug(source.url)
+    if slug is None or slug[0] != "github.com":
+        logger.warning(
+            "%s: west-manifest strategy supports GitHub URLs only (got %s)",
+            source.name,
+            source.url,
+        )
+        return None
+    _, owner, repo = slug
+    branches = [source.branch] if source.branch else list(RAW_BRANCHES)
+    for branch in branches:
+        content = fetch_raw(raw_url(owner, repo, branch, manifest_filename))
+        if content is not None:
+            dest = tmp_dir / manifest_filename
+            dest.write_text(content, encoding="utf-8")
+            logger.debug("Downloaded %s from %s/%s@%s", manifest_filename, owner, repo, branch)
+            return dest
+    return None
+
+
+def _process_west_manifest_source(
+    source: SourceConfig,
+    data_dir: Path,
+    limit: int | None,
+) -> None:
+    """Handle strategy='west-manifest': fetch a west.yml and index its projects.
+
+    Downloads the west manifest file named by ``source.manifest`` (default:
+    ``west.yml``) directly from the GitHub repository at ``source.url``, then
+    parses every ``manifest.projects`` entry into catalog entries.  Each
+    project becomes a separate catalog component pointing to its upstream repo.
+    """
+    manifest_filename = source.manifest or "west.yml"
+    logger.print_info_line(source.name, f"Fetching {source.url}/{manifest_filename} ...")
+
+    with tempfile.TemporaryDirectory(prefix="dfetch-hub-") as tmp:
+        west_yaml_path = _download_west_yaml(source, manifest_filename, Path(tmp))
+        if west_yaml_path is None:
+            logger.print_warning_line(
+                source.name,
+                f"Could not fetch '{manifest_filename}' from {source.url} — skipped",
+            )
+            return
+
+        logger.print_info_line(source.name, f"Parsing {manifest_filename} ...")
+        projects = parse_west_yaml(west_yaml_path, limit=limit)
+
+        logger.print_info_line(source.name, f"Fetched metadata for {len(projects)} project(s)")
+        writer = CatalogWriter(
+            data_dir,
+            source.name,
+            source.label or source.name,
+            source.path or source.name,
+        )
+        _added, _updated = writer.write(projects)  # type: ignore[arg-type]
+        logger.print_info_line(
+            source.name,
+            f"Done — {_added} added, {_updated} updated ({len(projects) - _added - _updated} skipped/no-vcs-url)",
+        )
+
+
 def _process_source(
     source: SourceConfig,
     data_dir: Path,
@@ -225,6 +305,8 @@ def _process_source(
         _process_subfolders_source(source, data_dir, limit)
     elif source.strategy == "git-wiki":
         _process_git_wiki_source(source, data_dir, limit)
+    elif source.strategy == "west-manifest":
+        _process_west_manifest_source(source, data_dir, limit)
     else:
         logger.warning(
             "%s: strategy '%s' not yet supported — skipped",
