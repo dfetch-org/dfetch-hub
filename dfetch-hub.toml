@@ -69,10 +69,10 @@ label       = "conan"
 
 [[source]]
 name     = "clib"
-strategy = "git-wiki"
+strategy = "catalog-file"
 # The GitHub wiki is a regular git repo at <repo>.wiki.git
 url      = "https://github.com/clibs/clib.wiki.git"
-# Which file in the wiki root holds the package index
+# Which file in the repo holds the package index (only this file is fetched)
 manifest = "Packages.md"
 label    = "clib"
 
@@ -118,6 +118,20 @@ url         = "https://github.com/bakeruk/modern-typescript-monorepo-example"
 path        = "packages"
 manifest    = "readme"
 label       = "ts-monorepo"
+
+# ── EXAMPLE: catalog-file — Zephyr project dependencies ─────────────────────
+# Parses the west.yml in the Zephyr RTOS repository and catalogues every
+# project listed in manifest.projects (HAL modules, MCUboot, mbedTLS, …).
+# Each project becomes a separate catalog entry pointing to its upstream repo.
+# Uses strategy='catalog-file' with manifest='west.yml' — only that single file
+# is fetched; the manifest field selects the parser
+# (west.yml → WestProject; Packages.md → CLibPackage, …).
+[[source]]
+name     = "zephyr-west"
+strategy = "catalog-file"
+url      = "https://github.com/zephyrproject-rtos/zephyr"
+manifest = "west.yml"
+label    = "zephyr"
 
 # # ── EXAMPLE: SVN — single repo ────────────────────────────────────────────────
 # [[source]]

@@ -6,21 +6,23 @@ import argparse
 import importlib.resources
 import sys
 import tempfile
+from dataclasses import replace as _dc_replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 from dfetch.log import get_logger
 
 from dfetch_hub.catalog.cloner import clone_source
-from dfetch_hub.catalog.sources.clib import CLibPackage, parse_packages_md
+from dfetch_hub.catalog.sources.clib import parse_packages_md
 from dfetch_hub.catalog.sources.conan import parse_conan_recipe
 from dfetch_hub.catalog.sources.readme import parse_readme_dir
 from dfetch_hub.catalog.sources.vcpkg import parse_vcpkg_json
+from dfetch_hub.catalog.sources.west import parse_west_yaml
 from dfetch_hub.catalog.writer import CatalogWriter
 from dfetch_hub.commands import load_config_with_data_dir
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Sequence
 
     from dfetch_hub.catalog.sources import BaseManifest
     from dfetch_hub.config import SourceConfig
@@ -33,6 +35,13 @@ _MANIFEST_PARSERS = {
     "vcpkg.json": parse_vcpkg_json,
     "conandata.yml": parse_conan_recipe,
     "readme": parse_readme_dir,
+}
+
+# Parsers for strategy='catalog-file': one file in the repo root → list of entries.
+# Each callable receives (path, limit) and returns a list of BaseManifest subclasses.
+_FILE_MANIFEST_PARSERS: dict[str, Callable[[Path, int | None], Sequence[BaseManifest]]] = {
+    "Packages.md": parse_packages_md,
+    "west.yml": parse_west_yaml,
 }
 
 
@@ -170,49 +179,59 @@ def _process_subfolders_source(
         )
 
 
-def _process_git_wiki_source(
+def _process_catalog_file_source(
     source: SourceConfig,
     data_dir: Path,
     limit: int | None,
 ) -> None:
-    """Handle strategy='git-wiki': clone a git wiki repo and parse a markdown index.
+    """Handle strategy='catalog-file': fetch a single catalog file from a repo and parse it.
 
-    The wiki is fetched via dfetch (shallow clone), then the file named by
-    ``source.manifest`` (e.g. ``Packages.md``) is parsed to discover packages.
-    For each package the upstream ``package.json`` is fetched from GitHub to
-    collect richer metadata.
+    Only the file named by ``source.manifest`` is fetched from the remote (via
+    dfetch's ``src:`` field), avoiding a full repository clone.  The file is
+    then looked up in ``_FILE_MANIFEST_PARSERS`` to discover packages.  This
+    strategy supports any manifest type registered in that dict (e.g.
+    ``Packages.md`` for clib, ``west.yml`` for Zephyr west).
     """
-    if not source.manifest:
-        logger.print_warning_line(source.name, "no 'manifest' configured — skipped")
+    parse_fn = _FILE_MANIFEST_PARSERS.get(source.manifest)
+    if parse_fn is None:
+        if not source.manifest:
+            logger.warning("%s: no 'manifest' configured — skipped", source.name)
+        else:
+            logger.warning(
+                "%s: manifest type '%s' not supported for catalog-file — skipped",
+                source.name,
+                source.manifest,
+            )
         return
 
-    logger.print_info_line(source.name, f"Fetching wiki {source.url} ...")
+    logger.print_info_line(source.name, f"Fetching {source.url} (src: {source.manifest}) ...")
     with tempfile.TemporaryDirectory(prefix="dfetch-hub-") as tmp:
-        tmp_path = Path(tmp)
-        fetched_dir = clone_source(source, tmp_path)
+        # Fetch only the single catalog file rather than the whole repository.
+        file_source = _dc_replace(source, path=source.manifest)
+        fetched_dir = clone_source(file_source, Path(tmp))
 
         index_file = fetched_dir / source.manifest
         if not index_file.exists():
             logger.print_warning_line(
                 source.name,
-                f"'{source.manifest}' not found in fetched wiki — skipped",
+                f"'{source.manifest}' not found in fetched repo — skipped",
             )
             return
 
         logger.print_info_line(source.name, f"Parsing {source.manifest} ...")
-        packages: list[CLibPackage] = parse_packages_md(index_file, limit=limit)
+        entries = parse_fn(index_file, limit)
 
-        logger.print_info_line(source.name, f"Fetched metadata for {len(packages)} package(s)")
+        logger.print_info_line(source.name, f"Fetched metadata for {len(entries)} entries")
         writer = CatalogWriter(
             data_dir,
             source.name,
             source.label or source.name,
             source.path or source.name,
         )
-        _added, _updated = writer.write(packages)  # type: ignore[arg-type]
+        _added, _updated = writer.write(entries)  # type: ignore[arg-type]
         logger.print_info_line(
             source.name,
-            f"Done — {_added} added, {_updated} updated ({len(packages) - _added - _updated} skipped/no-vcs-url)",
+            f"Done — {_added} added, {_updated} updated ({len(entries) - _added - _updated} skipped/no-vcs-url)",
         )
 
 
@@ -223,8 +242,8 @@ def _process_source(
 ) -> None:
     if source.strategy == "subfolders":
         _process_subfolders_source(source, data_dir, limit)
-    elif source.strategy == "git-wiki":
-        _process_git_wiki_source(source, data_dir, limit)
+    elif source.strategy == "catalog-file":
+        _process_catalog_file_source(source, data_dir, limit)
     else:
         logger.warning(
             "%s: strategy '%s' not yet supported — skipped",
