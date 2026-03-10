@@ -1,25 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Browse and search packages from popular C/C++ registries (vcpkg, Conan, clib) for use with dfetch." />
-  <title>DFetch:hub</title>
-
-  <!-- Favicon: dfetch dog SVG inline as data URI -->
-  <link rel="icon" type="image/x-icon" href="favicon.ico" />
-
-  <!-- Lato: body font used throughout the dfetch RTD site -->
-  <!-- Nunito: the rounded bold font used in the dfetch logo/header image -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;0,900;1,400&family=Nunito:wght@700;800;900&family=Roboto+Mono:wght@400;500&family=Poiret+One&display=swap" rel="stylesheet" />
-
-  <!-- Markdown rendering + sanitisation -->
-  <script src="https://cdn.jsdelivr.net/npm/marked@15/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
-  <script>marked.use({gfm:true,breaks:false});</script>
-
-  <style>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description"
+          content="Browse and search packages from popular C/C++ registries (vcpkg, Conan, clib) for use with dfetch." />
+    <title>DFetch:hub</title>
+    <!-- Favicon: dfetch dog SVG inline as data URI -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <!-- Lato: body font used throughout the dfetch RTD site -->
+    <!-- Nunito: the rounded bold font used in the dfetch logo/header image -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,400;0,700;0,900;1,400&family=Nunito:wght@700;800;900&family=Roboto+Mono:wght@400;500&family=Poiret+One&display=swap"
+          rel="stylesheet" />
+    <!-- Markdown rendering + sanitisation -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@15/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+    <script>marked.use({gfm:true,breaks:false});</script>
+    <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
       /* dfetch / sphinx-rtd-theme palette */
@@ -379,191 +377,326 @@
     .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:var(--nav);color:#fff;padding:.55rem .95rem;border-radius:var(--r);font-size:.875rem;border-left:3px solid var(--accent);box-shadow:0 3px 14px rgba(0,0,0,.18);z-index:9999;transform:translateY(6px);opacity:0;transition:opacity .2s,transform .2s;pointer-events:none}
     .toast.show{opacity:1;transform:translateY(0)}
 
+    h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit;margin:0;padding:0}
     @media(max-width:900px){.pkg-body{grid-template-columns:1fr}.res-side{display:none}}
     @media(max-width:600px){.nsearch{display:none}.hero{padding:2rem 1rem}.res-body{padding:1rem}.topbar{display:none}}
-  </style>
-</head>
-<body>
-
-<header class="site-hdr">
-<div class="topbar">
-  <a class="topbar-link" href="https://github.com/dfetch-org/dfetch-hub" target="_blank" rel="noopener">
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
-    Repository
-  </a>
-  <a class="topbar-link" href="https://dfetch.rtfd.io" target="_blank" rel="noopener">
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h11A1.5 1.5 0 0 1 15 2.5v8A1.5 1.5 0 0 1 13.5 12H9.09l.644 1.542A.5.5 0 0 1 9.25 14.5H6.75a.5.5 0 0 1-.484-.958L6.91 12H2.5A1.5 1.5 0 0 1 1 10.5v-8z"/></svg>
-    Documentation
-  </a>
-  <a class="topbar-link" href="https://github.com/dfetch-org/dfetch" target="_blank" rel="noopener">
-    <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zM4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H4.5z"/></svg>
-    dfetch
-  </a>
-</div>
-<nav class="navbar">
-  <a class="brand" href="#" onclick="showHome();return false">
-    <img class="brand-logo" src="dfetch_logo_only.png" alt="dfetch dog logo" width="1189" height="1196" />
-    <span>DFetch:hub</span>
-  </a>
-  <div class="nsearch" id="nsearch">
-    <span class="nsearch-ico">⌕</span>
-    <input id="nInput" type="search" placeholder="Search components…" autocomplete="off"
-      oninput="onNInput(this.value)" onkeydown="onNKey(event)"
-      onfocus="openAC()" onblur="setTimeout(closeAC,180)" />
-    <span class="nsearch-kbd">/</span>
-    <div class="acdrop" id="acdrop"></div>
-  </div>
-  <div class="nav-actions">
-    <button class="btn-mf" onclick="openModal()">⊕ Manifest <span class="mf-cnt" id="mfcnt">0</span></button>
-  </div>
-</nav>
-</header>
-
-<!-- HOME -->
-<div class="view active" id="page-home">
-  <div class="hero">
-    <div class="hero-inner">
-      <div class="hero-dogrow">
-        <img class="hero-dog" src="dfetch_logo_only.png" alt="dfetch — the fetching dog" width="1189" height="1196" />
-        <div class="hero-textblock">
-          <div class="hero-title">DFetch:hub</div>
-          <p class="hero-sub">Search &amp; compose <code style="color:var(--accent);background:rgba(0,0,0,.3);padding:.1em .4em;border-radius:3px;font-family:var(--mono)">dfetch.yaml</code> manifests</p>
+    </style>
+  </head>
+  <body>
+    <header class="site-hdr">
+      <nav class="topbar" aria-label="External links">
+        <a class="topbar-link"
+           href="https://github.com/dfetch-org/dfetch-hub"
+           target="_blank"
+           rel="noopener">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+          </svg>
+          Repository
+        </a>
+        <a class="topbar-link"
+           href="https://dfetch.rtfd.io"
+           target="_blank"
+           rel="noopener">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M1 2.5A1.5 1.5 0 0 1 2.5 1h11A1.5 1.5 0 0 1 15 2.5v8A1.5 1.5 0 0 1 13.5 12H9.09l.644 1.542A.5.5 0 0 1 9.25 14.5H6.75a.5.5 0 0 1-.484-.958L6.91 12H2.5A1.5 1.5 0 0 1 1 10.5v-8z" />
+          </svg>
+          Documentation
+        </a>
+        <a class="topbar-link"
+           href="https://github.com/dfetch-org/dfetch"
+           target="_blank"
+           rel="noopener">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zM4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H4.5z" />
+          </svg>
+          dfetch
+        </a>
+      </nav>
+      <nav class="navbar" aria-label="Main navigation">
+        <a class="brand" href="#" onclick="showHome();return false">
+          <img class="brand-logo"
+               src="dfetch_logo_only.png"
+               alt="dfetch dog logo"
+               width="1189"
+               height="1196" />
+          <span>DFetch:hub</span>
+        </a>
+        <div class="nsearch" id="nsearch">
+          <span class="nsearch-ico">⌕</span>
+          <input id="nInput"
+                 type="search"
+                 placeholder="Search components…"
+                 autocomplete="off"
+                 aria-label="Search packages"
+                 oninput="onNInput(this.value)"
+                 onkeydown="onNKey(event)"
+                 onfocus="openAC()"
+                 onblur="setTimeout(closeAC,180)" />
+          <span class="nsearch-kbd">/</span>
+          <div class="acdrop" id="acdrop"></div>
         </div>
-      </div>
-      <div class="hero-search">
-        <span class="hero-search-ico">⌕</span>
-        <input id="hInput" type="search" placeholder="Search packages, e.g. mbedtls, zlib, openssl…"
-          autocomplete="off" oninput="onHInput(this.value)" onkeydown="onHKey(event)"
-          onfocus="openHAC()" onblur="setTimeout(closeHAC,180)" />
-        <div class="acdrop" id="hacdrop"></div>
-      </div>
-      <div class="hero-stats">
-        <div class="hstat"><strong id="sCmp">0</strong> components</div>
-        <div class="hstat"><strong id="sReg">0</strong> registries</div>
-        <div class="hstat"><strong id="sLbl">0</strong> labels</div>
-      </div>
-    </div>
-  </div>
-  <div class="hero-bottom-text">
-    <p>Start typing to explore packages. The manifest you create can be used with <a href="https://dfetch.rtfd.io" target="_blank" rel="noopener">dfetch</a>.</p>
-  </div>
-</div>
-
-<!-- RESULTS -->
-<div class="view" id="page-results">
-  <div class="res-header">
-    <span class="res-count" id="rcount">Showing <strong>0</strong> packages</span>
-    <div class="fchips" id="fchips"></div>
-    <select class="sort-sel" id="pageSzSel" onchange="onPageSizeChange(this.value)">
-      <option value="25">25 / page</option>
-      <option value="50" selected>50 / page</option>
-      <option value="100">100 / page</option>
-      <option value="200">200 / page</option>
-    </select>
-    <select class="sort-sel" id="sortSel" onchange="applySort()">
-      <option value="relevance">Relevance</option>
-      <option value="stars">Most stars</option>
-      <option value="updated">Recently updated</option>
-      <option value="name">Name A-Z</option>
-    </select>
-  </div>
-  <div class="res-body">
-    <aside class="res-side">
-      <div class="sg"><div class="sg-title">Registry</div><div id="sideLabels"></div></div>
-      <div class="sg"><div class="sg-title">VCS Type</div><div id="sideSrcs"></div></div>
-      <div class="sg"><div class="sg-title">License</div><div id="sideLics"></div></div>
-    </aside>
-    <main class="res-main">
-      <div id="rlist"></div>
-      <div class="no-res" id="noRes" style="display:none"><div class="no-res-ico">🔍</div><p><strong>No packages found</strong></p><p style="font-size:.86rem">Try different keywords or clear filters.</p></div>
-      <div class="pagination" id="pagination"></div>
-    </main>
-  </div>
-</div>
-
-<!-- DETAIL -->
-<div class="view" id="page-detail">
-  <div class="pkg-hdr">
-    <div class="pkg-hdr-inner">
-      <div class="pkg-bc"><a href="#" onclick="showResults();return false">← Back to results</a></div>
-      <div class="pkg-trow">
-        <div>
-          <span class="pkg-ttitle" id="dName"></span>
-          <span class="pkg-tver" id="dVer"></span>
-        </div>
-        <div class="pkg-tbadges" id="dBadges"></div>
-      </div>
-      <div class="pkg-tdesc" id="dDesc"></div>
-      <div class="pkg-tmeta" id="dMeta"></div>
-    </div>
-  </div>
-  <div class="tabs-bar">
-    <div class="tabs-inner">
-      <button class="tabbtn active" onclick="switchTab('readme')">README</button>
-      <button class="tabbtn" onclick="switchTab('versions')">Versions</button>
-    </div>
-  </div>
-  <div class="pkg-body">
-    <div class="pkg-cnt">
-      <div class="tabcontent active" id="tab-readme">
-        <div class="readme-wrap" id="readmeBody"></div>
-      </div>
-      <div class="tabcontent" id="tab-versions">
-        <table class="vtable"><thead><tr><th>Ref</th><th>Type</th><th>SHA</th><th>Date</th></tr></thead>
-        <tbody id="vtbody"></tbody></table>
-      </div>
-    </div>
-    <aside>
-      <div class="action-card">
-        <button class="btn-add add" id="btnAdd" onclick="toggleMf()">＋ Add to manifest</button>
-        <div id="selVerInfo" class="ver-pill" style="display:none">
-          <span class="ver-pill-lbl">Version</span>
-          <span class="vsn" id="selVerName"></span>
-          <span class="ver-pill-kind" id="selVerKind"></span>
-        </div>
-      </div>
-      <div class="snip-card" id="snipCard">
-        <div class="snip-card-hdr" onclick="toggleSnip()">
-          <span class="snip-card-ico">{ }</span>
-          <span class="snip-card-title">dfetch.yaml snippet</span>
-          <button class="snip-hdr-copy" onclick="event.stopPropagation();copySnip()" title="Copy snippet">
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="4" width="9" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M3 11.5H2.5A1.5 1.5 0 0 1 1 10V3A1.5 1.5 0 0 1 2.5 1.5h7A1.5 1.5 0 0 1 11 3v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <div class="nav-actions">
+          <button class="btn-mf"
+                  onclick="openModal()"
+                  aria-label="Open manifest builder">
+            ⊕ Manifest <span class="mf-cnt" id="mfcnt" aria-hidden="true">0</span>
           </button>
-          <span class="snip-chevron">▾</span>
         </div>
-        <div class="snip-panel" id="snipPanel" style="display:none">
-          <div class="snip-code" id="dSnip"></div>
+      </nav>
+    </header>
+    <main id="main-content">
+      <!-- HOME -->
+      <div class="view active" id="page-home">
+        <section class="hero">
+          <div class="hero-inner">
+            <div class="hero-dogrow">
+              <img class="hero-dog"
+                   src="dfetch_logo_only.png"
+                   alt="dfetch — the fetching dog"
+                   width="1189"
+                   height="1196" />
+              <div class="hero-textblock">
+                <h1 class="hero-title">DFetch:hub</h1>
+                <p class="hero-sub">
+                  Search &amp; compose <code style="color:var(--accent);
+              background:rgba(0,0,0,.3);
+              padding:.1em .4em;
+              border-radius:3px;
+              font-family:var(--mono)">dfetch.yaml</code> manifests
+                </p>
+              </div>
+            </div>
+            <div class="hero-search">
+              <span class="hero-search-ico">⌕</span>
+              <input id="hInput"
+                     type="search"
+                     placeholder="Search packages, e.g. mbedtls, zlib, openssl…"
+                     autocomplete="off"
+                     aria-label="Search packages"
+                     oninput="onHInput(this.value)"
+                     onkeydown="onHKey(event)"
+                     onfocus="openHAC()"
+                     onblur="setTimeout(closeHAC,180)" />
+              <div class="acdrop" id="hacdrop"></div>
+            </div>
+            <div class="hero-stats">
+              <div class="hstat">
+                <strong id="sCmp">0</strong> components
+              </div>
+              <div class="hstat">
+                <strong id="sReg">0</strong> registries
+              </div>
+              <div class="hstat">
+                <strong id="sLbl">0</strong> labels
+              </div>
+            </div>
+          </div>
+        </section>
+        <div class="hero-bottom-text">
+          <p>
+            Start typing to explore packages. The manifest you create can be used with <a href="https://dfetch.rtfd.io" target="_blank" rel="noopener">dfetch</a>.
+          </p>
         </div>
       </div>
-      <div class="aside-card"><div class="aside-t">Links</div><div id="aLinks"></div></div>
-      <div class="aside-card"><div class="aside-t">Details</div><div id="aDets"></div></div>
-      <div class="aside-card"><div class="aside-t">Found in</div><div class="aside-sources" id="aSrcs"></div></div>
-    </aside>
-  </div>
-</div>
-
-<!-- MANIFEST MODAL -->
-<div class="modal-ov" id="mfModal" onclick="if(event.target===this)closeModal()">
-  <div class="modal">
-    <div class="modal-hdr">
-      <div class="modal-title">dfetch.yaml manifest builder</div>
-      <button class="modal-close" onclick="closeModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="mf-empty" id="mfEmpty"><p>No components selected yet.</p><p style="font-size:.84rem;margin-top:.3rem">Browse and click <strong>Add to manifest</strong>.</p></div>
-      <div class="msel-list" id="mselList"></div>
-      <div class="mf-code" id="mfCode" style="display:none"></div>
-    </div>
-    <div class="modal-foot">
-      <span class="modal-fi" id="mfInfo"></span>
-      <button class="btn-dl-mf" onclick="dlMf()">⬇ Download</button>
-      <button class="btn-copy-mf" onclick="copyMf()">Copy YAML</button>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-<script>
+      <!-- RESULTS -->
+      <div class="view" id="page-results">
+        <div class="res-header">
+          <span class="res-count" id="rcount" aria-live="polite" aria-atomic="true">Showing <strong>0</strong> packages</span>
+          <div class="fchips" id="fchips"></div>
+          <select class="sort-sel"
+                  id="pageSzSel"
+                  aria-label="Results per page"
+                  onchange="onPageSizeChange(this.value)">
+            <option value="25">25 / page</option>
+            <option value="50" selected>50 / page</option>
+            <option value="100">100 / page</option>
+            <option value="200">200 / page</option>
+          </select>
+          <select class="sort-sel"
+                  id="sortSel"
+                  aria-label="Sort order"
+                  onchange="applySort()">
+            <option value="relevance">Relevance</option>
+            <option value="stars">Most stars</option>
+            <option value="updated">Recently updated</option>
+            <option value="name">Name A-Z</option>
+          </select>
+        </div>
+        <div class="res-body">
+          <aside class="res-side" aria-label="Filter by">
+            <div class="sg">
+              <h2 class="sg-title">Registry</h2>
+              <div id="sideLabels"></div>
+            </div>
+            <div class="sg">
+              <h2 class="sg-title">VCS Type</h2>
+              <div id="sideSrcs"></div>
+            </div>
+            <div class="sg">
+              <h2 class="sg-title">License</h2>
+              <div id="sideLics"></div>
+            </div>
+          </aside>
+          <section class="res-main" aria-label="Package results">
+            <div id="rlist"></div>
+            <div class="no-res" id="noRes" style="display:none">
+              <div class="no-res-ico">🔍</div>
+              <p>
+                <strong>No packages found</strong>
+              </p>
+              <p style="font-size:.86rem">Try different keywords or clear filters.</p>
+            </div>
+            <div class="pagination" id="pagination"></div>
+          </section>
+        </div>
+      </div>
+      <!-- DETAIL -->
+      <div class="view" id="page-detail">
+        <div class="pkg-hdr">
+          <div class="pkg-hdr-inner">
+            <nav class="pkg-bc" aria-label="Breadcrumb">
+              <a href="#" onclick="showResults();return false">← Back to results</a>
+            </nav>
+            <div class="pkg-trow">
+              <div>
+                <h1 class="pkg-ttitle" id="dName"></h1>
+                <span class="pkg-tver" id="dVer"></span>
+              </div>
+              <div class="pkg-tbadges" id="dBadges"></div>
+            </div>
+            <div class="pkg-tdesc" id="dDesc"></div>
+            <div class="pkg-tmeta" id="dMeta"></div>
+          </div>
+        </div>
+        <div class="tabs-bar">
+          <div class="tabs-inner" role="tablist" aria-label="Package information">
+            <button class="tabbtn active"
+                    role="tab"
+                    id="tab-btn-readme"
+                    aria-selected="true"
+                    aria-controls="tab-readme"
+                    onclick="switchTab('readme')">README</button>
+            <button class="tabbtn"
+                    role="tab"
+                    id="tab-btn-versions"
+                    aria-selected="false"
+                    aria-controls="tab-versions"
+                    onclick="switchTab('versions')">Versions</button>
+          </div>
+        </div>
+        <div class="pkg-body">
+          <div class="pkg-cnt">
+            <div class="tabcontent active"
+                 id="tab-readme"
+                 role="tabpanel"
+                 aria-labelledby="tab-btn-readme">
+              <div class="readme-wrap" id="readmeBody"></div>
+            </div>
+            <div class="tabcontent"
+                 id="tab-versions"
+                 role="tabpanel"
+                 aria-labelledby="tab-btn-versions">
+              <table class="vtable">
+                <thead>
+                  <tr>
+                    <th>Ref</th>
+                    <th>Type</th>
+                    <th>SHA</th>
+                    <th>Date</th>
+                  </tr>
+                </thead>
+                <tbody id="vtbody">
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <aside>
+            <div class="action-card">
+              <button class="btn-add add" id="btnAdd" onclick="toggleMf()">＋ Add to manifest</button>
+              <div id="selVerInfo" class="ver-pill" style="display:none">
+                <span class="ver-pill-lbl">Version</span>
+                <span class="vsn" id="selVerName"></span>
+                <span class="ver-pill-kind" id="selVerKind"></span>
+              </div>
+            </div>
+            <div class="snip-card" id="snipCard">
+              <div class="snip-card-hdr"
+                   role="button"
+                   tabindex="0"
+                   aria-expanded="false"
+                   aria-controls="snipPanel"
+                   onclick="toggleSnip()"
+                   onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSnip()}">
+                <span class="snip-card-ico">{ }</span>
+                <span class="snip-card-title">dfetch.yaml snippet</span>
+                <button class="snip-hdr-copy"
+                        onclick="event.stopPropagation();copySnip()"
+                        aria-label="Copy snippet">
+                  <svg width="12"
+                       height="12"
+                       viewBox="0 0 16 16"
+                       fill="none"
+                       xmlns="http://www.w3.org/2000/svg">
+                    <rect x="5" y="4" width="9" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5" />
+                    <path d="M3 11.5H2.5A1.5 1.5 0 0 1 1 10V3A1.5 1.5 0 0 1 2.5 1.5h7A1.5 1.5 0 0 1 11 3v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                  </svg>
+                </button>
+                <span class="snip-chevron" aria-hidden="true">▾</span>
+              </div>
+              <div class="snip-panel" id="snipPanel" style="display:none">
+                <div class="snip-code" id="dSnip"></div>
+              </div>
+            </div>
+            <div class="aside-card">
+              <h2 class="aside-t">Links</h2>
+              <div id="aLinks"></div>
+            </div>
+            <div class="aside-card">
+              <h2 class="aside-t">Details</h2>
+              <div id="aDets"></div>
+            </div>
+            <div class="aside-card">
+              <h2 class="aside-t">Found in</h2>
+              <div class="aside-sources" id="aSrcs"></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+      <!-- MANIFEST MODAL -->
+      <div class="modal-ov"
+           id="mfModal"
+           role="dialog"
+           aria-modal="true"
+           aria-labelledby="mfModalTitle"
+           onclick="if(event.target===this)closeModal()">
+        <div class="modal">
+          <div class="modal-hdr">
+            <div class="modal-title" id="mfModalTitle">dfetch.yaml manifest builder</div>
+            <button class="modal-close"
+                    onclick="closeModal()"
+                    aria-label="Close manifest builder">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="mf-empty" id="mfEmpty">
+              <p>No components selected yet.</p>
+              <p style="font-size:.84rem;margin-top:.3rem">
+                Browse and click <strong>Add to manifest</strong>.
+              </p>
+            </div>
+            <div class="msel-list" id="mselList"></div>
+            <div class="mf-code" id="mfCode" style="display:none"></div>
+          </div>
+          <div class="modal-foot">
+            <span class="modal-fi" id="mfInfo"></span>
+            <button class="btn-dl-mf" onclick="dlMf()">⬇ Download</button>
+            <button class="btn-copy-mf" onclick="copyMf()">Copy YAML</button>
+          </div>
+        </div>
+      </div>
+    </main>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script>
 'use strict';
 let RAW = {};       // catalog data
 let ALL = [];       // this fixes the ReferenceError
@@ -887,7 +1020,7 @@ function renderDetail(c){
   // Reset snippet panel to collapsed
   const snipPanel=document.getElementById('snipPanel');const snipCard=document.getElementById('snipCard');
   if(snipPanel)snipPanel.style.display='none';
-  if(snipCard)snipCard.classList.remove('open');
+  if(snipCard){snipCard.classList.remove('open');const snipHdr=snipCard.querySelector('.snip-card-hdr');if(snipHdr)snipHdr.setAttribute('aria-expanded','false');}
   updAddBtn();updSelVerInfo();switchTab('readme');
 }
 function selectVersion(i){
@@ -957,7 +1090,7 @@ function toggleTreeGroup(hdr){
   while(sib&&sib.classList.contains('vtree-item')){sib.style.display=open?'none':'';sib=sib.nextElementSibling;}
 }
 function switchTab(name){
-  document.querySelectorAll('.tabbtn').forEach((b,i)=>{const ns=['readme','versions'];b.classList.toggle('active',ns[i]===name)});
+  document.querySelectorAll('.tabbtn').forEach((b,i)=>{const ns=['readme','versions'];const on=ns[i]===name;b.classList.toggle('active',on);b.setAttribute('aria-selected',String(on))});
   document.querySelectorAll('.tabcontent').forEach(el=>el.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
 }
@@ -967,6 +1100,8 @@ function toggleSnip(){
   const open=panel.style.display!=='none';
   panel.style.display=open?'none':'';
   card.classList.toggle('open',!open);
+  const hdr=card.querySelector('.snip-card-hdr');
+  if(hdr)hdr.setAttribute('aria-expanded',String(!open));
 }
 
 function toggleMf(){
@@ -1036,8 +1171,10 @@ function dlMf(){
   setTimeout(()=>URL.revokeObjectURL(url),10000);
 }
 
-
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+{{ /* djlint:off */ }}
+const _ESC={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
+{{ /* djlint:on */ }}
+function esc(s){return String(s||'').replace(/[&<>"']/g,c=>_ESC[c]||c)}
 function yamlQ(s){return"'"+String(s||'').replace(/'/g,"''")+"'"}
 function slug(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'')}
 function fmt(n){if(n>=1000)return(n/1000).toFixed(1)+'k';return String(n)}
@@ -1046,6 +1183,6 @@ function ltag(c){const tags=(c.tags||[]).filter(t=>t.name);if(!tags.length)retur
 function relt(iso){if(!iso)return'';const d=new Date(iso);const diff=Date.now()-d.getTime();const days=Math.floor(diff/86400000);if(days<1)return'today';if(days<7)return`${days}d ago`;if(days<30)return`${Math.floor(days/7)}w ago`;if(days<365)return`${Math.floor(days/30)}mo ago`;return`${Math.floor(days/365)}y ago`}
 function cpTxt(t){if(navigator.clipboard)return navigator.clipboard.writeText(t);return new Promise((res,rej)=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{const ok=document.execCommand('copy');ok?res():rej(new Error('execCommand copy returned false'))}catch(e){rej(e)}finally{ta.remove()}})}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200)}
-</script>
-</body>
+    </script>
+  </body>
 </html>
