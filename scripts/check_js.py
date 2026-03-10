@@ -16,6 +16,10 @@ from __future__ import annotations
 import sys
 from html.parser import HTMLParser
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from py_mini_racer import MiniRacer  # type: ignore[import-untyped]
 
 # ---------------------------------------------------------------------------
 # V8 syntax-check bootstrap
@@ -46,6 +50,7 @@ class _ScriptExtractor(HTMLParser):
         """Initialise parser state."""
         super().__init__()
         self._in_script: bool = False
+        self._start_line: int = 0
         self._buf: list[str] = []
         self.blocks: list[tuple[int, str]] = []  # (start_line, js_text)
 
@@ -55,12 +60,13 @@ class _ScriptExtractor(HTMLParser):
             attr_dict = dict(attrs)
             if "src" not in attr_dict:
                 self._in_script = True
+                self._start_line = self.getpos()[0]
                 self._buf = []
 
     def handle_endtag(self, tag: str) -> None:
         """Save accumulated text when a ``<script>`` element closes."""
         if tag == "script" and self._in_script:
-            self.blocks.append((self.getpos()[0], "".join(self._buf)))
+            self.blocks.append((self._start_line, "".join(self._buf)))
             self._in_script = False
 
     def handle_data(self, data: str) -> None:
@@ -74,7 +80,7 @@ class _ScriptExtractor(HTMLParser):
 # ---------------------------------------------------------------------------
 
 
-def _make_ctx() -> object:
+def _make_ctx() -> MiniRacer:
     """Create and return a warm py-mini-racer context with the helper loaded.
 
     Returns:
