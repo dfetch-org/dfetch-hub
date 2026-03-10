@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/)
 
-A catalog browser and static-site generator for [dfetch](https://dfetch.nl) package registries.
+A catalog browser and static-site generator for [dfetch](https://dfetch-org.github.io/) package registries.
 Search, discover, and compose `dfetch.yaml` manifests from thousands of reusable components —
 regardless of language or build system.
 
@@ -12,10 +12,11 @@ regardless of language or build system.
 
 ## What problem does it solve?
 
-[dfetch](https://dfetch.nl) vendors source dependencies directly into your project by cloning
-Git repositories at a specific ref. It is deliberately language-agnostic: the same workflow
-handles C libraries, Rust crates, TypeScript packages, Kotlin modules, and anything else that
-lives in a Git repo.
+[dfetch](https://dfetch-org.github.io/) ([docs](https://dfetch.readthedocs.io/)) is a
+source-only, VCS-agnostic dependency aggregator. It vendors dependencies directly into your
+project by cloning Git (or SVN) repositories at a specific ref — no submodules, no subtrees.
+The same workflow handles C libraries, Rust crates, TypeScript packages, Kotlin modules, and
+anything else that lives in a repository.
 
 The missing piece is **discovery**. When you need a networking helper, a JSON parser, or a
 logging framework, where do you look? How do you find the canonical Git URL, pick the right
@@ -44,17 +45,24 @@ and copy the `dfetch.yaml` snippet that vendors it into your project.
 | **Catalog** | The normalized JSON database of all discovered components. |
 | **dfetch.yaml** | The project manifest consumed by dfetch to vendor dependencies into your codebase. |
 
-A component manifest in `dfetch.yaml` looks like this:
+A `dfetch.yaml` manifest looks like this:
 
 ```yaml
-dependencies:
-  network-utils:
-    git: https://github.com/user/network-utils.git
-    ref: v1.0.0
-  io-helpers:
-    git: https://github.com/org/io-helpers.git
-    ref: main
+manifest:
+  version: '0.0'
+  projects:
+    - name: network-utils
+      url: https://github.com/user/network-utils.git
+      tag: v1.0.0
+    - name: io-helpers
+      url: https://github.com/org/io-helpers.git
+      branch: main
 ```
+
+Key manifest attributes: `url`, `tag`, `branch`, `revision` (full SHA), `src` (partial
+checkout of a subfolder), `dst` (destination path), `ignore` (files to exclude).
+See the [dfetch manifest reference](https://dfetch.readthedocs.io/en/latest/manifest.html)
+for the full syntax.
 
 dfetch does not care whether the component is C, Rust, Java, or TypeScript — it clones the
 source tree. dfetch-hub supplies the metadata (Git URL, available tags, README, license) so
@@ -215,7 +223,7 @@ Git Repos (any language)
   (catalog.json + per-project detail files)
         │
         ▼
-  Static Web UI  ──▶  dfetch serve / dfetch-hub publish
+  Static Web UI  ──▶  dfetch-hub serve / dfetch-hub publish
         │
         ▼
   User selects a component and ref
