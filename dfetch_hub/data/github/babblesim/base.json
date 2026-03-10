@@ -1,0 +1,181 @@
+{
+  "canonical_url": "https://github.com/BabbleSim/base",
+  "org": "babblesim",
+  "repo": "base",
+  "subfolder_path": null,
+  "catalog_sources": [
+    {
+      "source_name": "zephyr-west",
+      "label": "zephyr",
+      "index_path": "zephyr-west/babblesim_base",
+      "registry_version": "f65b51253f401591b0b734905ddb52b8d554a7d1"
+    }
+  ],
+  "manifests": [],
+  "readme": "# babblesim_base\n\n\n\n## Installation\n\nAdd to your `dfetch.yaml`:\n\n```yaml\nprojects:\n  - name: ext/base\n    url: https://github.com/BabbleSim/base\n    tag: f65b51253f401591b0b734905ddb52b8d554a7d1\n```\n\n## Usage\n\nAfter running `dfetch update`, the library will be available at `ext/base/`.\n",
+  "tags": [
+    {
+      "name": "f65b51253f401591b0b734905ddb52b8d554a7d1",
+      "is_tag": true,
+      "commit_sha": null,
+      "date": null
+    },
+    {
+      "name": "2019_01_22",
+      "is_tag": true,
+      "commit_sha": "3be1ce86610b7c07d0d6bf04932b308b2f53b115",
+      "date": null
+    },
+    {
+      "name": "2020_05_06",
+      "is_tag": true,
+      "commit_sha": "fe01d1dd5fc76b003c7ede1e4941ba37f76c0ce8",
+      "date": null
+    },
+    {
+      "name": "v1.0",
+      "is_tag": true,
+      "commit_sha": "2b411be565be33719fb081cddf22c8978c40fc7f",
+      "date": null
+    },
+    {
+      "name": "v1.1",
+      "is_tag": true,
+      "commit_sha": "ac8a3f77ecb7ad74a52658ca0ccc79372517c08b",
+      "date": null
+    },
+    {
+      "name": "v1.10",
+      "is_tag": true,
+      "commit_sha": "5c1b5450da956d7295e0d7509a618e67a5ee43a2",
+      "date": null
+    },
+    {
+      "name": "v1.11",
+      "is_tag": true,
+      "commit_sha": "19d62424c0802c6c9fc15528febe666e40f372a1",
+      "date": null
+    },
+    {
+      "name": "v1.12",
+      "is_tag": true,
+      "commit_sha": "d77585bea5de4687cf68e4b5080135a4eb0fb232",
+      "date": null
+    },
+    {
+      "name": "v1.13",
+      "is_tag": true,
+      "commit_sha": "52abf99033c07e0afc73d777ad8ffd75389c8ee9",
+      "date": null
+    },
+    {
+      "name": "v1.14",
+      "is_tag": true,
+      "commit_sha": "4bd907be0b2abec3b31a23fd8ca98db2a07209d2",
+      "date": null
+    },
+    {
+      "name": "v1.14.1",
+      "is_tag": true,
+      "commit_sha": "a3dff9a57f334fb25daa9625841cd64cbfe56681",
+      "date": null
+    },
+    {
+      "name": "v1.14.2",
+      "is_tag": true,
+      "commit_sha": "0cc70e78a88c1de9d8ec045a703b38134861e7e7",
+      "date": null
+    },
+    {
+      "name": "v1.15",
+      "is_tag": true,
+      "commit_sha": "153101c61ce7106f6ba8b108b5c6488efdc1151a",
+      "date": null
+    },
+    {
+      "name": "v1.15.1",
+      "is_tag": true,
+      "commit_sha": "d562cd57317d33531ee3655d84660c57b8dc64c9",
+      "date": null
+    },
+    {
+      "name": "v1.15.2",
+      "is_tag": true,
+      "commit_sha": "2cfac3dca2071452ae481d115d8541880568753d",
+      "date": null
+    },
+    {
+      "name": "v1.15.3",
+      "is_tag": true,
+      "commit_sha": "f65b51253f401591b0b734905ddb52b8d554a7d1",
+      "date": null
+    },
+    {
+      "name": "v1.15.4",
+      "is_tag": true,
+      "commit_sha": "1cce925c72805cfdbb6341ca8c0755c7d42699d3",
+      "date": null
+    },
+    {
+      "name": "v1.2",
+      "is_tag": true,
+      "commit_sha": "f31596f1361652319788ba4e1e44ab82897cd487",
+      "date": null
+    },
+    {
+      "name": "v1.3",
+      "is_tag": true,
+      "commit_sha": "78fef5b52201384b4e99bf6c2d172bee3a588284",
+      "date": null
+    },
+    {
+      "name": "v1.4",
+      "is_tag": true,
+      "commit_sha": "fe01d1dd5fc76b003c7ede1e4941ba37f76c0ce8",
+      "date": null
+    },
+    {
+      "name": "v1.5",
+      "is_tag": true,
+      "commit_sha": "b6952fbd01549e8e005f0cda8a4561c36b8525a6",
+      "date": null
+    },
+    {
+      "name": "v1.6",
+      "is_tag": true,
+      "commit_sha": "3d2372b489e4244e71a6663acb1147f95270cfa4",
+      "date": null
+    },
+    {
+      "name": "v1.7",
+      "is_tag": true,
+      "commit_sha": "77f627d61b941b37eb7be42b4f92e75aa630b0ee",
+      "date": null
+    },
+    {
+      "name": "v1.8",
+      "is_tag": true,
+      "commit_sha": "61a8b6d09b00a246d694116ae6999b8a2895e8b6",
+      "date": null
+    },
+    {
+      "name": "v1.9",
+      "is_tag": true,
+      "commit_sha": "02838ca04c4562e68dc876196828d8121679e537",
+      "date": null
+    }
+  ],
+  "branches": [
+    {
+      "name": "main",
+      "is_tag": false,
+      "commit_sha": null,
+      "date": null
+    }
+  ],
+  "urls": {
+    "Repository": "https://github.com/BabbleSim/base"
+  },
+  "license_text": null,
+  "fetched_at": "2026-03-10T22:58:48.811183+00:00"
+}

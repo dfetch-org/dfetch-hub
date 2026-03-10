@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 from dfetch.log import get_logger
 
-from dfetch_hub.catalog.sources import BaseManifest, fetch_readme_for_homepage
+from dfetch_hub.catalog.sources import BaseManifest, fetch_changelog_for_homepage, fetch_readme_for_homepage
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -164,6 +164,7 @@ def parse_vcpkg_json(entry_dir: Path) -> VcpkgManifest | None:
         version=_extract_version(data),
         dependencies=_extract_dependencies(data),
         readme_content=fetch_readme_for_homepage(homepage),
+        changelog_content=fetch_changelog_for_homepage(homepage),
         urls=urls,
         in_project_repo=False,
     )

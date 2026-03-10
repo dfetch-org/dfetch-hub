@@ -839,5 +839,51 @@
       "ts-monorepo"
     ],
     "tags": []
+  },
+  "github/zephyrproject-rtos/acpica": {
+    "id": "github/zephyrproject-rtos/acpica",
+    "name": "acpica",
+    "description": "",
+    "url": "https://github.com/zephyrproject-rtos/acpica",
+    "source_type": "github",
+    "default_branch": "main",
+    "license": null,
+    "topics": [],
+    "stars": 0,
+    "last_updated": "2026-03-10T22:58:48.430175+00:00",
+    "source_labels": [
+      "zephyr"
+    ],
+    "tags": [
+      {
+        "name": "8d24867bc9c9d81c81eeac59391cda59333affd4",
+        "is_tag": true,
+        "commit_sha": null,
+        "date": null
+      }
+    ]
+  },
+  "github/babblesim/base": {
+    "id": "github/babblesim/base",
+    "name": "babblesim_base",
+    "description": "",
+    "url": "https://github.com/BabbleSim/base",
+    "source_type": "github",
+    "default_branch": "main",
+    "license": null,
+    "topics": [],
+    "stars": 0,
+    "last_updated": "2026-03-10T22:58:48.811092+00:00",
+    "source_labels": [
+      "zephyr"
+    ],
+    "tags": [
+      {
+        "name": "f65b51253f401591b0b734905ddb52b8d554a7d1",
+        "is_tag": true,
+        "commit_sha": null,
+        "date": null
+      }
+    ]
   }
 }

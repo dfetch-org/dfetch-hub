@@ -223,3 +223,40 @@ class TestParseReadmeDir:
             result = parse_readme_dir(pkg)
 
         assert result is None
+
+    def test_parses_changelog_md(self, tmp_path: Path) -> None:
+        """Parses a CHANGELOG.md file when present alongside README."""
+        pkg = tmp_path / "my-pkg"
+        pkg.mkdir()
+        (pkg / "README.md").write_text("# My Package\n\nA great package.", encoding="utf-8")
+        (pkg / "CHANGELOG.md").write_text("# Changelog\n\n## 1.0.0\n\n- Initial release", encoding="utf-8")
+
+        result = parse_readme_dir(pkg)
+
+        assert result is not None
+        assert result.readme_content is not None
+        assert result.changelog_content == "# Changelog\n\n## 1.0.0\n\n- Initial release"
+
+    @pytest.mark.parametrize("filename", ["CHANGELOG", "CHANGELOG.txt", "CHANGES.md", "HISTORY.md", "RELEASE_NOTES.md"])
+    def test_parses_changelog_variants(self, tmp_path: Path, filename: str) -> None:
+        """Recognises common CHANGELOG filename variants."""
+        pkg = tmp_path / "pkg"
+        pkg.mkdir()
+        (pkg / "README.md").write_text("# Package\n\nDescription.", encoding="utf-8")
+        (pkg / filename).write_text("# Changes\n\n## 1.0\n\n- stuff", encoding="utf-8")
+
+        result = parse_readme_dir(pkg)
+
+        assert result is not None
+        assert result.changelog_content == "# Changes\n\n## 1.0\n\n- stuff"
+
+    def test_changelog_is_none_when_not_present(self, tmp_path: Path) -> None:
+        """changelog_content is None when no CHANGELOG file exists."""
+        pkg = tmp_path / "pkg"
+        pkg.mkdir()
+        (pkg / "README.md").write_text("# Package\n\nDescription.", encoding="utf-8")
+
+        result = parse_readme_dir(pkg)
+
+        assert result is not None
+        assert result.changelog_content is None

@@ -139,9 +139,19 @@ class CatalogDetail:  # pylint: disable=too-many-instance-attributes
         """Set the license text."""
         self.package_content.license_text = value
 
+    @property
+    def changelog(self) -> str | None:
+        """Return the changelog content."""
+        return self.package_content.changelog
+
+    @changelog.setter
+    def changelog(self, value: str | None) -> None:
+        """Set the changelog content."""
+        self.package_content.changelog = value
+
     def to_dict(self) -> dict[str, Any]:
         """Return a dict representation of this CatalogDetail."""
-        return {
+        result = {
             "canonical_url": self.canonical_url,
             "org": self.location.org,
             "repo": self.location.repo,
@@ -155,6 +165,9 @@ class CatalogDetail:  # pylint: disable=too-many-instance-attributes
             "license_text": self.package_content.license_text,
             "fetched_at": self.fetched_at,
         }
+        if self.package_content.changelog:
+            result["changelog"] = self.package_content.changelog
+        return result
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> CatalogDetail:
@@ -173,6 +186,7 @@ class CatalogDetail:  # pylint: disable=too-many-instance-attributes
             package_content=PackageContent(
                 readme=data.get("readme", ""),
                 license_text=data.get("license_text"),
+                changelog=data.get("changelog"),
             ),
             urls=dict(data.get("urls", {})),
             fetch_metadata=FetchMetadata.from_dict(data),
@@ -190,6 +204,7 @@ class CatalogDetail:  # pylint: disable=too-many-instance-attributes
     ) -> CatalogDetail:
         """Create a CatalogDetail from a manifest."""
         readme_content = getattr(manifest, "readme_content", None)
+        changelog_content = getattr(manifest, "changelog_content", None)
         detail = cls(
             canonical_url=manifest.homepage or "",
             location=VCSLocation(host="", org=org, repo=repo, subpath=manifest.subpath),
@@ -197,7 +212,8 @@ class CatalogDetail:  # pylint: disable=too-many-instance-attributes
             manifests=[],
             git_refs=GitRefs(branches=[Tag(name="main", is_tag=False)]),
             package_content=PackageContent(
-                readme=readme_content or cls.generate_readme(manifest, repo, manifest.homepage or "")
+                readme=readme_content or cls.generate_readme(manifest, repo, manifest.homepage or ""),
+                changelog=changelog_content,
             ),
             urls={},
             fetch_metadata=FetchMetadata(fetched_at=datetime.now(UTC).isoformat()),
@@ -338,6 +354,10 @@ class CatalogDetail:  # pylint: disable=too-many-instance-attributes
             self.readme = readme_content
         elif not self.readme:
             self.readme = self.generate_readme(manifest, repo, manifest.homepage or "")
+
+        changelog_content = getattr(manifest, "changelog_content", None)
+        if changelog_content:
+            self.changelog = changelog_content
 
         self.urls.update(getattr(manifest, "urls", {}))
 

@@ -9,6 +9,12 @@
       "label": "clib",
       "index_path": "clib/clibs/buffer",
       "registry_version": "0.4.0"
+    },
+    {
+      "source_name": "clib",
+      "label": "clib",
+      "index_path": "clib/github.com/clibs/buffer",
+      "registry_version": "0.4.0"
     }
   ],
   "manifests": [],
@@ -53,6 +59,9 @@
       "date": null
     }
   ],
+  "urls": {
+    "Repository": "https://github.com/clibs/buffer"
+  },
   "license_text": null,
   "fetched_at": "2026-03-01T07:03:49.405128+00:00"
 }

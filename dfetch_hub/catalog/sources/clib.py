@@ -12,6 +12,7 @@ from dfetch.log import get_logger
 from dfetch_hub.catalog.sources import (
     RAW_BRANCHES,
     BaseManifest,
+    fetch_changelog,
     fetch_raw,
     fetch_readme,
     parse_vcs_slug,
@@ -178,6 +179,7 @@ def _build_package(  # pylint: disable=too-many-locals
         version=version_val,
         keywords=keywords,
         readme_content=fetch_readme(owner, repo) if is_github else None,
+        changelog_content=fetch_changelog(owner, repo) if is_github else None,
         urls=_build_urls(vcs_url, canonical_url),
         in_project_repo=is_github,
     )

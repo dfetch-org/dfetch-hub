@@ -58,6 +58,7 @@ class PackageContent:
 
     readme: str = ""
     license_text: str | None = None
+    changelog: str | None = None
 
 
 @dataclass

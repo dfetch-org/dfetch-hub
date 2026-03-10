@@ -152,6 +152,65 @@ def fetch_readme_for_homepage(homepage: str | None) -> str | None:
     return fetch_readme(owner, repo)
 
 
+_CHANGELOG_NAMES = (
+    "CHANGELOG.md",
+    "CHANGELOG",
+    "CHANGELOG.txt",
+    "CHANGES.md",
+    "CHANGES",
+    "CHANGES.txt",
+    "HISTORY.md",
+    "HISTORY",
+    "RELEASE_NOTES.md",
+    "RELEASE_NOTES",
+)
+
+
+def fetch_changelog(owner: str, repo: str) -> str | None:
+    """Fetch the CHANGELOG from a GitHub repository.
+
+    Tries ``main`` then ``master`` branch, and several common CHANGELOG filenames.
+
+    Args:
+        owner: GitHub organisation or username.
+        repo:  Repository name.
+
+    Returns:
+        The raw CHANGELOG text on success, or ``None`` if nothing is found.
+
+    """
+    for branch in RAW_BRANCHES:
+        for name in _CHANGELOG_NAMES:
+            content = fetch_raw(raw_url(owner, repo, branch, name))
+            if content is not None:
+                logger.debug("Fetched %s for %s/%s from %s", name, owner, repo, branch)
+                return content
+    return None
+
+
+def fetch_changelog_for_homepage(homepage: str | None) -> str | None:
+    """Fetch the CHANGELOG for a package given its homepage URL.
+
+    Extracts the VCS host/owner/repo from *homepage* and delegates to
+    :func:`fetch_changelog` when the host is ``github.com``.  Returns ``None``
+    for ``None`` input, non-VCS URLs, or non-GitHub hosts.
+
+    Args:
+        homepage: Upstream project URL (may be ``None`` or a non-GitHub URL).
+
+    Returns:
+        The raw CHANGELOG text on success, or ``None``.
+
+    """
+    if not homepage:
+        return None
+    parsed = parse_vcs_slug(homepage)
+    if parsed is None or parsed[0] != "github.com":
+        return None
+    _, owner, repo = parsed
+    return fetch_changelog(owner, repo)
+
+
 # ---------------------------------------------------------------------------
 # Base data model
 # ---------------------------------------------------------------------------
@@ -169,6 +228,7 @@ class BaseManifest:  # pylint: disable=too-many-instance-attributes
         license:             SPDX license expression, or ``None`` if unspecified.
         version:             Latest version string, or ``None`` if unavailable.
         readme_content:      Raw README text fetched from the upstream repo, or ``None``.
+        changelog_content:   Raw CHANGELOG text fetched from the upstream repo, or ``None``.
         urls:                Named URLs for the package (e.g. ``{"Homepage": "...",
                              "Source": "..."``).  Modelled on ``[project.urls]`` in
                              ``pyproject.toml``.  Parsers populate this with every URL
@@ -197,6 +257,7 @@ class BaseManifest:  # pylint: disable=too-many-instance-attributes
     license: str | None
     version: str | None
     readme_content: str | None = None
+    changelog_content: str | None = None
     urls: dict[str, str] = field(default_factory=dict)
     subpath: str | None = None
     in_project_repo: bool = False
