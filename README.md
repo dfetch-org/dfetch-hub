@@ -8,6 +8,8 @@ A catalog browser and static-site generator for [dfetch](https://dfetch-org.gith
 Search, discover, and compose `dfetch.yaml` manifests from thousands of reusable components —
 regardless of language or build system.
 
+[Demo](https://dfetch-org.github.io/dfetch-hub/)
+
 ---
 
 ## What problem does it solve?
