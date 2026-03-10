@@ -23,10 +23,6 @@ from __future__ import annotations
 import sys
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    pass
 
 # ---------------------------------------------------------------------------
 # HTML extraction
@@ -40,6 +36,7 @@ class _StyleExtractor(HTMLParser):
         """Initialise parser state."""
         super().__init__()
         self._in_style: bool = False
+        self._start_line: int = 0
         self._buf: list[str] = []
         self.blocks: list[tuple[int, str]] = []  # (start_line, css_text)
 
@@ -47,12 +44,13 @@ class _StyleExtractor(HTMLParser):
         """Enter a ``<style>`` element."""
         if tag == "style":
             self._in_style = True
+            self._start_line = self.getpos()[0]
             self._buf = []
 
     def handle_endtag(self, tag: str) -> None:
         """Save accumulated text when a ``<style>`` element closes."""
         if tag == "style" and self._in_style:
-            self.blocks.append((self.getpos()[0], "".join(self._buf)))
+            self.blocks.append((self._start_line, "".join(self._buf)))
             self._in_style = False
 
     def handle_data(self, data: str) -> None:
@@ -125,7 +123,7 @@ def _validate_block(css_text: str, start_line: int, block_num: int) -> list[str]
             messages.extend(_check_declarations(rule.content, start_line, block_num))  # type: ignore[union-attr]
         elif rule.type == "at-rule" and rule.content is not None:  # type: ignore[union-attr]
             # Recurse into @media, @supports, etc.
-            inner = tinycss2.parse_stylesheet(rule.content, skip_whitespace=True, skip_comments=True)  # type: ignore[union-attr]
+            inner = tinycss2.parse_blocks_contents(rule.content, skip_whitespace=True, skip_comments=True)  # type: ignore[union-attr]
             for inner_rule in inner:
                 if inner_rule.type == "error":  # type: ignore[union-attr]
                     messages.append(
