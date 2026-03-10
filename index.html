@@ -389,7 +389,22 @@
 
     h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit;margin:0;padding:0}
     @media(max-width:900px){.pkg-body{grid-template-columns:1fr}.res-side{display:none}}
-    @media(max-width:600px){.nsearch{display:none}.hero{padding:2rem 1rem}.res-body{padding:1rem}.topbar{display:none}}
+    @media(max-width:600px){
+      .nsearch{display:none}
+      .mobile-search{display:flex!important;width:100%;margin-top:.5rem}
+      .hero{padding:2rem 1rem}
+      .res-body{padding:1rem}
+      .topbar{display:none}
+    }
+    .mobile-search{display:none;position:relative}
+    .mobile-search input{
+      width:100%;padding:.5rem 1rem .5rem 2.2rem;
+      border:1px solid var(--border2);border-radius:var(--rm);
+      font-family:var(--sans);font-size:.875rem;
+      background:var(--surface);color:var(--text);
+    }
+    .mobile-search input:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+    .mobile-search-ico{position:absolute;left:.65rem;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
     </style>
   </head>
   <body>
@@ -534,6 +549,13 @@
       <!-- RESULTS -->
       <div class="view" id="page-results">
         <div class="res-header">
+          <div class="mobile-search" id="mobileSearch">
+            <span class="mobile-search-ico">⌕</span>
+            <input type="search"
+                   placeholder="Search packages…"
+                   aria-label="Search packages"
+                   oninput="onNInput(this.value)" />
+          </div>
           <span class="res-count" id="rcount" aria-live="polite" aria-atomic="true">Showing <strong>0</strong> packages</span>
           <div class="fchips" id="fchips"></div>
           <select class="sort-sel"
@@ -804,10 +826,15 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){const drop=document.getElementById('mfSettingsDrop');const btn=document.getElementById('btnMfCog');if(drop&&drop.style.display!=='none'){drop.style.display='none';if(btn)btn.classList.remove('active');return;}}
   if(e.key!=='/'||['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName))return;
   e.preventDefault();
-  const inp=document.getElementById('page-home').classList.contains('active')
-    ?document.getElementById('hInput')
-    :document.getElementById('nInput');
-  inp.focus();inp.select();
+  if(window.innerWidth<=600){
+    const msi=document.getElementById('mobileSearch').querySelector('input');
+    msi.focus();msi.select();
+  }else{
+    const inp=document.getElementById('page-home').classList.contains('active')
+      ?document.getElementById('hInput')
+      :document.getElementById('nInput');
+    inp.focus();inp.select();
+  }
 });
 
 window.addEventListener('popstate', async ()=>{
@@ -824,8 +851,8 @@ window.addEventListener('popstate', async ()=>{
 });
 
 function showPage(id){document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));document.getElementById(id).classList.add('active')}
-function showHome(){_pushURL({});showPage('page-home');document.getElementById('hInput').value='';document.getElementById('nInput').value='';curQ=''}
-function showResults(){showPage('page-results')}
+function showHome(){_pushURL({});showPage('page-home');document.getElementById('hInput').value='';document.getElementById('nInput').value='';document.getElementById('mobileSearch').querySelector('input').value='';curQ=''}
+function showResults(){showPage('page-results');if(window.innerWidth<=600){const msi=document.getElementById('mobileSearch').querySelector('input');if(msi.value){msi.setSelectionRange(msi.value.length,msi.value.length);}}}
 function _semverCmp(a,b){
   const p=s=>{const m=s.name.replace(/^v/i,'').match(/^(\d+)(?:\.(\d+))?(?:\.(\d+))?/);return m?[+m[1],+(m[2]||0),+(m[3]||0)]:null};
   const[av,bv]=[p(a),p(b)];
@@ -864,7 +891,7 @@ function doFilter(q){
     return score(c,lq)>0;
   });
 }
-function doSearch(q){_pushURL(q?{q}:{});curQ=q;curPage=0;curRes=doFilter(q);sortRes();renderRes();buildSide();showResults();document.getElementById('nInput').value=q;}
+function doSearch(q){_pushURL(q?{q}:{});curQ=q;curPage=0;curRes=doFilter(q);sortRes();renderRes();buildSide();showResults();document.getElementById('nInput').value=q;document.getElementById('mobileSearch').querySelector('input').value=q;}
 function onHInput(v){updHAC(v)}
 function onHKey(e){
   const dd=document.getElementById('hacdrop');
