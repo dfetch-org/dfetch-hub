@@ -321,6 +321,16 @@
     .snip-card.open .snip-chevron{transform:rotate(180deg)}
     .snip-hdr-copy{display:flex;align-items:center;justify-content:center;width:22px;height:22px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.12);border-radius:var(--rm);cursor:pointer;transition:.15s;flex-shrink:0;padding:0}
     .snip-hdr-copy:hover{background:rgba(255,255,255,.18);color:#fff;border-color:rgba(255,255,255,.25)}
+    .btn-mf-cog{display:flex;align-items:center;justify-content:center;width:28px;height:28px;background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:var(--rm);cursor:pointer;transition:.15s;padding:0;font-size:.85rem;flex-shrink:0}
+    .btn-mf-cog:hover,.btn-mf-cog.active{background:rgba(255,255,255,.28);border-color:rgba(255,255,255,.35)}
+    .mf-settings-wrap{position:relative}
+    .mf-settings-drop{position:absolute;right:0;top:calc(100% + .4rem);background:var(--nav);border:1px solid var(--border2);border-radius:var(--r);padding:.55rem .7rem;display:flex;flex-direction:column;gap:.38rem;z-index:200;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.22);min-width:210px}
+    .mf-settings-title{font-size:.72rem;font-weight:700;color:rgba(255,255,255,.75);padding-bottom:.3rem;border-bottom:1px solid rgba(255,255,255,.1);letter-spacing:.02em}
+    .mf-settings-row{display:flex;align-items:center;gap:.45rem}
+    .mf-settings-drop label{font-size:.74rem;color:rgba(255,255,255,.55);font-family:var(--mono);cursor:help}
+    .mf-settings-drop label code{background:rgba(255,255,255,.12);border-radius:2px;padding:0 .22em;font-size:.93em}
+    .mf-settings-drop input{font-family:var(--mono);font-size:.74rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:var(--rm);color:#fff;padding:.18rem .38rem;width:80px;outline:none;flex:1}
+    .mf-settings-drop input:focus{border-color:var(--accent)}
     .snip-code{padding:.85rem 1rem;background:#2b2b2b;color:#f8f8f2;font-family:var(--mono);font-size:.78rem;line-height:1.65;overflow-x:auto;white-space:pre}
     .sk{color:#66d9e8}.sv{color:#a6e22e}.su{color:#e6db74}.sc{color:#75715e}
 
@@ -442,6 +452,28 @@
                   aria-label="Open manifest builder">
             ⊕ Manifest <span class="mf-cnt" id="mfcnt" aria-hidden="true">0</span>
           </button>
+          <div class="mf-settings-wrap">
+            <button class="btn-mf-cog"
+                    id="btnMfCog"
+                    onclick="toggleMfSettings(event)"
+                    aria-label="Manifest settings">⚙</button>
+            <div class="mf-settings-drop" id="mfSettingsDrop" style="display:none">
+              <div class="mf-settings-title">Configure Manifest</div>
+              <div class="mf-settings-row">
+                <label for="mfPfx"
+                       title="Path prefix for the destination folder. E.g. 'ext' produces dst: ext/sfml. Leave empty for no prefix.">
+                  <code>dst:</code> prefix:
+                </label>
+                <input id="mfPfx"
+                       type="text"
+                       value=""
+                       placeholder="(none)"
+                       oninput="setDstPrefix(this.value)"
+                       onkeydown="if(event.key==='Enter'){event.preventDefault();toggleMfSettings()}"
+                       aria-label="Destination prefix" />
+              </div>
+            </div>
+          </div>
         </div>
       </nav>
     </header>
@@ -707,6 +739,7 @@ let AF = { label:'', source:'', license:'' };
 let MFS = new Set();
 let MFS_VERSIONS = {};  // id → {name, kind}
 let curVersion = null;  // version selected in current detail view
+let DST_PREFIX = localStorage.getItem('dstPrefix') ?? ''; // configurable destination prefix for generated manifests
 let allRefsCache = [];  // refs for the current detail's version table
 let acIdx = -1;
 let _skipNav = false;
@@ -760,7 +793,14 @@ loadCatalog();
 document.getElementById('hacdrop').addEventListener('mousedown',e=>{const el=e.target.closest('.acitem');if(el)selHAC(el.dataset.id);});
 document.getElementById('acdrop').addEventListener('mousedown',e=>{const el=e.target.closest('.acitem');if(el)selAC(el.dataset.id);});
 
+document.addEventListener('click',e=>{
+  const drop=document.getElementById('mfSettingsDrop');const btn=document.getElementById('btnMfCog');
+  if(drop&&drop.style.display!=='none'&&!drop.contains(e.target)&&e.target!==btn){
+    drop.style.display='none';if(btn)btn.classList.remove('active');
+  }
+});
 document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){const drop=document.getElementById('mfSettingsDrop');const btn=document.getElementById('btnMfCog');if(drop&&drop.style.display!=='none'){drop.style.display='none';if(btn)btn.classList.remove('active');return;}}
   if(e.key!=='/'||['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName))return;
   e.preventDefault();
   const inp=document.getElementById('page-home').classList.contains('active')
@@ -1103,6 +1143,21 @@ function toggleSnip(){
   const hdr=card.querySelector('.snip-card-hdr');
   if(hdr)hdr.setAttribute('aria-expanded',String(!open));
 }
+function toggleMfSettings(e){
+  if(e)e.stopPropagation();
+  const drop=document.getElementById('mfSettingsDrop');const btn=document.getElementById('btnMfCog');if(!drop)return;
+  const open=drop.style.display!=='none';
+  drop.style.display=open?'none':'';
+  if(btn)btn.classList.toggle('active',!open);
+  if(!open){const inp=document.getElementById('mfPfx');if(inp){inp.value=DST_PREFIX;inp.focus();}}
+}
+function setDstPrefix(v){
+  DST_PREFIX=v.trim();
+  localStorage.setItem('dstPrefix',DST_PREFIX);
+  const c=curPkg?RAW[curPkg]:null;
+  if(c)document.getElementById('dSnip').innerHTML=buildSnipHtml(c,curVersion);
+  if(document.getElementById('mfCode').style.display!=='none')renderModal();
+}
 
 function toggleMf(){
   if(!curPkg)return;
@@ -1132,29 +1187,32 @@ function rmMf(id){MFS.delete(id);updMfCnt();renderModal();renderRes();if(id===cu
 function buildFullMf(items){let y="manifest:\n  version: '0.0'\n\nprojects:\n";items.forEach(c=>{y+=buildEntry(c)});return y}
 function buildEntry(c,version){
   const v=version||MFS_VERSIONS[c.id];const br=c.default_branch||'main';const sn=slug(c.name||'comp');
-  let e=`  - name: ext/${sn}\n    url: ${yamlQ(c.url)}\n`;
+  const pfx=DST_PREFIX?DST_PREFIX+'/':'';
+  let e=`  - name: ${sn}\n    url: ${yamlQ(c.url)}\n`;
   if(c.subfolder_path)e+=`    src: ${yamlQ(c.subfolder_path)}\n`;
   if(v){if(v.kind==='branch')e+=`    branch: ${yamlQ(v.name)}\n`;else e+=`    tag: ${yamlQ(v.name)}\n`;}
   else{const t=ltag(c);if(t)e+=`    tag: ${yamlQ(t)}\n`;else e+=`    branch: ${yamlQ(br)}\n`;}
-  e+=`    dst: ext/${sn}\n`;return e;
+  e+=`    dst: ${pfx}${sn}\n`;return e;
 }
 function buildSnipHtml(c,version){
   const v=version||curVersion;const br=c.default_branch||'main';const sn=(c.name||'comp').replace(/\s+/g,'-').toLowerCase();
+  const pfx=DST_PREFIX?DST_PREFIX+'/':'';
   const k=s=>`<span class="sk">${s}</span>`,sv=s=>`<span class="sv">${s}</span>`,u=s=>`<span class="su">${s}</span>`;
-  let h=`${k('- name')}: ${sv('ext/'+sn)}\n  ${k('url')}: ${u(esc(c.url))}\n`;
+  let h=`${k('- name')}: ${sv(sn)}\n  ${k('url')}: ${u(esc(c.url))}\n`;
   if(c.subfolder_path)h+=`  ${k('src')}: ${sv(esc(c.subfolder_path))}\n`;
   if(v){if(v.kind==='branch')h+=`  ${k('branch')}: ${sv(esc(v.name))}\n`;else h+=`  ${k('tag')}: ${sv(esc(v.name))}\n`;}
   else{const t=ltag(c);if(t)h+=`  ${k('tag')}: ${sv(esc(t))}\n`;else h+=`  ${k('branch')}: ${sv(esc(br))}\n`;}
-  h+=`  ${k('dst')}: ${sv('ext/'+sn)}\n`;return h;
+  h+=`  ${k('dst')}: ${sv(pfx+sn)}\n`;return h;
 }
 function buildEntryHtml(c,version){
   const v=version||MFS_VERSIONS[c.id];const br=c.default_branch||'main';const sn=(c.name||'comp').replace(/\s+/g,'-').toLowerCase();
+  const pfx=DST_PREFIX?DST_PREFIX+'/':'';
   const k=s=>`<span class="sk">${s}</span>`,sv=s=>`<span class="sv">${s}</span>`,u=s=>`<span class="su">${s}</span>`;
-  let h=`  ${k('- name')}: ${sv('ext/'+sn)}\n    ${k('url')}: ${u(esc(c.url))}\n`;
+  let h=`  ${k('- name')}: ${sv(sn)}\n    ${k('url')}: ${u(esc(c.url))}\n`;
   if(c.subfolder_path)h+=`    ${k('src')}: ${sv(esc(c.subfolder_path))}\n`;
   if(v){if(v.kind==='branch')h+=`    ${k('branch')}: ${sv(esc(v.name))}\n`;else h+=`    ${k('tag')}: ${sv(esc(v.name))}\n`;}
   else{const t=ltag(c);if(t)h+=`    ${k('tag')}: ${sv(esc(t))}\n`;else h+=`    ${k('branch')}: ${sv(esc(br))}\n`;}
-  h+=`    ${k('dst')}: ${sv('ext/'+sn)}\n`;return h;
+  h+=`    ${k('dst')}: ${sv(pfx+sn)}\n`;return h;
 }
 function buildFullMfHtml(items){
   const k=s=>`<span class="sk">${s}</span>`,sv=s=>`<span class="sv">${s}</span>`;
