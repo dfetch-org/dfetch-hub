@@ -178,7 +178,7 @@ label    = "conan"
 
 [[source]]
 name     = "clib"
-strategy = "git-wiki"
+strategy = "catalog-file"
 url      = "https://github.com/clibs/clib.wiki.git"
 manifest = "Packages.md"
 label    = "clib"
@@ -189,10 +189,10 @@ github_token = "GITHUB_TOKEN"   # environment variable name (not the token itsel
 
 ### Source strategies
 
-| Strategy | Description |
-|----------|-------------|
-| `subfolders` | Each subdirectory under `path` is treated as one component. |
-| `git-wiki` | Clones a Git wiki and parses a markdown index file for component URLs. |
+| Strategy       | Description                                                 |
+|----------------|-------------------------------------------------------------|
+| `subfolders`   | Each subdirectory under `path` is treated as one component. |
+| `catalog-file` | Clones a repository and parses a file for component URLs.   |
 
 ### `ignore_if_present`
 
