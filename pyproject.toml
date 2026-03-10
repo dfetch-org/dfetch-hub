@@ -36,6 +36,8 @@ development = [
     "black==25.1.0",
     "codespell==2.4.1",
     "djlint==1.36.4",
+    "tinycss2==1.5.1",
+    "py-mini-racer==0.6.0",
     "doc8==2.0.0",
     "isort==6.0.0",
     "mypy==1.14.1",
@@ -142,7 +144,12 @@ ignore = [
 known-first-party = ["dfetch_hub"]
 
 [tool.djlint]
-ignore = "H021,H031"  # H021: inline styles intentional in single-file app; H031: meta keywords are obsolete
+profile = "html"
+indent = 2
+max_line_length = 120
+format_js = false   # djlint misidentifies JS regex tokens as HTML; keep script content verbatim
+format_css = false  # CSS is intentionally minified; keep style content verbatim
+ignore = "H021,H031"  # H021: inline styles intentional in single-file app; H031: meta keywords tag is obsolete
 
 [tool.doc8]
 max-line-length = 120
