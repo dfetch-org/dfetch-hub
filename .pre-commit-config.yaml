@@ -62,6 +62,23 @@ repos:
       entry: djlint --lint
       language: python
       files: \.(html|jinja|j2)$
+  -   id: djlint-check
+      name: HTML formatter check
+      entry: djlint --check
+      language: python
+      files: \.(html|jinja|j2)$
+  -   id: check-embedded-css
+      name: CSS linter (embedded styles)
+      entry: python scripts/check_css.py
+      language: python
+      files: \.(html|jinja|j2)$
+      additional_dependencies: [tinycss2==1.5.1]
+  -   id: check-embedded-js
+      name: JS syntax checker (embedded scripts)
+      entry: python scripts/check_js.py
+      language: python
+      files: \.(html|jinja|j2)$
+      additional_dependencies: [py-mini-racer==0.6.0]
   -   id: pydocstyle
       name: docstring style
       entry: pydocstyle --convention=google
