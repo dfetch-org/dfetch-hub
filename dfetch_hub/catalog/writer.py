@@ -24,10 +24,12 @@ from dfetch.log import get_logger
 from dfetch_hub.catalog.detail import CatalogDetail
 from dfetch_hub.catalog.entry import CatalogEntry
 from dfetch_hub.catalog.sources import BaseManifest, parse_vcs_slug
-from dfetch_hub.catalog.tag_filter import TagFilter, apply_tag_filter
+from dfetch_hub.catalog.tag_filter import TagFilter, apply_tag_filter, sort_tags_newest_first
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+    from dfetch_hub.catalog.model import Tag
 
 logger = get_logger(__name__)
 
@@ -221,9 +223,9 @@ class CatalogWriter:
             if existing_root and self.label in existing_root.source_labels:
                 catalog.remove_entry(vcs_host, org, repo)
 
-        _, is_new = catalog.get_or_create_entry(manifest, vcs_host, org, repo, self.label)
+        entry, is_new = catalog.get_or_create_entry(manifest, vcs_host, org, repo, self.label)
 
-        self._write_detail(vcs_host, org, repo, manifest)
+        entry.tags = self._write_detail(vcs_host, org, repo, manifest)
 
         return is_new, not is_new
 
@@ -233,13 +235,18 @@ class CatalogWriter:
         org: str,
         repo: str,
         manifest: BaseManifest,
-    ) -> None:
-        """Write the detail JSON for a manifest.
+    ) -> list[Tag]:
+        """Write the detail JSON for a manifest and return the final tag list.
 
         When :attr:`tag_filter` is set the tag list is filtered after
         :meth:`~dfetch_hub.catalog.detail.CatalogDetail.update_from_manifest`
         populates it.  The ``{{component}}`` placeholder in filter rules is
         resolved to ``manifest.subpath`` (the monorepo subfolder name).
+        Tags are always sorted newest-first before being written and returned.
+
+        Returns:
+            The sorted (and optionally filtered) list of tags stored in the
+            detail JSON.  The caller uses this to populate the catalog entry.
         """
         subpath = manifest.sanitized_subpath
 
@@ -259,4 +266,6 @@ class CatalogWriter:
         if self.tag_filter is not None:
             detail.tags = apply_tag_filter(detail.tags, self.tag_filter, manifest.subpath)
 
+        detail.tags = sort_tags_newest_first(detail.tags)
         detail.dump(self.data_dir, vcs_host, org, repo, subpath)
+        return detail.tags

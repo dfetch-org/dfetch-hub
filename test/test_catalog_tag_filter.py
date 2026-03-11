@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from dfetch_hub.catalog.model import Tag
-from dfetch_hub.catalog.tag_filter import CaseMode, FilterRule, TagFilter, apply_tag_filter, normalize_tag
+from dfetch_hub.catalog.tag_filter import CaseMode, FilterRule, TagFilter, apply_tag_filter, normalize_tag, sort_tags_newest_first
 
 # ---------------------------------------------------------------------------
 # Test data
@@ -415,3 +415,92 @@ class TestSmartNormalizationEndToEnd:
         rule = FilterRule(kind="semver", value="", case=CaseMode.SMART)
         assert rule.matches("v1.2.3") is True
         assert rule.matches("latest") is False
+
+
+# ---------------------------------------------------------------------------
+# sort_tags_newest_first
+# ---------------------------------------------------------------------------
+
+
+def _make_dated_tag(name: str, date: str) -> Tag:
+    """Return a Tag with an ISO date string set."""
+    return Tag(name=name, is_tag=True, date=date)
+
+
+class TestSortTagsNewestFirst:
+    """sort_tags_newest_first orders tags from newest to oldest."""
+
+    def test_empty_list_returns_empty(self) -> None:
+        """An empty input returns an empty list."""
+        assert sort_tags_newest_first([]) == []
+
+    def test_single_tag_returned_unchanged(self) -> None:
+        """A single tag is returned as-is."""
+        tags = _make_tags("v1.0.0")
+        result = sort_tags_newest_first(tags)
+        assert [t.name for t in result] == ["v1.0.0"]
+
+    def test_semver_tags_sorted_highest_first(self) -> None:
+        """Version tags are sorted by numeric tuple, newest first."""
+        tags = _make_tags("v1.0.0", "v3.0.0", "v2.1.0", "v2.0.0")
+        result = sort_tags_newest_first(tags)
+        assert [t.name for t in result] == ["v3.0.0", "v2.1.0", "v2.0.0", "v1.0.0"]
+
+    def test_semver_without_v_prefix(self) -> None:
+        """Version tags without 'v' prefix are still sorted by version."""
+        tags = _make_tags("1.0.0", "2.0.0", "1.5.0")
+        result = sort_tags_newest_first(tags)
+        assert [t.name for t in result] == ["2.0.0", "1.5.0", "1.0.0"]
+
+    def test_patch_version_ordering(self) -> None:
+        """Patch version differences are respected."""
+        tags = _make_tags("v1.0.3", "v1.0.1", "v1.0.10", "v1.0.2")
+        result = sort_tags_newest_first(tags)
+        assert [t.name for t in result] == ["v1.0.10", "v1.0.3", "v1.0.2", "v1.0.1"]
+
+    def test_dated_tags_sorted_by_date_descending(self) -> None:
+        """Tags with dates are sorted newest date first."""
+        tags = [
+            _make_dated_tag("release-old", "2022-01-01T00:00:00"),
+            _make_dated_tag("release-new", "2024-06-15T12:00:00"),
+            _make_dated_tag("release-mid", "2023-03-10T00:00:00"),
+        ]
+        result = sort_tags_newest_first(tags)
+        assert [t.name for t in result] == ["release-new", "release-mid", "release-old"]
+
+    def test_dated_tags_come_before_semver_tags(self) -> None:
+        """Tags with dates sort before tags without dates."""
+        tags = [
+            _make_tag("v99.0.0"),
+            _make_dated_tag("v1.0.0", "2024-01-01T00:00:00"),
+        ]
+        result = sort_tags_newest_first(tags)
+        assert result[0].name == "v1.0.0"
+        assert result[1].name == "v99.0.0"
+
+    def test_non_version_tags_sorted_lexicographically_last(self) -> None:
+        """Tags that are neither dated nor version-formatted come last, sorted lexicographically descending."""
+        tags = _make_tags("latest", "main", "stable")
+        result = sort_tags_newest_first(tags)
+        assert [t.name for t in result] == ["stable", "main", "latest"]
+
+    def test_mixed_version_and_non_version(self) -> None:
+        """Version tags appear before non-version tags."""
+        tags = _make_tags("latest", "v2.0.0", "main", "v1.0.0")
+        result = sort_tags_newest_first(tags)
+        assert result[0].name == "v2.0.0"
+        assert result[1].name == "v1.0.0"
+        assert "latest" in [t.name for t in result[2:]]
+        assert "main" in [t.name for t in result[2:]]
+
+    def test_original_tag_objects_returned(self) -> None:
+        """The returned list contains the same Tag objects, not copies."""
+        tags = _make_tags("v2.0.0", "v1.0.0")
+        result = sort_tags_newest_first(tags)
+        assert result[0] is tags[0] or result[0] is tags[1]  # same object references
+
+    def test_two_digit_minor_version_ordering(self) -> None:
+        """Minor version numbers >9 are sorted numerically, not lexicographically."""
+        tags = _make_tags("v1.9.0", "v1.10.0", "v1.2.0")
+        result = sort_tags_newest_first(tags)
+        assert [t.name for t in result] == ["v1.10.0", "v1.9.0", "v1.2.0"]
