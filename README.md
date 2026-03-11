@@ -209,6 +209,68 @@ manifest          = "conandata.yml"
 ignore_if_present = "conanfile.py"   # skip top-level recipe dir; descend into version dirs
 ```
 
+### Tag filtering
+
+Monorepos often tag releases with component-scoped prefixes (`audio/v1.2.3`,
+`VideoEncoder-2.0.0`) or mix release and pre-release tags freely. Tag filters let
+you declare exactly which tags to keep for each source.
+
+Define a named filter in a `[filter.<name>]` block, then reference it from a
+`[[source]]` block via `filter = "<name>"`:
+
+```toml
+# Keep only tags that look like semantic versions — drop "latest", "nightly", etc.
+[filter.semver-only]
+include = [{kind = "semver"}]
+
+[[source]]
+name     = "my-lib"
+strategy = "subfolders"
+url      = "https://github.com/example/my-lib"
+filter   = "semver-only"
+```
+
+#### Monorepo per-component filtering
+
+The `{{component}}` placeholder in rule values is replaced at runtime with the
+subfolder name of each component, so one filter definition covers the whole monorepo:
+
+```toml
+[filter.monorepo]
+# Keep only tags scoped to this component and parseable as semver
+include = [
+  {kind = "prefix", value = "{{component}}/", case = "sensitive"},
+  {kind = "semver", value = ""},
+]
+# Drop pre-release tags
+exclude = [{kind = "regex", value = "-(alpha|beta|rc)\\d*$"}]
+
+[[source]]
+name     = "audio-video-sdk"
+strategy = "subfolders"
+url      = "https://github.com/example/av-sdk"
+path     = "components"
+manifest = "readme"
+filter   = "monorepo"
+```
+
+#### Rule reference
+
+| Field  | Values | Description |
+|--------|--------|-------------|
+| `kind` | `prefix` | Tag must start with `value` (after normalisation). |
+|        | `regex` | Tag must match the `value` regular expression. |
+|        | `semver` | Tag must be a valid semantic version (`vX.Y.Z` or `X.Y.Z`, with optional pre-release / build-metadata). |
+| `value` | string | Prefix or regex pattern. May contain `{{component}}`. |
+| `case` | `smart` *(default)* | Split CamelCase/PascalCase, strip separators, lowercase. `LowPassFilter`, `low-pass-filter`, and `LOW_PASS_FILTER` all compare equal. |
+|        | `insensitive` | Lowercase only; separators kept. |
+|        | `sensitive` | Exact byte-level comparison. |
+|        | `normalize-lower` | Strip separators then lowercase (no CamelCase split). |
+|        | `normalize-upper` | Strip separators then uppercase (no CamelCase split). |
+
+Filtered tags are always stored with their **original, unmodified name** — normalisation
+only affects comparison logic, never the output.
+
 ---
 
 ## Workflow overview

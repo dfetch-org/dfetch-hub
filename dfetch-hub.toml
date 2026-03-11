@@ -24,6 +24,33 @@
 # .git suffix stripped, trailing slash stripped) dfetch-hub merges them into
 # one Component and records both origins in component.catalog_sources[].
 #
+# ── TAG FILTERING ─────────────────────────────────────────────────────────────
+# Named filters are defined in [filter.<name>] blocks and referenced from
+# [[source]] blocks via the `filter` key.  Each filter has optional `include`
+# and `exclude` rule lists:
+#
+#   include  All rules must match for a tag to be kept.
+#            An empty list passes every tag through.
+#   exclude  Any matching rule removes the tag.
+#
+# Rule fields:
+#   kind   "prefix"  — tag must start with the given prefix (after normalisation)
+#          "regex"   — tag must match the regular expression
+#          "semver"  — tag must be a valid semantic version (vX.Y.Z or X.Y.Z,
+#                      optional pre-release / build-metadata suffix)
+#   value  The prefix string or regex pattern.
+#          Supports {{component}} which is replaced at runtime with the
+#          component name (monorepo subfolder), enabling one shared filter
+#          definition to work correctly for every component in a monorepo.
+#   case   "smart" (default) — split CamelCase/PascalCase, strip separators
+#                              (hyphens, underscores, spaces, periods), lowercase.
+#                              LowPassFilter / low-pass-filter / LOW_PASS_FILTER
+#                              all compare as "lowpassfilter".
+#          "insensitive"     — lowercase only; separators preserved.
+#          "sensitive"       — exact byte-level comparison; no transformation.
+#          "normalize-lower" — strip separators then lowercase (no CamelCase split).
+#          "normalize-upper" — strip separators then uppercase (no CamelCase split).
+#
 # ══════════════════════════════════════════════════════════════════════════════
 
 # Optional global settings
@@ -132,6 +159,50 @@ strategy = "catalog-file"
 url      = "https://github.com/zephyrproject-rtos/zephyr"
 manifest = "west.yml"
 label    = "zephyr"
+
+# ── EXAMPLE: tag filtering — semver-only tags ────────────────────────────────
+# Reject non-release tags (latest, main, nightly, …) and keep only tags that
+# parse as semantic versions.
+#
+# [filter.semver-only]
+# include = [{kind = "semver"}]
+#
+# [[source]]
+# name     = "my-lib"
+# strategy = "subfolders"
+# url      = "https://github.com/example/my-lib"
+# filter   = "semver-only"
+
+# ── EXAMPLE: tag filtering — monorepo per-component tags ─────────────────────
+# A monorepo where each component tags its own releases as "audio/v1.2.3",
+# "video/v2.0.0", etc.  The {{component}} placeholder is substituted at runtime
+# with the actual subfolder name so a single shared filter works for every
+# component without duplication.
+#
+# [filter.monorepo]
+# include = [
+#   {kind = "prefix", value = "{{component}}/", case = "sensitive"},
+#   {kind = "semver", value = ""},
+# ]
+# exclude = [{kind = "regex", value = "-(alpha|beta|rc)\\d*$"}]
+#
+# [[source]]
+# name     = "audio-video-sdk"
+# strategy = "subfolders"
+# url      = "https://github.com/example/av-sdk"
+# path     = "components"
+# manifest = "readme"
+# filter   = "monorepo"
+
+# ── EXAMPLE: tag filtering — exclude pre-release and nightly tags ─────────────
+# Keep all semver tags except pre-release and nightly/date-based builds.
+#
+# [filter.stable-only]
+# include = [{kind = "semver"}]
+# exclude = [
+#   {kind = "regex", value = "-(alpha|beta|rc|nightly|dev)"},
+#   {kind = "regex", value = "^\\d{8}"},   # date-stamped builds like 20240101
+# ]
 
 # # ── EXAMPLE: SVN — single repo ────────────────────────────────────────────────
 # [[source]]
