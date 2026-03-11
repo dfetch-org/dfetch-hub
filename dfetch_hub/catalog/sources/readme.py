@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from dfetch.log import get_logger
 
-from dfetch_hub.catalog.sources import BaseManifest
+from dfetch_hub.catalog.sources import CHANGELOG_NAMES, BaseManifest
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -80,24 +80,39 @@ def parse_readme_dir(entry_dir: Path) -> BaseManifest | None:
         README, or ``None`` if no README file is found.
 
     """
+    readme_content = None
     for name in _README_NAMES:
         readme_path = entry_dir / name
         if readme_path.is_file():
             try:
-                text = readme_path.read_text(encoding="utf-8", errors="replace")
+                readme_content = readme_path.read_text(encoding="utf-8", errors="replace")
             except OSError as exc:
                 logger.debug("Could not read %s: %s — skipped", readme_path, exc)
                 return None
-            entry_name = entry_dir.name
-            return BaseManifest(
-                entry_name=entry_name,
-                package_name=entry_name,
-                description=_extract_description(text),
-                homepage=None,
-                license=None,
-                version=None,
-                readme_content=text,
-                in_project_repo=True,
-            )
-    logger.debug("No README found in %s — skipped", entry_dir)
-    return None
+            break
+    if readme_content is None:
+        logger.debug("No README found in %s — skipped", entry_dir)
+        return None
+
+    changelog_content = None
+    for name in CHANGELOG_NAMES:
+        changelog_path = entry_dir / name
+        if changelog_path.is_file():
+            try:
+                changelog_content = changelog_path.read_text(encoding="utf-8", errors="replace")
+            except OSError as exc:
+                logger.debug("Could not read %s: %s", changelog_path, exc)
+            break
+
+    entry_name = entry_dir.name
+    return BaseManifest(
+        entry_name=entry_name,
+        package_name=entry_name,
+        description=_extract_description(readme_content),
+        homepage=None,
+        license=None,
+        version=None,
+        readme_content=readme_content,
+        changelog_content=changelog_content,
+        in_project_repo=True,
+    )

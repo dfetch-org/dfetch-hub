@@ -7,6 +7,8 @@ from urllib.error import URLError
 
 from dfetch_hub.catalog.sources import (
     BaseManifest,
+    fetch_changelog,
+    fetch_changelog_for_homepage,
     fetch_raw,
     fetch_readme,
     fetch_readme_for_homepage,
@@ -187,6 +189,93 @@ def test_fetch_readme_for_homepage_delegates_to_fetch_readme_for_github() -> Non
 
     mock_fn.assert_called_once_with("myorg", "myrepo")
     assert result == "# content"
+
+
+# ---------------------------------------------------------------------------
+# fetch_changelog
+# ---------------------------------------------------------------------------
+
+
+def test_fetch_changelog_returns_first_found_content() -> None:
+    """Returns the first non-None result from the main branch, CHANGELOG.md."""
+
+    def _side_effect(url: str) -> str | None:
+        return "# Changelog" if ("main" in url and "CHANGELOG.md" in url) else None
+
+    with patch("dfetch_hub.catalog.sources.fetch_raw", side_effect=_side_effect):
+        result = fetch_changelog("owner", "repo")
+
+    assert result == "# Changelog"
+
+
+def test_fetch_changelog_falls_back_to_master_branch() -> None:
+    """Falls back to master when main branch has no CHANGELOG."""
+
+    def _side_effect(url: str) -> str | None:
+        return "# Master Changelog" if "master" in url else None
+
+    with patch("dfetch_hub.catalog.sources.fetch_raw", side_effect=_side_effect):
+        result = fetch_changelog("owner", "repo")
+
+    assert result == "# Master Changelog"
+
+
+def test_fetch_changelog_tries_multiple_filenames() -> None:
+    """Tries CHANGELOG.md, CHANGELOG, CHANGES.md, etc. in order."""
+    calls = []
+
+    def _side_effect(url: str) -> str | None:
+        calls.append(url)
+        if "CHANGELOG" in url:
+            return "# Changelog"
+        return None
+
+    with patch("dfetch_hub.catalog.sources.fetch_raw", side_effect=_side_effect):
+        result = fetch_changelog("owner", "repo")
+
+    assert result == "# Changelog"
+    assert any("CHANGELOG" in url for url in calls)
+
+
+def test_fetch_changelog_returns_none_when_all_attempts_fail() -> None:
+    """Returns None when every branch/filename combination returns nothing."""
+    with patch("dfetch_hub.catalog.sources.fetch_raw", return_value=None):
+        result = fetch_changelog("owner", "repo")
+
+    assert result is None
+
+
+# ---------------------------------------------------------------------------
+# fetch_changelog_for_homepage
+# ---------------------------------------------------------------------------
+
+
+def test_fetch_changelog_for_homepage_returns_none_for_none_input() -> None:
+    """Returns None immediately for None input."""
+    assert fetch_changelog_for_homepage(None) is None
+
+
+def test_fetch_changelog_for_homepage_returns_none_for_non_vcs_url() -> None:
+    """Returns None when the URL cannot be parsed as host/owner/repo."""
+    assert fetch_changelog_for_homepage("https://example.com") is None
+
+
+def test_fetch_changelog_for_homepage_returns_none_for_non_github_host() -> None:
+    """Returns None for non-GitHub VCS URLs; fetch_changelog is not called."""
+    with patch("dfetch_hub.catalog.sources.fetch_changelog") as mock_fn:
+        result = fetch_changelog_for_homepage("https://gitlab.com/owner/repo")
+
+    mock_fn.assert_not_called()
+    assert result is None
+
+
+def test_fetch_changelog_for_homepage_delegates_to_fetch_changelog_for_github() -> None:
+    """Calls fetch_changelog(owner, repo) for GitHub URLs and returns its result."""
+    with patch("dfetch_hub.catalog.sources.fetch_changelog", return_value="# changelog") as mock_fn:
+        result = fetch_changelog_for_homepage("https://github.com/myorg/myrepo")
+
+    mock_fn.assert_called_once_with("myorg", "myrepo")
+    assert result == "# changelog"
 
 
 # ---------------------------------------------------------------------------

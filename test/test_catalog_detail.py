@@ -109,6 +109,87 @@ def test_catalog_detail_readme_content_from_manifest() -> None:
     assert detail.readme == "# Real README from upstream"
 
 
+def test_catalog_detail_changelog_content_from_manifest() -> None:
+    """changelog_content on manifest is stored in detail."""
+    from dfetch_hub.catalog.sources.clib import CLibPackage
+
+    m = CLibPackage(
+        entry_name="clibs/buffer",
+        package_name="buffer",
+        description="Tiny C buffer library",
+        homepage="https://github.com/clibs/buffer",
+        license="MIT",
+        version="0.4.0",
+        readme_content="# README",
+        changelog_content="# Changelog\n\n## 0.4.0\n\n- Initial release",
+    )
+    detail = CatalogDetail.from_manifest(m, "clibs", "buffer", "clib", "clib", "clib")
+    assert detail.changelog == "# Changelog\n\n## 0.4.0\n\n- Initial release"
+
+
+def test_catalog_detail_changelog_roundtrip() -> None:
+    """from_dict + to_dict preserves changelog."""
+    from dfetch_hub.catalog.sources.clib import CLibPackage
+
+    m = CLibPackage(
+        entry_name="test/pkg",
+        package_name="test-pkg",
+        description="Test package",
+        homepage="https://github.com/test/pkg",
+        license="MIT",
+        version="1.0.0",
+        changelog_content="# Changelog\n\n## 1.0.0\n\n- First release",
+    )
+    original = CatalogDetail.from_manifest(m, "test", "pkg", "test", "test", "test")
+    restored = CatalogDetail.from_dict(original.to_dict())
+    assert restored.changelog == "# Changelog\n\n## 1.0.0\n\n- First release"
+
+
+def test_catalog_detail_merge_from_manifest_preserves_changelog() -> None:
+    """merge_from_manifest merges changelog_content from manifest."""
+    from dfetch_hub.catalog.model import VCSLocation
+    from dfetch_hub.catalog.sources import BaseManifest
+
+    detail = CatalogDetail(
+        location=VCSLocation(host="", org="org", repo="repo"),
+    )
+    detail.changelog = "# Old Changelog"
+
+    m = BaseManifest(
+        entry_name="test",
+        package_name="test-pkg",
+        description="Test",
+        homepage="https://github.com/test/repo",
+        license="MIT",
+        version="1.0.0",
+        changelog_content="# New Changelog\n\n## 1.0.0\n\n- Updated",
+    )
+    detail.merge_from_manifest(m, "repo")
+    assert detail.changelog == "# New Changelog\n\n## 1.0.0\n\n- Updated"
+
+
+def test_catalog_detail_merge_from_manifest_does_not_overwrite_existing_changelog() -> None:
+    """merge_from_manifest does not overwrite existing changelog with None."""
+    from dfetch_hub.catalog.model import VCSLocation
+    from dfetch_hub.catalog.sources import BaseManifest
+
+    detail = CatalogDetail(
+        location=VCSLocation(host="", org="org", repo="repo"),
+    )
+    detail.changelog = "# Existing Changelog"
+
+    m = BaseManifest(
+        entry_name="test",
+        package_name="test-pkg",
+        description="Test",
+        homepage="https://github.com/test/repo",
+        license="MIT",
+        version="1.0.0",
+    )
+    detail.merge_from_manifest(m, "repo")
+    assert detail.changelog == "# Existing Changelog"
+
+
 def test_catalog_detail_urls_from_manifest() -> None:
     """urls from manifest are written to detail."""
     from dfetch_hub.catalog.sources import BaseManifest

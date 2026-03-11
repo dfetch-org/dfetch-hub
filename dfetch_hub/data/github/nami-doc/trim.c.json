@@ -9,6 +9,12 @@
       "label": "clib",
       "index_path": "clib/nami-doc/trim.c",
       "registry_version": "0.0.1"
+    },
+    {
+      "source_name": "clib",
+      "label": "clib",
+      "index_path": "clib/github.com/nami-doc/trim.c",
+      "registry_version": "0.0.1"
     }
   ],
   "manifests": [],
@@ -29,6 +35,9 @@
       "date": null
     }
   ],
+  "urls": {
+    "Repository": "https://github.com/nami-doc/trim.c"
+  },
   "license_text": null,
   "fetched_at": "2026-03-01T07:03:49.720825+00:00"
 }

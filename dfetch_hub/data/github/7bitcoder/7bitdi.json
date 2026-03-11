@@ -5,7 +5,7 @@
   "subfolder_path": null,
   "catalog_sources": [
     {
-      "source_name": "conan-source",
+      "source_name": "conan-center",
       "label": "conan",
       "index_path": "recipes/7bitdi",
       "registry_version": "1.0.0"
@@ -83,6 +83,10 @@
       "date": null
     }
   ],
+  "urls": {
+    "Homepage": "https://github.com/7bitcoder/7bitDI",
+    "Source": "https://github.com/conan-io/conan-center-index"
+  },
   "license_text": null,
   "fetched_at": "2026-03-01T07:36:32.585122+00:00"
 }
