@@ -260,9 +260,11 @@ filter   = "monorepo"
 |--------|--------|-------------|
 | `kind` | `prefix` | Tag must start with `value` (after normalisation). |
 |        | `regex` | Tag must match the `value` regular expression. |
-|        | `semver` | Tag must be a valid semantic version (`vX.Y.Z` or `X.Y.Z`, with optional pre-release / build-metadata). |
+|        | `semver` | Tag must be a valid semantic version (`vX.Y.Z` or `X.Y.Z`, |
+|        |          | with optional pre-release / build-metadata). |
 | `value` | string | Prefix or regex pattern. May contain `{{component}}`. |
-| `case` | `smart` *(default)* | Split CamelCase/PascalCase, strip separators, lowercase. `LowPassFilter`, `low-pass-filter`, and `LOW_PASS_FILTER` all compare equal. |
+| `case` | `smart` *(default)* | Split CamelCase/PascalCase, strip separators, lowercase. |
+|        |                    | `LowPassFilter`, `low-pass-filter`, and `LOW_PASS_FILTER` all compare equal. |
 |        | `insensitive` | Lowercase only; separators kept. |
 |        | `sensitive` | Exact byte-level comparison. |
 |        | `normalize-lower` | Strip separators then lowercase (no CamelCase split). |
