@@ -272,9 +272,34 @@
     .readme-wrap table{width:100%;border-collapse:collapse;margin:.75em 0;font-size:.875rem}
     .readme-wrap th,.readme-wrap td{border:1px solid var(--border);padding:.32rem .65rem}
     .readme-wrap th{background:var(--bg);font-weight:700}
-    .readme-empty{color:var(--subtle);font-style:italic;padding:2rem;text-align:center}
+.readme-empty{color:var(--subtle);font-style:italic;padding:2rem;text-align:center}
 
-    /* Versions */
+/* Files */
+.files-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:0;display:flex;flex-direction:column;overflow:hidden}
+.files-loading{color:var(--subtle);text-align:center;padding:3rem 1.5rem;font-size:.9rem}
+.files-empty{color:var(--subtle);padding:3rem 1.5rem;text-align:center;font-size:.9rem}
+.files-notgh{color:var(--muted);padding:1.5rem;font-size:.9rem;background:var(--bg);border-bottom:1px solid var(--border)}
+.files-tree{font-size:.875rem;flex:1;overflow-y:auto;display:flex;flex-direction:column}
+.files-hdr{display:flex;align-items:center;justify-content:space-between;padding:.95rem 1.25rem;background:var(--bg);border-bottom:1px solid var(--border);flex-shrink:0}
+.files-hdr-title{font-weight:700;color:var(--text);font-size:.95rem}
+.files-hdr-actions{display:flex;gap:.5rem}
+.files-ign-cnt{font-size:.75rem;font-weight:600;color:var(--accent);background:rgba(0,113,188,.08);padding:.2rem .5rem;border-radius:var(--rm);letter-spacing:.01em}
+.files-tree-container{flex:1;overflow-y:auto}
+.files-row{display:flex;align-items:center;gap:.5rem;padding:.55rem 1.25rem;cursor:pointer;border-bottom:1px solid var(--border);transition:background-color .12s,border-color .12s;user-select:none}
+.files-row:not(.files-parent-row).files-row:hover{background:var(--bg)}
+.files-row.files-parent-row{background:transparent;padding:.45rem 1.25rem;border-bottom:none}
+.files-row.files-parent-row:hover{background:rgba(0,113,188,.04)}
+.files-row:last-child{border-bottom:none}
+.files-row input[type="checkbox"]{flex-shrink:0;width:16px;height:16px;cursor:pointer;accent-color:var(--accent);border:1.5px solid var(--border2);border-radius:3px;margin:0}
+.files-row input[type="checkbox"]:checked{background-color:var(--accent);border-color:var(--accent)}
+.files-row input[type="checkbox"]:hover{border-color:var(--accent)}
+.files-ico{width:20px;text-align:center;font-size:.9rem;flex-shrink:0;color:var(--muted)}
+.files-name{flex:1;word-break:break-all;color:var(--text);font-weight:500}
+.files-name.ignored{text-decoration:line-through;color:var(--subtle);font-weight:400}
+.files-parent-row .files-name{font-weight:600;color:var(--muted);font-size:.9rem}
+.files-path{font-size:.76rem;color:var(--muted);margin-left:auto;flex-shrink:0;padding-left:1rem}
+
+/* Versions */
     .vtable{width:100%;border-collapse:collapse;background:var(--surface);border-radius:var(--r);border:1px solid var(--border);overflow:hidden}
     .vtable th{background:var(--bg);font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding:.55rem .85rem;text-align:left;color:var(--muted);border-bottom:1px solid var(--border)}
     .vtable td{padding:.55rem .85rem;font-size:.875rem;border-bottom:1px solid var(--border)}
@@ -329,8 +354,25 @@
     .mf-settings-row{display:flex;align-items:center;gap:.45rem}
     .mf-settings-drop label{font-size:.74rem;color:rgba(255,255,255,.55);font-family:var(--mono);cursor:help}
     .mf-settings-drop label code{background:rgba(255,255,255,.12);border-radius:2px;padding:0 .22em;font-size:.93em}
-    .mf-settings-drop input{font-family:var(--mono);font-size:.74rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:var(--rm);color:#fff;padding:.18rem .38rem;width:80px;outline:none;flex:1}
-    .mf-settings-drop input:focus{border-color:var(--accent)}
+.mf-settings-drop input{font-family:var(--mono);font-size:.74rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:var(--rm);color:#fff;padding:.18rem .38rem;width:80px;outline:none;flex:1}
+.mf-settings-drop input:focus{border-color:var(--accent)}
+.gh-token-row{padding-top:.35rem;border-top:1px solid rgba(255,255,255,.1);margin-top:.35rem}
+.gh-token-wrap{display:flex;gap:.25rem;flex:1}
+.gh-token-wrap input{width:100%!important}
+.gh-token-toggle{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:var(--rm);color:rgba(255,255,255,.6);cursor:pointer;padding:.12rem .35rem;font-size:.75rem;flex-shrink:0}
+.gh-token-toggle:hover{background:rgba(255,255,255,.18);color:#fff}
+.gh-token-status{font-size:.68rem;color:rgba(255,255,255,.45);padding-top:.25rem;display:flex;align-items:center;gap:.25rem}
+.gh-token-status .gh-token-valid{color:#27ae60}
+.gh-token-status .gh-token-invalid{color:#e74c3c}
+.gh-token-status .gh-token-clear{color:rgba(255,255,255,.5);cursor:pointer;margin-left:auto;text-decoration:underline}
+.gh-token-status .gh-token-clear:hover{color:#fff}
+.gh-token-help{font-size:.68rem;color:rgba(255,255,255,.45);padding:.2rem 0 .1rem}
+.gh-token-help summary{color:var(--accent);cursor:pointer;font-weight:600;user-select:none;outline:none}
+.gh-token-help summary:hover{color:var(--accent2)}
+.gh-token-hint{font-size:.65rem;color:rgba(255,255,255,.4);padding:.15rem 0}
+.gh-token-steps{margin-top:.4rem;padding:.45rem .5rem;background:rgba(255,255,255,.05);border-radius:var(--rm);font-size:.66rem;line-height:1.7;color:rgba(255,255,255,.7)}
+.gh-token-steps strong{color:#fff}
+.gh-token-note{color:rgba(255,255,255,.4);font-size:.62rem;margin-top:.25rem;font-style:italic}
     .snip-code{padding:.85rem 1rem;background:#2b2b2b;color:#f8f8f2;font-family:var(--mono);font-size:.78rem;line-height:1.65;overflow-x:auto;white-space:pre}
     .sk{color:#66d9e8}.sv{color:#a6e22e}.su{color:#e6db74}.sc{color:#75715e}
 
@@ -487,6 +529,40 @@
                        onkeydown="if(event.key==='Enter'){event.preventDefault();toggleMfSettings()}"
                        aria-label="Destination prefix" />
               </div>
+              <div class="mf-settings-row gh-token-row">
+                <label for="ghToken"
+                       title="Personal access token for higher GitHub API rate limits.">
+                  GitHub token:
+                </label>
+                <div class="gh-token-wrap">
+                  <input id="ghToken"
+                         type="password"
+                         value=""
+                         placeholder="ghp_xxxxxxxxxxxx"
+                         oninput="setGhToken(this.value)"
+                         onkeydown="if(event.key==='Enter'){event.preventDefault();toggleMfSettings()}"
+                         aria-label="GitHub personal access token" />
+                  <button class="gh-token-toggle"
+                          type="button"
+                          onclick="toggleGhTokenVisibility()"
+                          aria-label="Toggle token visibility">
+                    👁
+                  </button>
+                </div>
+              </div>
+              <div class="gh-token-hint" id="ghTokenHint">
+                <span>Rate: 60/hr → 5000/hr with token</span>
+              </div>
+              <details class="gh-token-help">
+                <summary>How to get a token (click)</summary>
+                <div class="gh-token-steps">
+                  <div>1. <button type="button" class="gh-token-get" onclick="openGhTokenPage()">Go to GitHub ↗</button></div>
+                  <div>2. Scroll down, click <strong>Generate token</strong></div>
+                  <div>3. Copy the token and paste above (auto-saves)</div>
+                  <div class="gh-token-note">Stored locally in your browser, never sent to any server</div>
+                </div>
+              </details>
+              <div class="gh-token-status" id="ghTokenStatus"></div>
             </div>
           </div>
         </div>
@@ -643,6 +719,12 @@
                     aria-selected="false"
                     aria-controls="tab-changelog"
                     onclick="switchTab('changelog')">Changelog</button>
+            <button class="tabbtn"
+                    role="tab"
+                    id="tab-btn-files"
+                    aria-selected="false"
+                    aria-controls="tab-files"
+                    onclick="switchTab('files')">Files</button>
           </div>
         </div>
         <div class="pkg-body">
@@ -671,10 +753,16 @@
               </table>
             </div>
             <div class="tabcontent"
-                 id="tab-changelog"
-                 role="tabpanel"
-                 aria-labelledby="tab-btn-changelog">
+                  id="tab-changelog"
+                  role="tabpanel"
+                  aria-labelledby="tab-btn-changelog">
               <div class="readme-wrap" id="changelogBody"></div>
+            </div>
+            <div class="tabcontent"
+                  id="tab-files"
+                  role="tabpanel"
+                  aria-labelledby="tab-btn-files">
+              <div class="files-wrap" id="filesBody"></div>
             </div>
           </div>
           <aside>
@@ -776,6 +864,12 @@ let MFS_VERSIONS = {};  // id → {name, kind}
 let curVersion = null;  // version selected in current detail view
 let DST_PREFIX = localStorage.getItem('dstPrefix') ?? ''; // configurable destination prefix for generated manifests
 let allRefsCache = [];  // refs for the current detail's version table
+let CUR_FILES = null;   // {path:[{name,type,sha,ignored?}]}
+let CUR_FILES_PATH = []; // current breadcrumb path stack
+let CUR_FILES_CACHED_PKG = null;  // package ID for cached files
+let CUR_FILES_CACHED_VERSION = null;  // version for cached files
+let MFS_IGNORES = {};   // id → Set of ignored paths (relative to repo root)
+let GH_TOKEN = localStorage.getItem('ghToken') || '';  // GitHub personal access token
 let acIdx = -1;
 let _skipNav = false;
 function _pushURL(p){if(_skipNav)return;const qs=new URLSearchParams(p).toString();history.pushState(p,'',qs?'?'+qs:location.pathname)}
@@ -824,6 +918,7 @@ function initPageStats() {
 
 // Call on page load
 loadCatalog();
+updGhTokenStatus();
 
 document.getElementById('hacdrop').addEventListener('mousedown',e=>{const el=e.target.closest('.acitem');if(el)selHAC(el.dataset.id);});
 document.getElementById('acdrop').addEventListener('mousedown',e=>{const el=e.target.closest('.acitem');if(el)selAC(el.dataset.id);});
@@ -866,6 +961,9 @@ function showPage(id){document.querySelectorAll('.view').forEach(v=>v.classList.
 function showHome(){_pushURL({});showPage('page-home');document.getElementById('hInput').value='';document.getElementById('nInput').value='';document.getElementById('mobileSearch').querySelector('input').value='';curQ=''}
 function showResults(){showPage('page-results');if(window.innerWidth<=600){const msi=document.getElementById('mobileSearch').querySelector('input');if(msi.value){msi.setSelectionRange(msi.value.length,msi.value.length);}}}
 function _semverCmp(a,b){
+  const hasDateA=a.date&&a.date.trim(),hasDateB=b.date&&b.date.trim();
+  if(hasDateA&&hasDateB){const da=new Date(a.date),db=new Date(b.date);if(da!==db)return db.getTime()-da.getTime();}
+  else if(hasDateA)return -1;else if(hasDateB)return 1;
   const p=s=>{const m=s.name.replace(/^v/i,'').match(/^(\d+)(?:\.(\d+))?(?:\.(\d+))?/);return m?[+m[1],+(m[2]||0),+(m[3]||0)]:null};
   const[av,bv]=[p(a),p(b)];
   if(!av&&!bv)return 0;if(!av)return 1;if(!bv)return -1;
@@ -874,14 +972,35 @@ function _semverCmp(a,b){
 }
 async function showDetail(id){
   const c=RAW[id];if(!c)return;
-  _pushURL({pkg:id});curPkg=id;showPage('page-detail');window.scrollTo(0,0);
+  _pushURL({pkg:id});curPkg=id;CUR_FILES=null;CUR_FILES_CACHED_PKG=null;CUR_FILES_CACHED_VERSION=null;showPage('page-detail');window.scrollTo(0,0);
   if(!c._detailLoaded){
     document.getElementById('readmeBody').innerHTML='<div class="readme-empty">Loading…</div>';
     document.getElementById('vtbody').innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--subtle)">Loading…</td></tr>';
     try{const resp=await fetch(`../data/${id}.json`);if(resp.ok){const d=await resp.json();Object.assign(RAW[id],d);}}catch(e){}
     RAW[id]._detailLoaded=true;
+    const isGh=c.source_type==='github'||(c.source_labels||[]).includes('github');
+    if(isGh){await fetchGhData(c);}
   }
   renderDetail(RAW[id]);
+}
+async function fetchGhData(c){
+  let org=c.org||'';let repo=c.repo||c.name||'';
+  const m=(c.url||'').match(/github\.com[\/:]([^\/]+)\/([^\/\s]+)/);
+  if(!m||!m[1]||!m[2])return;
+  org=m[1].toLowerCase();repo=m[2].replace(/\.git$/,'').toLowerCase();
+  const opts=ghFetchOpts();
+  try{
+    const [readmeResp,tagsResp,contentsResp,repoResp]=await Promise.all([
+      fetch(`https://api.github.com/repos/${org}/${repo}/readme`,opts),
+      fetch(`https://api.github.com/repos/${org}/${repo}/tags?per_page=100`,opts),
+      fetch(`https://api.github.com/repos/${org}/${repo}/contents/`,opts),
+      fetch(`https://api.github.com/repos/${org}/${repo}`,opts)
+    ]);
+    if(readmeResp.ok){try{const d=await readmeResp.json();if(d.content){const txt=atob(d.content);c.readme=txt;}}catch(e){}}
+    if(tagsResp.ok){try{const tags=await tagsResp.json();if(Array.isArray(tags)){const tagList=tags.slice(0,50);const commitResps=await Promise.allSettled(tagList.map(t=>fetch(`https://api.github.com/repos/${org}/${repo}/commits/${t.commit.sha}`,opts).then(r=>r.ok?r.json():null)));tagList.forEach((t,i)=>{if(commitResps[i].status==='fulfilled'&&commitResps[i].value?.commit?.committer?.date)t.date=commitResps[i].value.commit.committer.date;});c.tags=[...new Map(tagList.map(t=>({name:t.name,commit_sha:t.commit?.sha||'',date:t.date||'',...(t.commit?.url?{commit_url:t.commit.url}:{})})).map(t=>[t.name,t])).values()];}}catch(e){}}
+    if(contentsResp.ok){try{const items=await contentsResp.json();if(Array.isArray(items)){const changelogFile=items.find(f=>f.type==='file'&&/^(changelog|history)/i.test(f.name));if(changelogFile&&changelogFile.download_url){const clResp=await fetch(changelogFile.download_url,opts);if(clResp.ok)c.changelog=await clResp.text()}}}catch(e){}}
+    if(repoResp.ok){try{const repo=await repoResp.json();if(repo.default_branch)c.default_branch=repo.default_branch;}catch(e){}}
+  }catch(e){}
 }
 
 function score(c,q){
@@ -1109,6 +1228,9 @@ function renderDetail(c){
 function selectVersion(i){
   const r=allRefsCache[i];if(!r)return;
   curVersion={name:r.name,kind:r.kind};
+  CUR_FILES=null;
+  CUR_FILES_CACHED_PKG=null;
+  CUR_FILES_CACHED_VERSION=null;
   _replaceURL({pkg:curPkg,v:r.name,vk:r.kind});
   document.querySelectorAll('#vtbody tr[data-vidx]').forEach(tr=>tr.classList.toggle('ver-selected',+tr.dataset.vidx===i));
   const selRow=document.querySelector(`#vtbody tr[data-vidx="${i}"]`);
@@ -1172,10 +1294,146 @@ function toggleTreeGroup(hdr){
   let sib=hdr.nextElementSibling;
   while(sib&&sib.classList.contains('vtree-item')){sib.style.display=open?'none':'';sib=sib.nextElementSibling;}
 }
+
+function iconFolder(){return'<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="color:var(--muted);flex-shrink:0"><path d="M3 3h8l2 2h8a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/></svg>';}
+function iconFile(){return'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);flex-shrink:0"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>';}
+function iconParent(){return'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--muted);flex-shrink:0"><path d="M19 14l-7-7m0 0l-7 7"/><path d="M12 7v10"/></svg>';}
+async function loadFilesIfNeeded(){
+  const c=curPkg?RAW[curPkg]:null;if(!c)return;
+  const fb=document.getElementById('filesBody');if(!fb)return;
+  const isGh=c.source_type==='github'||(c.source_labels||[]).includes('github');
+  if(!isGh){fb.innerHTML='<div class="files-notgh">File browser is only available for GitHub repositories.</div>';return;}
+  if(!MFS_IGNORES[curPkg])MFS_IGNORES[curPkg]=new Set();
+  const versionKey=curVersion?curVersion.name+':'+curVersion.kind:'';
+  if(CUR_FILES&&CUR_FILES_CACHED_PKG===curPkg&&CUR_FILES_CACHED_VERSION===versionKey){renderFilesList();return;}
+  fb.innerHTML='<div class="files-loading">Loading files…</div>';
+  try{
+    const apiUrl=buildGhApiUrl(c,curVersion);
+    const opts=ghFetchOpts();
+    const resp=await fetch(apiUrl,opts);
+    if(resp.status===403||resp.status===404){fb.innerHTML='<div class="files-empty">Rate limit exceeded. Add a <a href="#" onclick="toggleMfSettings(event);document.getElementById(\'mfSettingsDrop\').style.display=\'\'">GitHub token</a> for higher limits (60→5000/hr).</div>';return;}
+    if(!resp.ok)throw new Error(`GitHub API error: ${resp.status}`);
+    const data=await resp.json();
+    CUR_FILES={'':Array.isArray(data)?data:data.entries||[]};
+    CUR_FILES_PATH=[''];
+    CUR_FILES_CACHED_PKG=curPkg;
+    CUR_FILES_CACHED_VERSION=versionKey;
+    CUR_FILES['']=CUR_FILES[''].map(e=>({...e,ignored:MFS_IGNORES[curPkg].has(e.name)}));
+    renderFilesList();
+  }catch(e){console.error('Files load error:',e);fb.innerHTML='<div class="files-empty">Failed to load files. Check console for details.</div>';}
+}
+function buildGhApiUrl(c,version){
+  let org=c.org||'';let repo=c.repo||c.name||'';
+  const m=(c.url||'').match(/github\.com[\/:]([^\/]+)\/([^\/\s]+)/);
+  if(m){org=m[1].toLowerCase();repo=m[2].replace(/\.git$/,'').toLowerCase();}
+  const ref=version?(version.kind==='branch'?version.name:version.name):c.default_branch||'main';
+  const pth=CUR_FILES_PATH.slice(1).join('/');
+  const pathParam=pth?'/'+pth:'';
+  return `https://api.github.com/repos/${org}/${repo}/contents${pathParam}?ref=${ref}`;
+}
+function renderFilesList(){
+  const fb=document.getElementById('filesBody');if(!fb||!CUR_FILES)return;
+  const curPath=CUR_FILES_PATH.slice(1).join('/');
+  const items=CUR_FILES[curPath]||[];
+  if(!items.length){fb.innerHTML='<div class="files-empty">📂 Empty directory</div>';return;}
+  const sorted=[...items].sort((a,b)=>{if(a.type!==b.type)return a.type==='dir'?-1:1;return a.name.localeCompare(b.name);});
+  let html='<div class="files-tree"><div class="files-hdr"><span class="files-hdr-title">Select files to ignore</span><span class="files-ign-cnt" id="filesIgnCnt" style="display:none"></span></div><div class="files-tree-container">';
+  if(CUR_FILES_PATH.length>1){
+    const parentPath=CUR_FILES_PATH.slice(0,-1).join('/');
+    html+=`<div class="files-row files-parent-row" onclick="navFilesPath('${esc(parentPath)}')" style="border-bottom:1px solid var(--border)"><span class="files-ico">${iconParent()}</span><span class="files-name">.. (parent directory)</span></div>`;
+  }
+  sorted.forEach(item=>{html+=renderFileRow(item);});
+  html+='</div></div>';
+  fb.innerHTML=html;
+  updFilesIgnCnt();
+}
+function renderFileRow(item){
+  const ico=item.type==='dir'?iconFolder():iconFile();
+  const curDir=CUR_FILES_PATH.slice(1).join('/');
+  const fullPath=curDir?curDir+'/'+item.name:item.name;
+  const ign=MFS_IGNORES[curPkg]?.has(fullPath)||item.ignored;
+  const folderNav=item.type==='dir'?`ondblclick="event.stopPropagation();navFilesPath('${esc(item.name)}')" title="Double-click to open"`:' title="Check to ignore"';
+  return `<div class="files-row"><input type="checkbox" ${ign?'checked':''} onchange="toggleFileIgnore('${esc(fullPath)}',this.checked)"><span class="files-ico">${ico}</span><span class="files-name${ign?' ignored':''}" ${folderNav}>${esc(item.name)}</span></div>`;
+}
+function toggleFileIgnore(fullPath,ignored){
+  if(!curPkg||!MFS_IGNORES[curPkg])return;
+  if(ignored)MFS_IGNORES[curPkg].add(fullPath);
+  else MFS_IGNORES[curPkg].delete(fullPath);
+  const parts=fullPath.split('/');
+  const fileName=parts[parts.length-1];
+  const dirPath=parts.slice(0,-1).join('/');
+  const items=CUR_FILES[dirPath]||[];
+  const it=items.find(i=>i.name===fileName);
+  if(it)it.ignored=ignored;
+  renderFilesList();
+  renderModal();
+  const c=curPkg?RAW[curPkg]:null;
+  if(c)document.getElementById('dSnip').innerHTML=buildSnipHtml(c,curVersion);
+}
+function updFilesIgnCnt(){
+  const el=document.getElementById('filesIgnCnt');if(!el)return;
+  const cnt=MFS_IGNORES[curPkg]?.size||0;
+  if(cnt){el.textContent=`${cnt} file${cnt!==1?'s':''} ignored`;el.style.display='';}
+  else{el.style.display='none';}
+}
+async function navFilesPath(subPath){
+  const c=curPkg?RAW[curPkg]:null;if(!c)return;
+  const fb=document.getElementById('filesBody');if(!fb)return;
+  const targetPath=subPath||'';
+  if(CUR_FILES[targetPath]){CUR_FILES_PATH=subPath?subPath.split('/'):[''];renderFilesList();return;}
+  fb.innerHTML='<div class="files-loading">Loading…</div>';
+  try{
+    const apiUrl=buildGhApiUrl(c,curVersion);
+    const opts=ghFetchOpts();
+    const resp=await fetch(apiUrl,opts);if(!resp.ok)throw new Error(`API error: ${resp.status}`);
+    CUR_FILES[targetPath]=await resp.json();
+    CUR_FILES[targetPath]=CUR_FILES[targetPath].map(e=>({...e,ignored:MFS_IGNORES[curPkg].has((targetPath?targetPath+'/':'')+e.name)}));
+    CUR_FILES_PATH=targetPath?targetPath.split('/'):[''];
+    renderFilesList();
+  }catch(e){fb.innerHTML='<div class="files-empty">Failed to load directory</div>';}
+}
+function getIgnoredYaml(id){
+  const igns=MFS_IGNORES[id];if(!igns||!igns.size)return'';
+  const lines=[...igns].map(p=>`      - ${yamlQ(p)}`).join('\n');
+  return`    ignore:\n${lines}\n`;
+}
+function ghFetchOpts(){
+  if(!GH_TOKEN)return{};
+  return{headers:{Authorization:`Bearer ${GH_TOKEN}`,Accept:'application/vnd.github.v3+json'}};
+}
+function setGhToken(val){
+  GH_TOKEN=val.trim();
+  if(GH_TOKEN)localStorage.setItem('ghToken',GH_TOKEN);
+  else localStorage.removeItem('ghToken');
+  updGhTokenStatus();
+}
+function toggleGhTokenVisibility(){
+  const inp=document.getElementById('ghToken');
+  if(!inp)return;
+  inp.type=inp.type==='password'?'text':'password';
+}
+function updGhTokenStatus(){
+  const el=document.getElementById('ghTokenStatus');
+  if(!el)return;
+  if(!GH_TOKEN){el.innerHTML='<span>No token set (rate limits apply)</span>';return;}
+  el.innerHTML='<span class="gh-token-valid">✓ Token active</span><span class="gh-token-clear" onclick="clearGhToken()">Clear</span>';
+}
+function clearGhToken(){
+  GH_TOKEN='';
+  localStorage.removeItem('ghToken');
+  const inp=document.getElementById('ghToken');
+  if(inp)inp.value='';
+  updGhTokenStatus();
+  showToast('GitHub token cleared');
+}
+function openGhTokenPage(){
+  window.open('https://github.com/settings/tokens/new?description=dfetch-hub&scopes=','_blank','noopener');
+}
 function switchTab(name){
-  document.querySelectorAll('.tabbtn').forEach((b,i)=>{const ns=['readme','versions','changelog'];const on=ns[i]===name;b.classList.toggle('active',on);b.setAttribute('aria-selected',String(on))});
+  document.querySelectorAll('.tabbtn').forEach((b,i)=>{const ns=['readme','versions','changelog','files'];const on=ns[i]===name;b.classList.toggle('active',on);b.setAttribute('aria-selected',String(on))});
   document.querySelectorAll('.tabcontent').forEach(el=>el.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
+  if(name==='files')loadFilesIfNeeded();
 }
 function toggleSnip(){
   const panel=document.getElementById('snipPanel');const card=document.getElementById('snipCard');
@@ -1192,7 +1450,7 @@ function toggleMfSettings(e){
   const open=drop.style.display!=='none';
   drop.style.display=open?'none':'';
   if(btn)btn.classList.toggle('active',!open);
-  if(!open){const inp=document.getElementById('mfPfx');if(inp){inp.value=DST_PREFIX;inp.focus();}}
+  if(!open){const inp=document.getElementById('mfPfx');if(inp){inp.value=DST_PREFIX;inp.focus();}updGhTokenStatus();}
 }
 function setDstPrefix(v){
   DST_PREFIX=v.trim();
@@ -1235,7 +1493,10 @@ function buildEntry(c,version){
   if(c.subfolder_path)e+=`    src: ${yamlQ(c.subfolder_path)}\n`;
   if(v){if(v.kind==='branch')e+=`    branch: ${yamlQ(v.name)}\n`;else e+=`    tag: ${yamlQ(v.name)}\n`;}
   else{const t=ltag(c);if(t)e+=`    tag: ${yamlQ(t)}\n`;else e+=`    branch: ${yamlQ(br)}\n`;}
-  e+=`    dst: ${pfx}${sn}\n`;return e;
+  e+=`    dst: ${pfx}${sn}\n`;
+  const ign=getIgnoredYaml(c.id);
+  if(ign)e+=ign;
+  return e;
 }
 function buildSnipHtml(c,version){
   const v=version||curVersion;const br=c.default_branch||'main';const sn=(c.name||'comp').replace(/\s+/g,'-').toLowerCase();
@@ -1245,7 +1506,15 @@ function buildSnipHtml(c,version){
   if(c.subfolder_path)h+=`  ${k('src')}: ${sv(esc(c.subfolder_path))}\n`;
   if(v){if(v.kind==='branch')h+=`  ${k('branch')}: ${sv(esc(v.name))}\n`;else h+=`  ${k('tag')}: ${sv(esc(v.name))}\n`;}
   else{const t=ltag(c);if(t)h+=`  ${k('tag')}: ${sv(esc(t))}\n`;else h+=`  ${k('branch')}: ${sv(esc(br))}\n`;}
-  h+=`  ${k('dst')}: ${sv(pfx+sn)}\n`;return h;
+  h+=`  ${k('dst')}: ${sv(pfx+sn)}\n`;
+  const igns=MFS_IGNORES[c.id];if(igns&&igns.size){const lines=[...igns].map(p=>`    ${k('-')} ${sv(yamlQ(p))}`).join('\n');h+=`  ${k('ignore')}:\n${lines}\n`;}
+  return h;
+}
+function getIgnoredYamlHtml(id){
+  const igns=MFS_IGNORES[id];if(!igns||!igns.size)return'';
+  const k=s=>`<span class="sk">${s}</span>`,sv=s=>`<span class="sv">${s}</span>`;
+  const lines=[...igns].map(p=>`      ${k('-')} ${sv(yamlQ(p))}`).join('\n');
+  return`    ${k('ignore')}:\n${lines}\n`;
 }
 function buildEntryHtml(c,version){
   const v=version||MFS_VERSIONS[c.id];const br=c.default_branch||'main';const sn=(c.name||'comp').replace(/\s+/g,'-').toLowerCase();
@@ -1255,7 +1524,9 @@ function buildEntryHtml(c,version){
   if(c.subfolder_path)h+=`    ${k('src')}: ${sv(esc(c.subfolder_path))}\n`;
   if(v){if(v.kind==='branch')h+=`    ${k('branch')}: ${sv(esc(v.name))}\n`;else h+=`    ${k('tag')}: ${sv(esc(v.name))}\n`;}
   else{const t=ltag(c);if(t)h+=`    ${k('tag')}: ${sv(esc(t))}\n`;else h+=`    ${k('branch')}: ${sv(esc(br))}\n`;}
-  h+=`    ${k('dst')}: ${sv(pfx+sn)}\n`;return h;
+  h+=`    ${k('dst')}: ${sv(pfx+sn)}\n`;
+  const ign=getIgnoredYamlHtml(c.id);if(ign)h+=ign;
+  return h;
 }
 function buildFullMfHtml(items){
   const k=s=>`<span class="sk">${s}</span>`,sv=s=>`<span class="sv">${s}</span>`;
@@ -1274,7 +1545,7 @@ function dlMf(){
 
 const _ESC={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
 function esc(s){return String(s||'').replace(/[&<>"']/g,c=>_ESC[c]||c)}
-function yamlQ(s){return"'"+String(s||'').replace(/'/g,"''")+"'"}
+function yamlQ(s){const str=String(s||'');if(/^[-\w./]*$/.test(str))return str;return"'"+str.replace(/'/g,"''")+"'"}
 function slug(s){return String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'')}
 const _LBL_KNOWN={'vcpkg':['#d6eaf8','#1a5276'],'conan':['#fef9e7','#7d6608'],'npm':['#fde8e4','#922b21'],'clib':['#e8d8f0','#4a235a'],'esp':['#d5f5e3','#1e8449'],'esp-idf':['#d5f5e3','#1e8449'],'github':['#eaecee','#2c3e50'],'gitlab':['#fde8f0','#7b241c'],'svn':['#fef5e7','#784212']};
 const _LBL_PAL=[['#d6eaf8','#1a5276'],['#fde8e4','#922b21'],['#d5f5e3','#1e8449'],['#fef9e7','#7d6608'],['#e8d8f0','#4a235a'],['#fde8f0','#7b241c'],['#fef5e7','#784212'],['#d5eaff','#1a4080'],['#e4f4e8','#1b5e33'],['#ffe4f0','#7b0040'],['#fff0d5','#7a4000'],['#e8e4ff','#2c007a']];
@@ -1282,7 +1553,7 @@ function _lblColor(l){const k=slug(l);if(_LBL_KNOWN[k])return _LBL_KNOWN[k];let 
 function makeLbl(l){const[bg,fg]=_lblColor(l);return`<span class="lbl" style="background:${bg};color:${fg}">${esc(l)}</span>`}
 function fmt(n){if(n>=1000)return(n/1000).toFixed(1)+'k';return String(n)}
 function isSafeHttpUrl(url){try{const u=new URL(String(url||''));return u.protocol==='http:'||u.protocol==='https:';}catch(e){return false;}}
-function ltag(c){const tags=(c.tags||[]).filter(t=>t.name);if(!tags.length)return'';const vp=s=>String(s).replace(/^v/i,'').split('.').map(p=>{const n=parseInt(p,10);return isNaN(n)?p:n});return tags.reduce((b,t)=>{const bv=vp(b.name),tv=vp(t.name);for(let i=0;i<Math.max(bv.length,tv.length);i++){const bi=bv[i]??0,ti=tv[i]??0;if(typeof bi==='number'&&typeof ti==='number'){if(bi!==ti)return bi<ti?t:b}else{const sc=String(bi).localeCompare(String(ti));if(sc)return sc<0?t:b}}return b}).name}
+function ltag(c){const tags=(c.tags||[]).filter(t=>t.name);if(!tags.length)return'';const hasAnyDates=tags.some(t=>t.date&&t.date.trim());if(hasAnyDates){return tags.reduce((b,t)=>{const hasDateB=b.date&&b.date.trim(),hasDateT=t.date&&t.date.trim();if(hasDateT&&hasDateB){const db=new Date(b.date),dt=new Date(t.date);return dt>db?t:b}else if(hasDateT)return t;else if(hasDateB)return b;return b}).name}const vp=s=>String(s).replace(/^v/i,'').split('.').map(p=>{const n=parseInt(p,10);return isNaN(n)?p:n});return tags.reduce((b,t)=>{const bv=vp(b.name),tv=vp(t.name);for(let i=0;i<Math.max(bv.length,tv.length);i++){const bi=bv[i]??0,ti=tv[i]??0;if(typeof bi==='number'&&typeof ti==='number'){if(bi!==ti)return bi<ti?t:b}else{const sc=String(bi).localeCompare(String(ti));if(sc)return sc<0?t:b}}return b}).name}
 function relt(iso){if(!iso)return'';const d=new Date(iso);const diff=Date.now()-d.getTime();const days=Math.floor(diff/86400000);if(days<1)return'today';if(days<7)return`${days}d ago`;if(days<30)return`${Math.floor(days/7)}w ago`;if(days<365)return`${Math.floor(days/30)}mo ago`;return`${Math.floor(days/365)}y ago`}
 function cpTxt(t){if(navigator.clipboard)return navigator.clipboard.writeText(t);return new Promise((res,rej)=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();try{const ok=document.execCommand('copy');ok?res():rej(new Error('execCommand copy returned false'))}catch(e){rej(e)}finally{ta.remove()}})}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200)}
