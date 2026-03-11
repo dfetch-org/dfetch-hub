@@ -20,18 +20,6 @@ logger = get_logger(__name__)
 # ---------------------------------------------------------------------------
 
 _README_NAMES = ("README.md", "readme.md", "Readme.md", "README.rst", "README")
-_CHANGELOG_NAMES = (
-    "CHANGELOG.md",
-    "CHANGELOG",
-    "CHANGELOG.txt",
-    "CHANGES.md",
-    "CHANGES",
-    "CHANGES.txt",
-    "HISTORY.md",
-    "HISTORY",
-    "RELEASE_NOTES.md",
-    "RELEASE_NOTES",
-)
 
 # Matches lines that should be skipped: blank, Markdown headings, or badge links.
 _SKIP_RE = re.compile(r"^(#+\s+|\[!\[|\s*$)")
