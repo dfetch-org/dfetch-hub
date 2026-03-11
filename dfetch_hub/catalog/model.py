@@ -54,10 +54,17 @@ class GitRefs:
 
 @dataclass
 class PackageContent:
-    """Represents package content fetched from the repository."""
+    """Represents package content fetched from the repository.
+
+    Attributes:
+        readme: Raw README text.
+        license_text: Full license text, or ``None`` if unavailable.
+        changelog: Raw CHANGELOG text, or ``None`` if unavailable.
+    """
 
     readme: str = ""
     license_text: str | None = None
+    changelog: str | None = None
 
 
 @dataclass

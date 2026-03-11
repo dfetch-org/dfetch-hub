@@ -20,10 +20,30 @@ logger = get_logger(__name__)
 # ---------------------------------------------------------------------------
 
 _README_NAMES = ("README.md", "readme.md", "Readme.md", "README.rst", "README")
+_CHANGELOG_NAMES = (
+    "CHANGELOG.md",
+    "changelog.md",
+    "CHANGES.md",
+    "changes.md",
+    "HISTORY.md",
+    "history.md",
+)
 
 # Matches lines that should be skipped: blank, Markdown headings, or badge links.
 _SKIP_RE = re.compile(r"^(#+\s+|\[!\[|\s*$)")
 _DESCRIPTION_MAX = 120
+
+
+def _read_first_match(entry_dir: "Path", names: tuple[str, ...]) -> str | None:
+    """Return the content of the first matching file found in *entry_dir*, or ``None``."""
+    for name in names:
+        candidate = entry_dir / name
+        if candidate.is_file():
+            try:
+                return candidate.read_text(encoding="utf-8", errors="replace")
+            except OSError as exc:
+                logger.debug("Could not read %s: %s — skipped", candidate, exc)
+    return None
 
 
 def _is_content_line(line: str, in_code_block: bool) -> bool:
@@ -80,24 +100,19 @@ def parse_readme_dir(entry_dir: Path) -> BaseManifest | None:
         README, or ``None`` if no README file is found.
 
     """
-    for name in _README_NAMES:
-        readme_path = entry_dir / name
-        if readme_path.is_file():
-            try:
-                text = readme_path.read_text(encoding="utf-8", errors="replace")
-            except OSError as exc:
-                logger.debug("Could not read %s: %s — skipped", readme_path, exc)
-                return None
-            entry_name = entry_dir.name
-            return BaseManifest(
-                entry_name=entry_name,
-                package_name=entry_name,
-                description=_extract_description(text),
-                homepage=None,
-                license=None,
-                version=None,
-                readme_content=text,
-                in_project_repo=True,
-            )
-    logger.debug("No README found in %s — skipped", entry_dir)
-    return None
+    text = _read_first_match(entry_dir, _README_NAMES)
+    if text is None:
+        logger.debug("No README found in %s — skipped", entry_dir)
+        return None
+    entry_name = entry_dir.name
+    return BaseManifest(
+        entry_name=entry_name,
+        package_name=entry_name,
+        description=_extract_description(text),
+        homepage=None,
+        license=None,
+        version=None,
+        readme_content=text,
+        changelog_content=_read_first_match(entry_dir, _CHANGELOG_NAMES),
+        in_project_repo=True,
+    )

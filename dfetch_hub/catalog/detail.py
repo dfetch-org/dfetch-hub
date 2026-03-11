@@ -139,6 +139,16 @@ class CatalogDetail:  # pylint: disable=too-many-instance-attributes
         """Set the license text."""
         self.package_content.license_text = value
 
+    @property
+    def changelog(self) -> str | None:
+        """Raw CHANGELOG text, or ``None`` if unavailable."""
+        return self.package_content.changelog
+
+    @changelog.setter
+    def changelog(self, value: str | None) -> None:
+        """Set the changelog text."""
+        self.package_content.changelog = value
+
     def to_dict(self) -> dict[str, Any]:
         """Return a dict representation of this CatalogDetail."""
         return {
@@ -149,6 +159,7 @@ class CatalogDetail:  # pylint: disable=too-many-instance-attributes
             "catalog_sources": [s.to_dict() for s in self.catalog_sources],
             "manifests": self.manifests,
             "readme": self.package_content.readme,
+            "changelog": self.package_content.changelog,
             "tags": self.git_refs.to_dict()["tags"],
             "branches": self.git_refs.to_dict()["branches"],
             "urls": self.urls,
@@ -173,6 +184,7 @@ class CatalogDetail:  # pylint: disable=too-many-instance-attributes
             package_content=PackageContent(
                 readme=data.get("readme", ""),
                 license_text=data.get("license_text"),
+                changelog=data.get("changelog"),
             ),
             urls=dict(data.get("urls", {})),
             fetch_metadata=FetchMetadata.from_dict(data),
@@ -338,6 +350,10 @@ class CatalogDetail:  # pylint: disable=too-many-instance-attributes
             self.readme = readme_content
         elif not self.readme:
             self.readme = self.generate_readme(manifest, repo, manifest.homepage or "")
+
+        changelog_content = getattr(manifest, "changelog_content", None)
+        if changelog_content:
+            self.changelog = changelog_content
 
         self.urls.update(getattr(manifest, "urls", {}))
 

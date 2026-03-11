@@ -223,3 +223,39 @@ class TestParseReadmeDir:
             result = parse_readme_dir(pkg)
 
         assert result is None
+
+    def test_changelog_content_populated_when_changelog_present(self, tmp_path: Path) -> None:
+        """changelog_content is set when a CHANGELOG.md file exists alongside the README."""
+        pkg = tmp_path / "pkg"
+        pkg.mkdir()
+        (pkg / "README.md").write_text("# Pkg\n\nA package.", encoding="utf-8")
+        (pkg / "CHANGELOG.md").write_text("## v1.0\n- Initial release", encoding="utf-8")
+
+        result = parse_readme_dir(pkg)
+
+        assert result is not None
+        assert result.changelog_content == "## v1.0\n- Initial release"
+
+    def test_changelog_content_is_none_when_no_changelog(self, tmp_path: Path) -> None:
+        """changelog_content is None when no changelog file is present."""
+        pkg = tmp_path / "pkg"
+        pkg.mkdir()
+        (pkg / "README.md").write_text("# Pkg\n\nA package.", encoding="utf-8")
+
+        result = parse_readme_dir(pkg)
+
+        assert result is not None
+        assert result.changelog_content is None
+
+    @pytest.mark.parametrize("filename", ["changelog.md", "CHANGES.md", "HISTORY.md"])
+    def test_changelog_filename_variants(self, tmp_path: Path, filename: str) -> None:
+        """Recognises common changelog filename variants."""
+        pkg = tmp_path / "pkg"
+        pkg.mkdir()
+        (pkg / "README.md").write_text("# Pkg\n\nDesc.", encoding="utf-8")
+        (pkg / filename).write_text(f"# {filename} content", encoding="utf-8")
+
+        result = parse_readme_dir(pkg)
+
+        assert result is not None
+        assert result.changelog_content == f"# {filename} content"

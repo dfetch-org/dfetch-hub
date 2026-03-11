@@ -73,6 +73,16 @@ def parse_vcs_slug(url: str) -> tuple[str, str, str] | None:
 
 _HEADERS = {"User-Agent": "dfetch-hub/0.0.1"}
 _README_NAMES = ("README.md", "readme.md", "Readme.md", "README.rst", "README")
+_CHANGELOG_NAMES = (
+    "CHANGELOG.md",
+    "changelog.md",
+    "CHANGES.md",
+    "changes.md",
+    "HISTORY.md",
+    "history.md",
+    "NEWS.md",
+    "news.md",
+)
 RAW_BRANCHES = ("main", "master")
 
 
@@ -126,6 +136,51 @@ def fetch_readme(owner: str, repo: str) -> str | None:
                 logger.debug("Fetched %s for %s/%s from %s", name, owner, repo, branch)
                 return content
     return None
+
+
+def fetch_changelog(owner: str, repo: str) -> str | None:
+    """Fetch the CHANGELOG from a GitHub repository.
+
+    Tries ``main`` then ``master`` branch, and several common changelog filenames.
+
+    Args:
+        owner: GitHub organisation or username.
+        repo:  Repository name.
+
+    Returns:
+        The raw changelog text on success, or ``None`` if nothing is found.
+
+    """
+    for branch in RAW_BRANCHES:
+        for name in _CHANGELOG_NAMES:
+            content = fetch_raw(raw_url(owner, repo, branch, name))
+            if content is not None:
+                logger.debug("Fetched %s for %s/%s from %s", name, owner, repo, branch)
+                return content
+    return None
+
+
+def fetch_changelog_for_homepage(homepage: str | None) -> str | None:
+    """Fetch the CHANGELOG for a package given its homepage URL.
+
+    Extracts the VCS host/owner/repo from *homepage* and delegates to
+    :func:`fetch_changelog` when the host is ``github.com``.  Returns ``None``
+    for ``None`` input, non-VCS URLs, or non-GitHub hosts.
+
+    Args:
+        homepage: Upstream project URL (may be ``None`` or a non-GitHub URL).
+
+    Returns:
+        The raw changelog text on success, or ``None``.
+
+    """
+    if not homepage:
+        return None
+    parsed = parse_vcs_slug(homepage)
+    if parsed is None or parsed[0] != "github.com":
+        return None
+    _, owner, repo = parsed
+    return fetch_changelog(owner, repo)
 
 
 def fetch_readme_for_homepage(homepage: str | None) -> str | None:
@@ -188,6 +243,8 @@ class BaseManifest:  # pylint: disable=too-many-instance-attributes
                              a ``vcpkg.json`` or ``conanfile.py`` in a central registry).
                              Only manifests with ``in_project_repo=True`` should have
                              their ``subpath`` derived from the containing directory name.
+        changelog_content:   Raw CHANGELOG text fetched from the upstream repo, or
+                             ``None`` if unavailable.
     """
 
     entry_name: str
@@ -200,6 +257,7 @@ class BaseManifest:  # pylint: disable=too-many-instance-attributes
     urls: dict[str, str] = field(default_factory=dict)
     subpath: str | None = None
     in_project_repo: bool = False
+    changelog_content: str | None = None
 
     @property
     def sanitized_subpath(self) -> str | None:
