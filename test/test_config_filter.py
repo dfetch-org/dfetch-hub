@@ -7,12 +7,12 @@ from typing import TYPE_CHECKING
 
 import pytest
 
+from dfetch_hub.config import _parse_filter_rules  # noqa: PLC2701
+from dfetch_hub.config import _parse_filters  # noqa: PLC2701
 from dfetch_hub.config import (  # noqa: PLC2701
     FilterRuleConfig,
     HubConfig,
     TagFilterConfig,
-    _parse_filter_rules,  # noqa: PLC2701
-    _parse_filters,  # noqa: PLC2701
     load_config,
 )
 
