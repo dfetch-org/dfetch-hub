@@ -18,6 +18,7 @@ from dfetch_hub.catalog.sources.conan import parse_conan_recipe
 from dfetch_hub.catalog.sources.readme import parse_readme_dir
 from dfetch_hub.catalog.sources.vcpkg import parse_vcpkg_json
 from dfetch_hub.catalog.sources.west import parse_west_yaml
+from dfetch_hub.catalog.tag_filter import CaseMode, FilterRule, TagFilter
 from dfetch_hub.catalog.writer import CatalogWriter
 from dfetch_hub.commands import load_config_with_data_dir
 
@@ -25,7 +26,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
     from dfetch_hub.catalog.sources import BaseManifest
-    from dfetch_hub.config import SourceConfig
+    from dfetch_hub.config import SourceConfig, TagFilterConfig
 
 logger = get_logger(__name__)
 
@@ -43,6 +44,38 @@ _FILE_MANIFEST_PARSERS: dict[str, Callable[[Path, int | None], Sequence[BaseMani
     "Packages.md": parse_packages_md,
     "west.yml": parse_west_yaml,
 }
+
+
+def _build_tag_filter(
+    source: SourceConfig,
+    filters: dict[str, TagFilterConfig],
+) -> TagFilter | None:
+    """Build a :class:`~dfetch_hub.catalog.tag_filter.TagFilter` for *source*.
+
+    Returns ``None`` when *source* has no ``filter`` field configured or when
+    the referenced filter name is not found in *filters* (a warning is logged
+    in that case).
+
+    Args:
+        source: Source configuration supplying the ``filter`` field.
+        filters: Dict of named filters parsed from ``[filter.*]`` blocks.
+
+    Returns:
+        A ready :class:`~dfetch_hub.catalog.tag_filter.TagFilter` or ``None``.
+    """
+    if not source.filter:
+        return None
+    cfg = filters.get(source.filter)
+    if cfg is None:
+        logger.warning(
+            "%s: tag filter '%s' not found in config — tag filtering disabled",
+            source.name,
+            source.filter,
+        )
+        return None
+    include = [FilterRule(kind=r.kind, value=r.value, case=CaseMode(r.case)) for r in cfg.include]
+    exclude = [FilterRule(kind=r.kind, value=r.value, case=CaseMode(r.case)) for r in cfg.exclude]
+    return TagFilter(include=include, exclude=exclude)
 
 
 def _filter_sentinel(source: SourceConfig, entry_dirs: list[Path]) -> list[Path]:
@@ -126,10 +159,11 @@ def _parse_entry_dirs(
     return manifests, skipped
 
 
-def _process_subfolders_source(
+def _process_subfolders_source(  # pylint: disable=too-many-locals
     source: SourceConfig,
     data_dir: Path,
     limit: int | None,
+    tag_filter: TagFilter | None = None,
 ) -> None:
     """Handle strategy='subfolders' (vcpkg, conan-center, …).
 
@@ -171,6 +205,7 @@ def _process_subfolders_source(
             source.name,
             source.label or source.name,
             source.path or source.name,
+            tag_filter,
         )
         _added, _updated = writer.write(manifests)
         logger.print_info_line(
@@ -179,10 +214,11 @@ def _process_subfolders_source(
         )
 
 
-def _process_catalog_file_source(
+def _process_catalog_file_source(  # pylint: disable=too-many-locals
     source: SourceConfig,
     data_dir: Path,
     limit: int | None,
+    tag_filter: TagFilter | None = None,
 ) -> None:
     """Handle strategy='catalog-file': fetch a single catalog file from a repo and parse it.
 
@@ -227,6 +263,7 @@ def _process_catalog_file_source(
             source.name,
             source.label or source.name,
             source.path or source.name,
+            tag_filter,
         )
         _added, _updated = writer.write(entries)  # type: ignore[arg-type]
         logger.print_info_line(
@@ -239,11 +276,21 @@ def _process_source(
     source: SourceConfig,
     data_dir: Path,
     limit: int | None,
+    filters: dict[str, TagFilterConfig] | None = None,
 ) -> None:
+    """Dispatch *source* to the appropriate strategy handler.
+
+    Args:
+        source: Source configuration to process.
+        data_dir: Root catalog data directory.
+        limit: Optional cap on the number of entries processed.
+        filters: Named tag filter configurations from ``[filter.*]`` blocks.
+    """
+    tag_filter = _build_tag_filter(source, filters or {})
     if source.strategy == "subfolders":
-        _process_subfolders_source(source, data_dir, limit)
+        _process_subfolders_source(source, data_dir, limit, tag_filter)
     elif source.strategy == "catalog-file":
-        _process_catalog_file_source(source, data_dir, limit)
+        _process_catalog_file_source(source, data_dir, limit, tag_filter)
     else:
         logger.warning(
             "%s: strategy '%s' not yet supported — skipped",
@@ -264,7 +311,7 @@ def _cmd_update(parsed: argparse.Namespace) -> None:
             sys.exit(1)
 
     for source in sources:
-        _process_source(source, data_dir, parsed.limit)
+        _process_source(source, data_dir, parsed.limit, config.filters)
 
 
 _LIMIT_ERROR_MSG = "--limit must be >= 0"

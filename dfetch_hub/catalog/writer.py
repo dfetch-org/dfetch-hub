@@ -24,6 +24,7 @@ from dfetch.log import get_logger
 from dfetch_hub.catalog.detail import CatalogDetail
 from dfetch_hub.catalog.entry import CatalogEntry
 from dfetch_hub.catalog.sources import BaseManifest, parse_vcs_slug
+from dfetch_hub.catalog.tag_filter import TagFilter, apply_tag_filter
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -160,12 +161,13 @@ class CatalogWriter:
     index and individual detail files.
     """
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         data_dir: Path,
         source_name: str,
         label: str,
         registry_path: str,
+        tag_filter: TagFilter | None = None,
     ) -> None:
         """Initialize a CatalogWriter.
 
@@ -174,11 +176,15 @@ class CatalogWriter:
             source_name: Name of the package source.
             label: Human-readable label for the source.
             registry_path: Path within the source registry.
+            tag_filter: Optional :class:`~dfetch_hub.catalog.tag_filter.TagFilter`
+                applied to upstream tags before they are stored.  ``None``
+                keeps all tags.
         """
         self.data_dir = data_dir
         self.source_name = source_name
         self.label = label
         self.registry_path = registry_path
+        self.tag_filter = tag_filter
 
     def write(self, manifests: list[BaseManifest]) -> tuple[int, int]:
         """Write all manifests to the catalog."""
@@ -228,7 +234,13 @@ class CatalogWriter:
         repo: str,
         manifest: BaseManifest,
     ) -> None:
-        """Write the detail JSON for a manifest."""
+        """Write the detail JSON for a manifest.
+
+        When :attr:`tag_filter` is set the tag list is filtered after
+        :meth:`~dfetch_hub.catalog.detail.CatalogDetail.update_from_manifest`
+        populates it.  The ``{{component}}`` placeholder in filter rules is
+        resolved to ``manifest.subpath`` (the monorepo subfolder name).
+        """
         subpath = manifest.sanitized_subpath
 
         if subpath:
@@ -243,4 +255,8 @@ class CatalogWriter:
             detail = CatalogDetail.from_manifest(manifest, org, repo, self.source_name, self.label, self.registry_path)
 
         detail.update_from_manifest(manifest, repo, self.source_name, self.label, self.registry_path)
+
+        if self.tag_filter is not None:
+            detail.tags = apply_tag_filter(detail.tags, self.tag_filter, manifest.subpath)
+
         detail.dump(self.data_dir, vcs_host, org, repo, subpath)

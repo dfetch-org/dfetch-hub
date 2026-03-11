@@ -8,7 +8,36 @@ from pathlib import Path
 
 
 @dataclass
-class SourceConfig:
+class FilterRuleConfig:
+    """A single include or exclude rule inside a ``[filter.*]`` block.
+
+    Attributes:
+        kind: Rule type — ``prefix``, ``regex``, or ``semver``.
+        value: Pattern or prefix to match; may contain ``{{component}}``.
+        case: Normalization mode — ``smart`` (default), ``insensitive``,
+            ``sensitive``, ``normalize-lower``, or ``normalize-upper``.
+    """
+
+    kind: str
+    value: str = ""
+    case: str = "smart"
+
+
+@dataclass
+class TagFilterConfig:
+    """A named tag filter defined in a ``[filter.*]`` block.
+
+    Attributes:
+        include: Rules that must *all* match for a tag to be kept.
+        exclude: Rules where *any* match causes a tag to be dropped.
+    """
+
+    include: list[FilterRuleConfig] = field(default_factory=list)
+    exclude: list[FilterRuleConfig] = field(default_factory=list)
+
+
+@dataclass
+class SourceConfig:  # pylint: disable=too-many-instance-attributes
     """A single ``[[source]]`` block from *dfetch-hub.toml*.
 
     Attributes:
@@ -21,6 +50,9 @@ class SourceConfig:
         branch:            Branch to fetch; auto-detected from the remote when empty.
         ignore_if_present: Skip any subfolder that contains a file with this name
                            (e.g. ``.dfetch_data.yaml``).  Empty string disables filtering.
+        filter:            Name of a ``[filter.*]`` block to apply when selecting tags
+                           for components from this source.  Empty string disables
+                           tag filtering.
 
     """
 
@@ -32,6 +64,7 @@ class SourceConfig:
     label: str = ""
     branch: str = ""
     ignore_if_present: str = ""
+    filter: str = ""
 
 
 @dataclass
@@ -57,15 +90,63 @@ class HubConfig:
     Attributes:
         settings: Global settings block.
         sources:  All ``[[source]]`` blocks, in declaration order.
+        filters:  Named tag filters from ``[filter.*]`` blocks, keyed by name.
 
     """
 
     settings: Settings = field(default_factory=Settings)
     sources: list[SourceConfig] = field(default_factory=list)
+    filters: dict[str, TagFilterConfig] = field(default_factory=dict)
 
 
 _SOURCE_FIELDS: frozenset[str] = frozenset(f.name for f in fields(SourceConfig))
 _SETTINGS_FIELDS: frozenset[str] = frozenset(f.name for f in fields(Settings))
+_FILTER_RULE_FIELDS: frozenset[str] = frozenset(f.name for f in fields(FilterRuleConfig))
+
+
+def _parse_filter_rules(raw_rules: object) -> list[FilterRuleConfig]:
+    """Parse a list of raw rule dicts into :class:`FilterRuleConfig` objects.
+
+    Unknown keys in each rule are silently ignored.
+
+    Args:
+        raw_rules: The raw value from the TOML table; expected to be a list
+            of dicts.
+
+    Returns:
+        List of :class:`FilterRuleConfig` instances.
+    """
+    if not isinstance(raw_rules, list):
+        return []
+    return [
+        FilterRuleConfig(**{k: v for k, v in r.items() if k in _FILTER_RULE_FIELDS})
+        for r in raw_rules
+        if isinstance(r, dict) and "kind" in r
+    ]
+
+
+def _parse_filters(raw_filters_obj: object) -> dict[str, TagFilterConfig]:
+    """Parse the ``[filter.*]`` section into a dict of :class:`TagFilterConfig`.
+
+    Args:
+        raw_filters_obj: The raw ``filter`` value from the top-level TOML dict.
+            Expected to be a dict mapping filter names to tables with optional
+            ``include`` and ``exclude`` keys.
+
+    Returns:
+        Dict mapping filter name to :class:`TagFilterConfig`.
+    """
+    if not isinstance(raw_filters_obj, dict):
+        return {}
+    result: dict[str, TagFilterConfig] = {}
+    for name, raw_filter in raw_filters_obj.items():
+        if not isinstance(raw_filter, dict):
+            continue
+        result[name] = TagFilterConfig(
+            include=_parse_filter_rules(raw_filter.get("include", [])),
+            exclude=_parse_filter_rules(raw_filter.get("exclude", [])),
+        )
+    return result
 
 
 def load_config(path: str = "dfetch-hub.toml") -> HubConfig:
@@ -105,4 +186,6 @@ def load_config(path: str = "dfetch-hub.toml") -> HubConfig:
         SourceConfig(**{k: v for k, v in raw.items() if k in _SOURCE_FIELDS}) for raw in raw_sources_obj
     ]
 
-    return HubConfig(settings=settings, sources=sources)
+    filters = _parse_filters(data.get("filter", {}))
+
+    return HubConfig(settings=settings, sources=sources, filters=filters)
