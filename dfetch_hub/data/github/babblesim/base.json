@@ -16,8 +16,8 @@
   "tags": [
     {
       "name": "f65b51253f401591b0b734905ddb52b8d554a7d1",
-      "is_tag": true,
-      "commit_sha": null,
+      "is_tag": false,
+      "commit_sha": "f65b51253f401591b0b734905ddb52b8d554a7d1",
       "date": null
     },
     {
@@ -108,12 +108,6 @@
       "name": "v1.15.3",
       "is_tag": true,
       "commit_sha": "f65b51253f401591b0b734905ddb52b8d554a7d1",
-      "date": null
-    },
-    {
-      "name": "v1.15.4",
-      "is_tag": true,
-      "commit_sha": "1cce925c72805cfdbb6341ca8c0755c7d42699d3",
       "date": null
     },
     {

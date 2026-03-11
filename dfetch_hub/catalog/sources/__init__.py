@@ -119,13 +119,7 @@ def fetch_readme(owner: str, repo: str) -> str | None:
         The raw README text on success, or ``None`` if nothing is found.
 
     """
-    for branch in RAW_BRANCHES:
-        for name in _README_NAMES:
-            content = fetch_raw(raw_url(owner, repo, branch, name))
-            if content is not None:
-                logger.debug("Fetched %s for %s/%s from %s", name, owner, repo, branch)
-                return content
-    return None
+    return _probe_repo_files(owner, repo, _README_NAMES)
 
 
 def fetch_readme_for_homepage(homepage: str | None) -> str | None:
@@ -152,18 +146,47 @@ def fetch_readme_for_homepage(homepage: str | None) -> str | None:
     return fetch_readme(owner, repo)
 
 
-_CHANGELOG_NAMES = (
+CHANGELOG_NAMES: tuple[str, ...] = (
     "CHANGELOG.md",
+    "changelog.md",
+    "Changelog.md",
     "CHANGELOG",
     "CHANGELOG.txt",
     "CHANGES.md",
+    "changes.md",
+    "Changes.md",
     "CHANGES",
     "CHANGES.txt",
     "HISTORY.md",
+    "history.md",
+    "History.md",
     "HISTORY",
     "RELEASE_NOTES.md",
     "RELEASE_NOTES",
 )
+
+
+def _probe_repo_files(owner: str, repo: str, names: tuple[str, ...]) -> str | None:
+    """Probe a GitHub repository for the first file matching one of *names*.
+
+    Tries ``main`` then ``master`` branch for each candidate filename in *names*.
+
+    Args:
+        owner: GitHub organisation or username.
+        repo:  Repository name.
+        names: Candidate filenames to probe, tried in order.
+
+    Returns:
+        The raw file content on success, or ``None`` if nothing is found.
+
+    """
+    for branch in RAW_BRANCHES:
+        for name in names:
+            content = fetch_raw(raw_url(owner, repo, branch, name))
+            if content is not None:
+                logger.debug("Fetched %s for %s/%s from %s", name, owner, repo, branch)
+                return content
+    return None
 
 
 def fetch_changelog(owner: str, repo: str) -> str | None:
@@ -179,13 +202,7 @@ def fetch_changelog(owner: str, repo: str) -> str | None:
         The raw CHANGELOG text on success, or ``None`` if nothing is found.
 
     """
-    for branch in RAW_BRANCHES:
-        for name in _CHANGELOG_NAMES:
-            content = fetch_raw(raw_url(owner, repo, branch, name))
-            if content is not None:
-                logger.debug("Fetched %s for %s/%s from %s", name, owner, repo, branch)
-                return content
-    return None
+    return _probe_repo_files(owner, repo, CHANGELOG_NAMES)
 
 
 def fetch_changelog_for_homepage(homepage: str | None) -> str | None:

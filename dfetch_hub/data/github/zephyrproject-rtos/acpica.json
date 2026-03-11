@@ -16,8 +16,8 @@
   "tags": [
     {
       "name": "8d24867bc9c9d81c81eeac59391cda59333affd4",
-      "is_tag": true,
-      "commit_sha": null,
+      "is_tag": false,
+      "commit_sha": "8d24867bc9c9d81c81eeac59391cda59333affd4",
       "date": null
     }
   ],

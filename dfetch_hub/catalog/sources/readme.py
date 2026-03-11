@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 
 from dfetch.log import get_logger
 
-from dfetch_hub.catalog.sources import BaseManifest
+from dfetch_hub.catalog.sources import CHANGELOG_NAMES, BaseManifest
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -107,7 +107,7 @@ def parse_readme_dir(entry_dir: Path) -> BaseManifest | None:
         return None
 
     changelog_content = None
-    for name in _CHANGELOG_NAMES:
+    for name in CHANGELOG_NAMES:
         changelog_path = entry_dir / name
         if changelog_path.is_file():
             try:

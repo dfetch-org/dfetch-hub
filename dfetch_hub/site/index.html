@@ -894,6 +894,7 @@ async function showDetail(id){
   _pushURL({pkg:id});curPkg=id;showPage('page-detail');window.scrollTo(0,0);
   if(!c._detailLoaded){
     document.getElementById('readmeBody').innerHTML='<div class="readme-empty">Loading…</div>';
+    document.getElementById('changelogBody').innerHTML='<div class="readme-empty">Loading…</div>';
     document.getElementById('vtbody').innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--subtle)">Loading…</td></tr>';
     try{const resp=await fetch(`../data/${id}.json`);if(resp.ok){const d=await resp.json();Object.assign(RAW[id],d);}}catch(e){}
     RAW[id]._detailLoaded=true;
