@@ -5,7 +5,14 @@ from __future__ import annotations
 import pytest
 
 from dfetch_hub.catalog.model import Tag
-from dfetch_hub.catalog.tag_filter import CaseMode, FilterRule, TagFilter, apply_tag_filter, normalize_tag, sort_tags_newest_first
+from dfetch_hub.catalog.tag_filter import (
+    CaseMode,
+    FilterRule,
+    TagFilter,
+    apply_tag_filter,
+    normalize_tag,
+    sort_tags_newest_first,
+)
 
 # ---------------------------------------------------------------------------
 # Test data
