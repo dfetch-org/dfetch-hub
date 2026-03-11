@@ -350,3 +350,61 @@ def test_write_manifest_no_root_entry_is_a_noop(tmp_path: Path) -> None:
 
     assert was_added
     assert "github/myorg/mymonorepo/foo" in catalog.entries
+
+
+# ---------------------------------------------------------------------------
+# Tag propagation: catalog.json entry reflects detail tags
+# ---------------------------------------------------------------------------
+
+
+def test_write_manifest_propagates_detail_tags_to_catalog_entry(tmp_path: Path) -> None:
+    """Tags written to the detail JSON are also reflected in the catalog entry."""
+    from dfetch_hub.catalog.model import Tag
+
+    manifest = _manifest(version="v2.0.0")
+    catalog = Catalog()
+    writer = CatalogWriter(tmp_path, "vcpkg", "vcpkg", "ports")
+    writer.write_manifest(manifest, catalog)
+
+    entry = catalog.entries["github/abseil/abseil-cpp"]
+    tag_names = [t.name for t in entry.tags]
+    assert "v2.0.0" in tag_names
+
+
+def test_write_manifest_tags_sorted_newest_first_in_catalog_entry(tmp_path: Path) -> None:
+    """Catalog entry tags are sorted newest-first after write_manifest."""
+    from dfetch_hub.catalog.detail import CatalogDetail
+    from dfetch_hub.catalog.model import Tag
+
+    extra_tags = [
+        Tag(name="v3.0.0", is_tag=True),
+        Tag(name="v1.0.0", is_tag=True),
+    ]
+    with patch("dfetch_hub.catalog.detail.CatalogDetail.fetch_upstream_tags", return_value=extra_tags):
+        manifest = _manifest(version="v2.0.0")
+        catalog = Catalog()
+        writer = CatalogWriter(tmp_path, "vcpkg", "vcpkg", "ports")
+        writer.write_manifest(manifest, catalog)
+
+    entry = catalog.entries["github/abseil/abseil-cpp"]
+    tag_names = [t.name for t in entry.tags]
+    assert tag_names[0] == "v3.0.0"
+    assert tag_names[-1] == "v1.0.0"
+
+
+def test_write_manifest_detail_json_tags_sorted_newest_first(tmp_path: Path) -> None:
+    """Detail JSON file contains tags sorted newest-first."""
+    from dfetch_hub.catalog.model import Tag
+
+    extra_tags = [
+        Tag(name="v1.0.0", is_tag=True),
+        Tag(name="v3.0.0", is_tag=True),
+        Tag(name="v2.0.0", is_tag=True),
+    ]
+    with patch("dfetch_hub.catalog.detail.CatalogDetail.fetch_upstream_tags", return_value=extra_tags):
+        writer = CatalogWriter(tmp_path, "vcpkg", "vcpkg", "ports")
+        writer.write([_manifest(version=None)])
+
+    detail = json.loads((tmp_path / "github" / "abseil" / "abseil-cpp.json").read_text(encoding="utf-8"))
+    tag_names = [t["name"] for t in detail["tags"]]
+    assert tag_names == ["v3.0.0", "v2.0.0", "v1.0.0"]

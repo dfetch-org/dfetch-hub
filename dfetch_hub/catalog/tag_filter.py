@@ -30,6 +30,12 @@ if TYPE_CHECKING:
     from dfetch_hub.catalog.model import Tag
 
 # ---------------------------------------------------------------------------
+# Regex constants (version sorting)
+# ---------------------------------------------------------------------------
+
+_VERSION_NUMBERS = re.compile(r"^v?(\d+)\.(\d+)(?:\.(\d+))?")
+
+# ---------------------------------------------------------------------------
 # Regex constants
 # ---------------------------------------------------------------------------
 
@@ -205,3 +211,37 @@ def apply_tag_filter(
             continue
         result.append(tag)
     return result
+
+
+def _tag_sort_key(tag: Tag) -> tuple[int, str, tuple[int, ...]]:
+    """Return a sort key for *tag* used by :func:`sort_tags_newest_first`."""
+    if tag.date:
+        return (1, tag.date, ())
+    m = _VERSION_NUMBERS.match(tag.name)
+    if m:
+        nums: tuple[int, ...] = tuple(int(g) for g in m.groups() if g is not None)
+        return (0, "", nums)
+    return (-1, tag.name, ())
+
+
+def sort_tags_newest_first(tags: list[Tag]) -> list[Tag]:
+    """Return *tags* sorted newest-first.
+
+    Sorting priority (highest priority first):
+
+    1. Tags with a :attr:`~dfetch_hub.catalog.model.Tag.date` field — sorted
+       by ISO date string descending (lexicographic order is correct for ISO dates).
+    2. Tags without a date whose name starts with a numeric version prefix
+       (``vX.Y.Z`` or ``X.Y.Z``) — sorted by version tuple descending.
+    3. All remaining tags — sorted by name lexicographically descending.
+
+    The original :class:`~dfetch_hub.catalog.model.Tag` objects are returned
+    unchanged; tag names are never modified.
+
+    Args:
+        tags: Sequence of :class:`~dfetch_hub.catalog.model.Tag` objects to sort.
+
+    Returns:
+        A new list of the same tags ordered newest-first.
+    """
+    return sorted(tags, key=_tag_sort_key, reverse=True)
