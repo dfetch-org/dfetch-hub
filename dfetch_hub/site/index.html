@@ -629,6 +629,7 @@
             <button class="tabbtn active"
                     role="tab"
                     id="tab-btn-readme"
+                    data-tab="readme"
                     aria-selected="true"
                     aria-controls="tab-readme"
                     onclick="switchTab('readme')">
@@ -640,6 +641,7 @@
             <button class="tabbtn"
                     role="tab"
                     id="tab-btn-changelog"
+                    data-tab="changelog"
                     aria-selected="false"
                     aria-controls="tab-changelog"
                     onclick="switchTab('changelog')">
@@ -651,6 +653,7 @@
             <button class="tabbtn"
                     role="tab"
                     id="tab-btn-versions"
+                    data-tab="versions"
                     aria-selected="false"
                     aria-controls="tab-versions"
                     onclick="switchTab('versions')">
@@ -1191,7 +1194,7 @@ function toggleTreeGroup(hdr){
   while(sib&&sib.classList.contains('vtree-item')){sib.style.display=open?'none':'';sib=sib.nextElementSibling;}
 }
 function switchTab(name){
-  document.querySelectorAll('.tabbtn').forEach((b,i)=>{const ns=['readme','changelog','versions'];const on=ns[i]===name;b.classList.toggle('active',on);b.setAttribute('aria-selected',String(on))});
+  document.querySelectorAll('.tabbtn').forEach(b=>{const on=b.dataset.tab===name;b.classList.toggle('active',on);b.setAttribute('aria-selected',String(on))});
   document.querySelectorAll('.tabcontent').forEach(el=>el.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
 }
