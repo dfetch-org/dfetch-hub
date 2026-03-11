@@ -637,6 +637,12 @@
                     aria-selected="false"
                     aria-controls="tab-versions"
                     onclick="switchTab('versions')">Versions</button>
+            <button class="tabbtn"
+                    role="tab"
+                    id="tab-btn-changelog"
+                    aria-selected="false"
+                    aria-controls="tab-changelog"
+                    onclick="switchTab('changelog')">Changelog</button>
           </div>
         </div>
         <div class="pkg-body">
@@ -663,6 +669,12 @@
                 <tbody id="vtbody">
                 </tbody>
               </table>
+            </div>
+            <div class="tabcontent"
+                 id="tab-changelog"
+                 role="tabpanel"
+                 aria-labelledby="tab-btn-changelog">
+              <div class="readme-wrap" id="changelogBody"></div>
             </div>
           </div>
           <aside>
@@ -1059,6 +1071,9 @@ function renderDetail(c){
   // README
   const rb=document.getElementById('readmeBody');
   rb.innerHTML=c.readme&&c.readme.trim()?DOMPurify.sanitize(marked.parse(c.readme)):'<div class="readme-empty">No README available.</div>';
+  // Changelog
+  const cb=document.getElementById('changelogBody');
+  cb.innerHTML=c.changelog&&c.changelog.trim()?DOMPurify.sanitize(marked.parse(c.changelog)):'<div class="readme-empty">No changelog available.</div>';
   // Versions — init curVersion to first tag or default branch
   const sortedTags=[...(c.tags||[])].sort(_semverCmp);
   const allRefs=[...sortedTags.map(t=>({...t,kind:'tag'})),...(c.branches||[]).map(b=>({...b,kind:'branch'}))];
@@ -1158,7 +1173,7 @@ function toggleTreeGroup(hdr){
   while(sib&&sib.classList.contains('vtree-item')){sib.style.display=open?'none':'';sib=sib.nextElementSibling;}
 }
 function switchTab(name){
-  document.querySelectorAll('.tabbtn').forEach((b,i)=>{const ns=['readme','versions'];const on=ns[i]===name;b.classList.toggle('active',on);b.setAttribute('aria-selected',String(on))});
+  document.querySelectorAll('.tabbtn').forEach((b,i)=>{const ns=['readme','versions','changelog'];const on=ns[i]===name;b.classList.toggle('active',on);b.setAttribute('aria-selected',String(on))});
   document.querySelectorAll('.tabcontent').forEach(el=>el.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
 }
