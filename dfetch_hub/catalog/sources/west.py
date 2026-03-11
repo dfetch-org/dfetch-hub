@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING
 import yaml
 from dfetch.log import get_logger
 
-from dfetch_hub.catalog.sources import BaseManifest, fetch_readme_for_homepage
+from dfetch_hub.catalog.sources import BaseManifest, fetch_changelog_for_homepage, fetch_readme_for_homepage
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -161,6 +161,7 @@ def _build_west_project(
         version=version,
         groups=_extract_groups(entry),
         readme_content=fetch_readme_for_homepage(homepage),
+        changelog_content=fetch_changelog_for_homepage(homepage),
         urls=urls,
         in_project_repo=False,
     )

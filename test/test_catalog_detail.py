@@ -258,3 +258,83 @@ def test_generate_readme_no_subpath_no_src_line() -> None:
     m = _manifest()
     readme = CatalogDetail.generate_readme(m, "abseil-cpp", "https://github.com/abseil/abseil-cpp")
     assert "src:" not in readme
+
+
+# ---------------------------------------------------------------------------
+# Changelog property and serialization
+# ---------------------------------------------------------------------------
+
+
+def test_catalog_detail_changelog_defaults_to_none() -> None:
+    """changelog property returns None when PackageContent.changelog is unset."""
+    detail = CatalogDetail.from_manifest(_manifest(), "org", "repo", "source", "label", "path")
+    assert detail.changelog is None
+
+
+def test_catalog_detail_changelog_setter_stores_value() -> None:
+    """Setting the changelog property persists through the PackageContent layer."""
+    detail = CatalogDetail.from_manifest(_manifest(), "org", "repo", "source", "label", "path")
+    detail.changelog = "## v1.0\n- Initial release"
+    assert detail.changelog == "## v1.0\n- Initial release"
+
+
+def test_catalog_detail_to_dict_includes_changelog() -> None:
+    """to_dict serializes the changelog field."""
+    detail = CatalogDetail.from_manifest(_manifest(), "org", "repo", "source", "label", "path")
+    detail.changelog = "# Changelog"
+    d = detail.to_dict()
+    assert d["changelog"] == "# Changelog"
+
+
+def test_catalog_detail_from_dict_roundtrip_preserves_changelog() -> None:
+    """to_dict + from_dict round-trip preserves changelog content."""
+    detail = CatalogDetail.from_manifest(_manifest(), "org", "repo", "source", "label", "path")
+    detail.changelog = "## v2.0\n- Bug fixes"
+    restored = CatalogDetail.from_dict(detail.to_dict())
+    assert restored.changelog == "## v2.0\n- Bug fixes"
+
+
+def test_catalog_detail_from_dict_changelog_defaults_to_none() -> None:
+    """from_dict returns None changelog when key is absent from the dict."""
+    detail = CatalogDetail.from_manifest(_manifest(), "org", "repo", "source", "label", "path")
+    d = detail.to_dict()
+    d.pop("changelog", None)
+    restored = CatalogDetail.from_dict(d)
+    assert restored.changelog is None
+
+
+def test_merge_from_manifest_sets_changelog_from_manifest() -> None:
+    """merge_from_manifest populates changelog from manifest.changelog_content."""
+    from dfetch_hub.catalog.sources import BaseManifest
+
+    m = BaseManifest(
+        entry_name="pkg",
+        package_name="pkg",
+        description="desc",
+        homepage=None,
+        license=None,
+        version=None,
+        changelog_content="## v1.0\n- First release",
+    )
+    detail = CatalogDetail.from_manifest(m, "org", "repo", "src", "label", "path")
+    detail.merge_from_manifest(m, "repo")
+    assert detail.changelog == "## v1.0\n- First release"
+
+
+def test_merge_from_manifest_does_not_overwrite_changelog_with_none() -> None:
+    """Existing changelog is not cleared when manifest.changelog_content is None."""
+    from dfetch_hub.catalog.sources import BaseManifest
+
+    m_none = BaseManifest(
+        entry_name="pkg",
+        package_name="pkg",
+        description="desc",
+        homepage=None,
+        license=None,
+        version=None,
+        changelog_content=None,
+    )
+    detail = CatalogDetail.from_manifest(m_none, "org", "repo", "src", "label", "path")
+    detail.changelog = "## existing"
+    detail.merge_from_manifest(m_none, "repo")
+    assert detail.changelog == "## existing"
